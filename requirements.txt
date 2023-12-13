@@ -3,5 +3,3 @@ django-debug-toolbar
 gunicorn
 psycopg2-binary
 whitenoise
-pillow
-requests

@@ -1,6 +1,6 @@
-# Openshift quickstart: Customized version for updated Django 4.2.8 
+# Customized Openshift | Django 4.2.8 
 
-## [December 2023]
+**December 2023**
 
 This is a [Django](http://www.djangoproject.com) project that you can use as the starting point to develop your own and deploy it on an [OpenShift](https://github.com/openshift/origin) cluster.
 

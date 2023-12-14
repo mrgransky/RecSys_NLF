@@ -16,6 +16,7 @@ INSTALLED_APPS = [
 		'django.contrib.staticfiles',
 		'debug_toolbar',
 		'welcome',
+		'recsys_app',
 ]
 
 MIDDLEWARE = [
@@ -55,12 +56,7 @@ DATABASES = {
 	'default': database.config()
 }
 
-# https://docs.djangoproject.com/en/3.2/releases/3.2/#customizing-type-of-auto-created-primary-keys
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
-
-# Password validation
-# https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
 		{
 				'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -76,27 +72,12 @@ AUTH_PASSWORD_VALIDATORS = [
 		},
 ]
 
-
-# Internationalization
-# https://docs.djangoproject.com/en/3.2/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_L10N = True
-
 USE_TZ = True
-
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/3.2/howto/static-files/
-
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
 INTERNAL_IPS = ['127.0.0.1']

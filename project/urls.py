@@ -8,7 +8,7 @@ from recsys_app.views import main_page
 urlpatterns = [
 	path('admin/', admin.site.urls),
 	# ############# only welcome templates #############
-	# path('health/', health),
+	path('health/', health),
 	# path('', index, name='home'),
 	# ############# only welcome templates #############
 	path('', main_page, name='index'),

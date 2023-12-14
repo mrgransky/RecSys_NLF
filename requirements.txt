@@ -2,4 +2,6 @@ django
 django-debug-toolbar
 gunicorn
 psycopg2-binary
+pytz
+sqlparse
 whitenoise

@@ -7,9 +7,11 @@ from welcome.views import index, health
 urlpatterns = [
 	path('admin/', admin.site.urls),
 	############# only welcome templates #############
-	path('', index, name='index'),
-	path('', health, name='health'),
+	# path('', index, name='index'),
+	# path('', health, name='health'),
 	############# only welcome templates #############
+	path('health/', health),
+	path('', index, name='home'),
 ]
 
 if settings.DEBUG:

@@ -52,7 +52,7 @@ TKs=list()
 flinks=list()
 
 lmMethod: str="stanza"
-nSPMs: int=2
+nSPMs: int=58
 extracted_spm_file=os.path.join(HOME, f"datasets/NLF/concat_x{nSPMs}.tar.gz")
 print(f'extracting spm x{nSPMs}: {extracted_spm_file}...')
 extract_tar(fname=extracted_spm_file)

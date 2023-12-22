@@ -8,4 +8,5 @@ whitenoise
 numpy
 pandas
 dill
+scipy
 gdown

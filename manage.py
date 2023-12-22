@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 import os
 import sys
+##################################################
+# avoid __pycache__ # DON NOT DELETE THIS LINE!!!!
+sys.dont_write_bytecode = True 
+##################################################
 
 def main():
 	os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project.settings')

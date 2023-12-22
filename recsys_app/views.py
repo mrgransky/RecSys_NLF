@@ -1,11 +1,10 @@
 from django.shortcuts import render
 import numpy as np
-
+from recsys_app.recsys_src.gui_backend import *
 digi_base_url = "https://digi.kansalliskirjasto.fi/search"
 
-def get_recsys_result(qu: str="This is a sample query phrase!"):
-	return [f"Token_{i+1}" for i in np.arange(10)]
-
+# def get_recsys_results(qu: str="This is a sample query phrase!"):
+# 	return [f"Token_{i}" for i in np.arange(10)]
 
 def main_page(request):
 	left_image_url = "https://www.topuniversities.com/sites/default/files/profiles/logos/tampere-university_5bbf14847d023f5bc849ec9a_large.jpg"
@@ -14,10 +13,16 @@ def main_page(request):
 		'left_image_url': left_image_url,
 		'right_image_url': right_image_url,
 		'welcome_text': "Welcome to User-based Recommendation System!<br>What are you looking after?",
+		'nlf_link_title_text': "TESSST",
+		'input_query': "",
 	}
 	if request.method == 'POST':
 		query = request.POST.get('query', '')
-		library_link = f'{digi_base_url}?query={query}'
-		context['library_link'] = library_link
-		context['recommendation_result'] = get_recsys_result(qu=query),
+		nlf_resulted_link = f'{digi_base_url}?query={query}'
+		context["input_query"] = query
+		if request.POST.get('isRecSys')=="true":
+			print(f">> RecSys POST entered qu: {query} request.POST.get('isRecSys'): {request.POST.get('isRecSys')}")
+			context['recommendation_results'] = get_recsys_results(qu=query)
+		else:
+			print(f"ERROORRR!")
 	return render(request, 'recsys_app/index.html', context)

@@ -6,4 +6,6 @@ pytz
 sqlparse
 whitenoise
 numpy
+pandas
+dill
 gdown

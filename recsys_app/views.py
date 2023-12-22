@@ -6,6 +6,7 @@ digi_base_url = "https://digi.kansalliskirjasto.fi/search"
 def get_recsys_result(qu: str="This is a sample query phrase!"):
 	return [f"Token_{i+1}" for i in np.arange(10)]
 
+
 def main_page(request):
 	left_image_url = "https://www.topuniversities.com/sites/default/files/profiles/logos/tampere-university_5bbf14847d023f5bc849ec9a_large.jpg"
 	right_image_url = "https://netpreserve.org/resources/logo_KK.fi_-150x150.png"

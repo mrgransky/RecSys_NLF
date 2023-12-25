@@ -1,7 +1,6 @@
 from django.shortcuts import render
 import numpy as np
-from recsys_app.recsys_src.gui_backend import *
-digi_base_url = "https://digi.kansalliskirjasto.fi/search"
+# from recsys_app.recsys_src.gui_backend import *
 
 # def get_recsys_results(qu: str="This is a sample query phrase!"):
 # 	return [f"Token_{i}" for i in np.arange(10)]
@@ -13,16 +12,15 @@ def main_page(request):
 		'left_image_url': left_image_url,
 		'right_image_url': right_image_url,
 		'welcome_text': "Welcome to User-based Recommendation System!<br>What are you looking after?",
-		'nlf_link_title_text': "TESSST",
 		'input_query': "",
 	}
 	if request.method == 'POST':
 		query = request.POST.get('query', '')
-		nlf_resulted_link = f'{digi_base_url}?query={query}'
 		context["input_query"] = query
 		if request.POST.get('isRecSys')=="true":
 			print(f">> RecSys POST entered qu: {query} request.POST.get('isRecSys'): {request.POST.get('isRecSys')}")
-			context['recommendation_results'] = get_recsys_results(qu=query)
+			# context['recommendation_results'] = get_recsys_results(qu=query)
+			context['recommendation_results'] = [f"Token_{i}" for i in np.arange(10)]
 		else:
 			print(f"ERROORRR!")
 	return render(request, 'recsys_app/index.html', context)

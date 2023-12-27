@@ -16,7 +16,7 @@ def main_page(request):
 		query = request.POST.get('query', '')
 		context["input_query"] = query
 		if request.POST.get('isRecSys')=="true":
-			print(f">> RecSys POST entered qu: {query} request.POST.get('isRecSys'): {request.POST.get('isRecSys')}")
+			# print(f">> RecSys POST entered qu: {query} request.POST.get('isRecSys'): {request.POST.get('isRecSys')}")
 			context['recommendation_results'] = get_recsys_results(query_phrase=query, nTokens=10)
 		else:
 			print(f"ERROORRR!")

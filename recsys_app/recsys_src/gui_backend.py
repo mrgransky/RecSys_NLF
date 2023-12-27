@@ -18,11 +18,8 @@ left_image_path = "https://www.topuniversities.com/sites/default/files/profiles/
 right_image_path = "https://digi.kansalliskirjasto.fi/images/logos/logo_fi_darkblue.png"
 
 HOME=os.getenv('HOME')
-TKs=list()
-flinks=list()
-
 lmMethod: str="stanza"
-nSPMs: int=2
+nSPMs: int=14
 extracted_spm_file=os.path.join(HOME, f"datasets/NLF/concat_x{nSPMs}.tar.gz")
 spm_files_dir=os.path.join(HOME, f"datasets/NLF/concat_x{nSPMs}")
 fprefix=f"concatinated_{nSPMs}_SPMs"

@@ -145,9 +145,7 @@ def get_recsys_results(query_phrase: str="This is a sample query phrase!", nToke
 															avgrec=avgRecSys,
 															qu=query_phrase_tk,
 														)
-	# topKtokens = [f"Token_{i}" for i in np.arange(nTokens)]
 	return topKtokens
-
 
 print(f'extracting spm x{nSPMs}: {extracted_spm_file}...')
 extract_tar(fname=extracted_spm_file)

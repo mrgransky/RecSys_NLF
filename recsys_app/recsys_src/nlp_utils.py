@@ -1,5 +1,5 @@
-from tokenizer_utils import *
-from utils import *
+from recsys_app.recsys_src.tokenizer_utils import *
+from recsys_app.recsys_src.utils import *
 
 lemmatizer_methods = {"nltk": nltk_lemmatizer,
 											"spacy": spacy_tokenizer,

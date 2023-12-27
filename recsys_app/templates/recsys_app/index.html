@@ -7,89 +7,194 @@
 		<style>
 			body {
 				display: flex;
-				justify-content: center;
-				align-items: flex-start;
+				flex-direction: column;
+				align-items: center;
 				height: 100vh;
 				margin: 0;
-				padding-top: 50px; /* Add padding to the top */
+				padding-top: 0px;
+			}
+			.navbar {
+				display: flex;
+				justify-content: flex-start;
+				align-items: center;
+				background-color: #2c2c2c;
+				padding: 0px;
+				width: 100%;
+			}
+			.navbar a {
+				text-decoration: none;
+				color: white;
+				font-size: 18px;
+				padding: 16px 25px;
+				margin-right: 20px;
+			}
+			.navbar a:hover {
+				background-color: #ddd;
+				color: black;
 			}
 			.container {
 				text-align: center;
+				margin: 0 auto;
 			}
 			.image-container {
 				display: flex;
 				justify-content: space-between;
-				gap: 5px; /* Adjust the padding space between images */
+				/* gap: 15px; */
 			}
 			img {
-				margin-bottom: 60px;
+				margin-bottom: 20px;
 			}
 			form {
 				margin-top: 20px;
 			}
 			input[type="text"] {
 				width: 850px;
-				height: 25px;
+				height: 20px;
 				font-size: 20px;
-				padding: 10px;
+				padding: 15px;
 				font-weight: bold;
-				font-family: Ubuntu;
+				font-family: Georgia, 'Times New Roman', Times, serif;
+				border-color: #7b4ce9;
 			}
 			.button-container {
 				display: flex;
 				justify-content: center;
 				align-items: center;
-				gap: 50px; /* space between buttons */
-				margin-top: 30px; /* margin to the top of the buttons */
+				gap: 30px;
+				margin: 20px;
 			}
 			input[type="button"] {
-				width: 200px; /* Increase button width */
-				height: 50px;
-				font-size: 20px; /* Increase button font size */
+				width: 190px;
+				height: 45px;
+				font-size: 18px;
 				font-weight: bold;
 				background-color: darkgray;
 				color: rgb(0, 0, 0);
 				border: none;
 				cursor: pointer;
-			}
-			#libraryLinkContainer {
-				margin-top: 20px; /* Add margin to the top of the link container */
-				font-size: 20px; /* Increase libraryLink font size */
-				font-weight: bold;
-			}
-			#recommendationText {
-					color: green; /* Change the color to green */
-					font-weight: bold; /* Make the text bold */
-					margin-top: 30px; /* Add margin from the top */
-					font-size: 18px; /* Increase libraryLink font size */
-			}
-			#recommendationText b {
-					color: rgb(0, 85, 0); /* Change the color to green */
-					font-weight: bold; /* Make the text bold */
-					font-style: italic; /* Make the text italic */
-					font-size: 30px;
+				font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
 			}
 			input[type="submit"] {
-				width: 200px;
-				height: 50px;
-				font-size: 20px;
+				width: 190px;
+				height: 45px;
+				font-size: 18px;
 				font-weight: bold;
 				background-color: darkgray;
 				color: rgb(0, 0, 0);
 				border: none;
 				cursor: pointer;
+				font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+			}
+			#libraryLinkContainer {
+				font-size: 25px;
+				font-weight: bold;
+				font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+				background-color: #faf4f4;
+			}
+			#recSysIntroContainer {
+				color: rgba(0, 73, 10, 0.692);
+				font-weight: bold;
+				font-size: 21px;
+			}
+			#recSysIntroContainer b {
+				color: rgb(0, 58, 41);
+				font-weight: bold;
+				font-style: italic;
+				font-size: 26px;
+				margin-top: 50px;
+				margin-bottom: 50px;
+			}
+			#recSysResultsContainer {
+				margin-top: 20px;
+				font-size: 20px;
+				font-weight: bold;
+			}
+			.slider-container {
+				margin: 10px;
+				text-align: center;
+			}
+			#recSysSlider {
+				-webkit-appearance: none;
+				appearance: none;
+				width: 20%;
+				height: 15px;
+				background: darkgray;
+				outline: none;
+				opacity: 0.5;
+				-webkit-transition: .2s;
+				transition: opacity .2s;
+				border-radius: 10px;
+			}
+			#recSysSlider:hover {
+				opacity: 1;
+			}
+			#recSysSlider::-webkit-slider-thumb {
+				-webkit-appearance: none;
+				appearance: none;
+				width: 20px;
+				height: 20px;
+				background: #4CAF50;
+				cursor: pointer;
+				border-radius: 50%;
+			}
+			#recSysSlider::-moz-range-thumb {
+				width: 20px;
+				height: 20px;
+				background: #4CAF50;
+				cursor: pointer;
+				border-radius: 50%;
+			}
+			.loading-container {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+			}
+			.spinner-text {
+				color: rgba(125, 84, 221, 0.719);
+				font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+				font-size: 30px;
+				font-weight: bold;
+				font-style: oblique;
+				margin: 25px;
+			}
+			.loading-spinner {
+				display: none;
+				/* margin: 50px; */
+			}
+			.loading-spinner:before {
+				content: '';
+				box-sizing: border-box;
+				position: absolute;
+				width: 80px;
+				height: 80px;
+				margin-left: -80px;
+				border-radius: 70%;
+				border: 7px solid #7746d1;
+				border-top: 3px solid transparent;
+				animation: spin 0.9s linear infinite;
+			}
+			@keyframes spin {
+				0% { transform: rotate(0deg); }
+				100% { transform: rotate(360deg); }
 			}
 		</style>
 	</head>
+
 <body>
+	<div class="navbar">
+		<a href="{% url 'index' %}">Home</a>
+		<a href="{% url 'about_us' %}">About Us</a>
+	</div>
 
 	<div class="container">
+		
 		<div class="image-container">
 			<img src="{{ left_image_url }}" alt="Left Image" width="200" height="200">
 			<img src="{{ right_image_url }}" alt="Right Image" width="200" height="200">
 		</div>
 
 		<h2>{{ welcome_text|safe }}</h2>
+
 		<form method="post" action="{% url 'index' %}" id="searchForm">
 			<input type="hidden" name="isRecSys" id="isRecSys" value="false">
 			{% csrf_token %}
@@ -99,35 +204,51 @@
 				<input type="button" value="Clear" onclick="cleanSearch()">
 			</div>
 			<div id="libraryLinkContainer"></div>
-			<div class="button-container">
-				<input type="submit" value="Recommend Me" onclick="recommendMe(event)">
-				<input type="button" value="Clear" onclick="cleanRecSys()">
+		
+			<div class="loading-container">
+				<div class="button-container">
+					<input type="submit" value="Recommend Me" onclick="recommendMe(event)">
+					<input type="button" value="Clear" onclick="cleanRecSys()">
+				</div>
+				<div id="loadingSpinner" class="loading-spinner">
+					<p id="loadingText" class="spinner-text">Please Wait...</p>
+				</div>
 			</div>
-			<div id="recsysContainer">
+
+			<div class="slider-container">
 				{% if recommendation_results %}
-					<p>Since you Searched:<br>{{input_query}}<br>You might be also interested in: <br>{{recommendation_results}}</p>
+					<label for="recSysSlider" id="recSysSliderLbl">Number of RecSys Results:</label>
+					<input type="range" id="recSysSlider" name="recSysSlider" min="3" max="10" value="5" oninput="updateSliderValue(this.value)">
+					<span id="sliderValueDisplay">5</span>
 				{% endif %}
 			</div>
 
-		</form>
-		<div style="margin-top: 50px; text-align: center;">
-			<p>Developer:</p>
-			<p><a href="mailto:farid.alijani@tuni.fi">Farid Alijani : farid.alijani@tuni.fi</a></p>
+			<div id="recSysIntroContainer">
+				{% if recommendation_results %}
+					<p>Since you Searched<br> <b>{{input_query}}</b> <br>You might be also interested in<br></p>
+				{% endif %}
+			</div>
 
-			<p>Supervisors:</p>
-			<p>Associate Professor <a href="https://www.tuni.fi/en/sanna-kumpulainen" target="_blank">Sanna Kumpulainen</a></p>
-			<p>Professor <a href="https://homepages.tuni.fi/jaakko.peltonen/" target="_blank">Jaakko Peltonen</a></p>
-			<p>This project is part of <a href="https://www.dariah.fi/education-and-dissemination/" target="_blank">WP 5.X</a> <a href="https://www.dariah.fi/" target="_blank">DARIAH-FI</a> national research infrastructure in Finland.</p>
+			<div id="recSysResultsContainer"></div>
+		</form>
+
 	</div>
-	</div>
+
+	<script>
+		var recommendationResults = {{ recommendation_results|safe }};
+	</script>
+
+	<script>
+		let globalQuery = `{{ input_query|safe }}`;
+	</script>
 
 	<script>
 		function searchNLF() {
 			var query = document.getElementsByName("query")[0].value.trim();
 			if (query !== "") {
-				var libraryLinkContainer = document.getElementById("libraryLinkContainer");
+				var libLinkContainer = document.getElementById("libraryLinkContainer");
 				var libLink = "https://digi.kansalliskirjasto.fi/search?query=" + encodeURIComponent(query)
-				libraryLinkContainer.innerHTML = "<a href='" + libLink + "' target='_blank'>Click here to open National Library Result(s)</a>";
+				libLinkContainer.innerHTML = "<a href='" + libLink + "' target='_blank'>Click here to open National Library Results</a>";
 			} else {
 					alert('Oops! Enter a valid search query to proceed!');
 				}
@@ -137,22 +258,55 @@
 			document.getElementsByName("query")[0].value = "";
 			document.getElementsByName("query")[0].placeholder = "Enter your query keywords here...";
 		}
+		function showLoadingSpinner() {
+			document.getElementById("loadingSpinner").style.display = "flex";
+		}
+		function hideLoadingSpinner() {
+			document.getElementById("loadingSpinner").style.display = "none";
+		}
 		function recommendMe(event) {
 			var query = document.getElementsByName("query")[0].value.trim();
 			document.getElementById("isRecSys").value = true; // Update the hidden input field
+			showLoadingSpinner();
 			if (query !== "") {
 				document.getElementById("searchForm").submit();
 			} else {
-					alert('Oops! Enter a valid search query to proceed!');
-					event.preventDefault();
-				}
+				alert('Oops! Enter a valid search query to proceed!');
+				hideLoadingSpinner();
+				event.preventDefault();
+			}
 		}
 		function cleanRecSys() {
 			document.getElementsByName("query")[0].value = "";
 			document.getElementsByName("query")[0].placeholder = "Enter your query keywords here...";
-			document.getElementById("recsysContainer").innerHTML = "";
+			document.getElementById("recSysIntroContainer").remove();
+			document.getElementById("recSysResultsContainer").remove();
+			document.getElementById("recSysSlider").remove();
+			document.getElementById("sliderValueDisplay").remove();
+			document.getElementById("recSysSliderLbl").remove();
+		}
+		function updateSliderValue(sliderValue) {
+			document.getElementById('recSysSlider').value = sliderValue;
+			document.getElementById('sliderValueDisplay').textContent = sliderValue;
+			updateResultsBasedOnSliderValue();
 		}
 	</script>
 
+	<script>
+		document.addEventListener("DOMContentLoaded", function() {
+			updateResultsBasedOnSliderValue();
+		});
+		function updateResultsBasedOnSliderValue() {
+			var sliderValue = document.getElementById('recSysSlider').value;
+			var recsysRes = document.getElementById('recSysResultsContainer');
+			recsysRes.innerHTML = "";
+			for (let i = 0; i < sliderValue; i++) {
+				var recSysLink_i = "https://digi.kansalliskirjasto.fi/search?query=" + encodeURIComponent(globalQuery + " " + recommendationResults[i]);
+				recsysRes.innerHTML += `<p><a href='${recSysLink_i}' target='_blank'>${globalQuery} + ${recommendationResults[i]}</a></p>`;
+			}
+		}
+		updateResultsBasedOnSliderValue();
+	</script>
 </body>
+
 </html>

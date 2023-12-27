@@ -1,10 +1,3 @@
-# from utils import *
-# from nlp_utils import *
-
-# import ipywidgets as widgets
-# from IPython.display import display, HTML, Image
-# from PIL import Image as PILImage, ImageOps
-# from io import BytesIO
 import os
 import tarfile
 import glob
@@ -13,12 +6,94 @@ import gzip
 import dill
 import numpy as np
 import pandas as pd
+from recsys_app.recsys_src.tokenizer_utils import *
+
+lemmatizer_methods = {"nltk": nltk_lemmatizer,
+											"trankit": trankit_lemmatizer,
+											"stanza": stanza_lemmatizer,
+											}
 
 digi_base_url = "https://digi.kansalliskirjasto.fi/search"
 left_image_path = "https://www.topuniversities.com/sites/default/files/profiles/logos/tampere-university_5bbf14847d023f5bc849ec9a_large.jpg"
 right_image_path = "https://digi.kansalliskirjasto.fi/images/logos/logo_fi_darkblue.png"
 
 HOME=os.getenv('HOME')
+TKs=list()
+flinks=list()
+
+lmMethod: str="stanza"
+nSPMs: int=2
+extracted_spm_file=os.path.join(HOME, f"datasets/NLF/concat_x{nSPMs}.tar.gz")
+spm_files_dir=os.path.join(HOME, f"datasets/NLF/concat_x{nSPMs}")
+fprefix=f"concatinated_{nSPMs}_SPMs"
+
+def get_lemmatized_sqp(qu_list, lm: str="stanza"):
+	# qu_list = ['some word in this format with always length 1']
+	#print(len(qu_list), qu_list)
+	assert len(qu_list) == 1, f"query list length MUST be len(qu_list)==1, Now: {len(qu_list)}!!"
+	return lemmatizer_methods.get(lm)( clean_(docs=qu_list[0]) )
+
+def get_query_vec(mat, mat_row, mat_col, tokenized_qu_phrases=["åbo", "akademi"]):
+	query_vector=np.zeros((1, mat.shape[1]), dtype=np.float32)
+	query_vector[0, list(np.in1d(mat_col, tokenized_qu_phrases).nonzero()[0])]=1
+	# print(query_vector.shape, query_vector.dtype, np.count_nonzero(query_vector), np.where(query_vector.flatten()!=0)[0])
+	#print(np.argsort(tempquery.flatten())[-len(query_words):])
+	# print(np.where(query_vector.flatten()!=0)[0])
+	return query_vector
+
+def get_optimized_cs(spMtx, query_vec, idf_vec, spMtx_norm, exponent: float=1.0):
+	print(f"Optimized Cosine Similarity (1 x nUsers={spMtx.shape[0]})".center(150, "-"))
+	print(f"<spMtx> {type(spMtx)} {spMtx.shape} {spMtx.dtype}")
+	print(f"<quVec> {type(query_vec)} {query_vec.shape} {query_vec.dtype}")
+	print(f"<IDF> {type(idf_vec)} {idf_vec.shape} {idf_vec.dtype}")
+	st_t=time.time()
+	nUsers, _ = spMtx.shape
+	quInterest=np.squeeze(query_vec)*np.squeeze(np.asarray(idf_vec))#(nTokens,)x(nTokens,)
+	quInterestNorm=np.linalg.norm(quInterest)#.astype("float32") # float	
+	idx_nonzeros=np.nonzero(quInterest)#[1]
+	cs=np.zeros(nUsers, dtype=np.float32) # (nUsers,)
+	idf_squeezed=np.squeeze(np.asarray(idf_vec))
+	quInterest_nonZeros=quInterest[idx_nonzeros]*(1/quInterestNorm)	
+	for ui in np.arange(nUsers, dtype=np.int32): # ip1, ip2, ..., ipN
+		usrInterest=np.squeeze(spMtx[ui, idx_nonzeros].toarray())*idf_squeezed[idx_nonzeros] # 1 x len(idx[1])
+		usrInterestNorm=spMtx_norm[ui]+1e-18
+
+		# usrInterest_noNorms=usrInterest # added Nov 10th
+		# temp_cs_multiplier=np.sum(usrInterest_noNorms*quInterest_nonZeros) # added Nov 10th
+
+		usrInterest=(usrInterest*(1/usrInterestNorm))#**0.1 # seems faster
+		# usrInterest=numba_exp(array=(usrInterest*(1/usrInterestNorm)), exponent=0.1)#~0.35s 1cpu=>~0.07s 8cpu
+
+		usrInterest=(usrInterest**exponent) # added Nov 30th
+
+		cs[ui]=np.sum(usrInterest*quInterest_nonZeros)
+		# cs[ui]*=temp_cs_multiplier # added Nov 10th
+	print(f"Elapsed_t: {time.time()-st_t:.1f} s {type(cs)} {cs.dtype} {cs.shape}".center(150, "-"))
+	return cs # (nUsers,)
+
+def get_avg_rec(spMtx, cosine_sim, idf_vec, spMtx_norm):
+	print(f"Getting avgRecSysVec (1 x nTokens={spMtx.shape[1]})".center(150, " "))
+	print(f"<spMtx> {type(spMtx)} {spMtx.shape} {spMtx.dtype}")
+	print(f"<Cosine> {type(cosine_sim)} {cosine_sim.shape} {cosine_sim.dtype}")
+	print(f"<IDF> {type(idf_vec)} {idf_vec.shape} {idf_vec.dtype}")
+	st_t = time.time()
+	nUsers, nTokens= spMtx.shape
+	avg_rec=np.zeros(nTokens, dtype=np.float32)# (nTokens,)
+	idf_squeezed=np.squeeze(np.asarray(idf_vec))
+	for ui in np.arange(nUsers, dtype=np.int32):
+		nonzero_idxs=np.nonzero(spMtx[ui, :])[1] # necessary!
+		userInterest=np.squeeze(spMtx[ui, nonzero_idxs].toarray())*idf_squeezed[nonzero_idxs] #(nTokens,)x(nTokens,)
+		userInterestNorm=spMtx_norm[ui]+1e-18
+		userInterest*=(1/userInterestNorm) # (nTokens,)
+		update_vec=cosine_sim[ui]*userInterest # (nTokens,)
+		avg_rec[nonzero_idxs]+=update_vec # (nTokens,) + (len(idx_nonzeros),)
+	avg_rec*=(1/np.sum(cosine_sim)) # (nTokens,)
+	print(f"Elapsed_t: {time.time()-st_t:.2f} s {type(avg_rec)} {avg_rec.dtype} {avg_rec.shape}".center(150, " "))	
+	return avg_rec # (nTokens,)
+
+def get_topK_tokens(mat, mat_rows, mat_cols, avgrec, qu, K: int=80):
+	# return [mat_cols[iTK] for iTK in avgrec.argsort()[-K:]][::-1]
+	return [mat_cols[iTK] for iTK in avgrec.argsort()[-K:] if mat_cols[iTK] not in qu][::-1] # 
 
 def load_pickle(fpath:str="unknown",):
 	print(f"Checking for existence? {fpath}")
@@ -38,9 +113,6 @@ def load_pickle(fpath:str="unknown",):
 	print(f"Loaded in: {elpt:.3f} s | {type(pkl)} | {fsize:.2f} MB".center(130, " "))
 	return pkl
 
-def get_recsys_results(qu: str="This is a sample query phrase!"):
-	return [f"Token_{i}" for i in np.arange(10)]
-
 def extract_tar(fname):
 	output_folder = fname.split(".")[0]
 	if not os.path.isdir(output_folder):
@@ -48,185 +120,37 @@ def extract_tar(fname):
 		with tarfile.open(fname, 'r:gz') as tfile:
 			tfile.extractall(output_folder)
 
-TKs=list()
-flinks=list()
+def get_recsys_results(query_phrase: str="This is a sample query phrase!", nTokens: int=5):
+	query_phrase_tk = get_lemmatized_sqp(qu_list=[query_phrase], lm=lmMethod)
+	query_vector=get_query_vec(	mat=concat_spm_U_x_T,
+															mat_row=concat_spm_usrNames, 
+															mat_col=concat_spm_tokNames, 
+															tokenized_qu_phrases=query_phrase_tk,
+														)
+	ccs=get_optimized_cs(	spMtx=concat_spm_U_x_T,
+												query_vec=query_vector, 
+												idf_vec=idf_vec,
+												spMtx_norm=usrNorms, # must be adjusted, accordingly!
+											)
+	avgRecSys=get_avg_rec(spMtx=concat_spm_U_x_T,
+												cosine_sim=ccs**5,
+												idf_vec=idf_vec,
+												spMtx_norm=usrNorms,
+											)
+	topKtokens=get_topK_tokens(	mat=concat_spm_U_x_T, 
+															mat_rows=concat_spm_usrNames,
+															mat_cols=concat_spm_tokNames,
+															avgrec=avgRecSys,
+															qu=query_phrase_tk,
+														)
+	# topKtokens = [f"Token_{i}" for i in np.arange(nTokens)]
+	return topKtokens
 
-lmMethod: str="stanza"
-nSPMs: int=2
-extracted_spm_file=os.path.join(HOME, f"datasets/NLF/concat_x{nSPMs}.tar.gz")
+
 print(f'extracting spm x{nSPMs}: {extracted_spm_file}...')
 extract_tar(fname=extracted_spm_file)
-
-spm_files_dir=os.path.join(HOME, f"datasets/NLF/concat_x{nSPMs}")
-fprefix=f"concatinated_{nSPMs}_SPMs"
-
 concat_spm_U_x_T=load_pickle(fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'*_USERs_TOKENs_spm_*_nUSRs_x_*_nTOKs.gz')[0])
 concat_spm_usrNames=load_pickle(fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'*_USERs_TOKENs_spm_user_ip_names_*_nUSRs.gz')[0])
 concat_spm_tokNames=load_pickle(fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'*_USERs_TOKENs_spm_token_names_*_nTOKs.gz')[0])
 idf_vec=load_pickle(fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'*_idf_vec_1_x_*_nTOKs.gz')[0])
 usrNorms=load_pickle(fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'*_users_norm_1_x_*_nUSRs.gz')[0])
-
-# with HiddenPrints():
-# 	concat_spm_U_x_T=load_pickle(fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'*_USERs_TOKENs_spm_*_nUSRs_x_*_nTOKs.gz')[0])
-# 	concat_spm_usrNames=load_pickle(fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'*_USERs_TOKENs_spm_user_ip_names_*_nUSRs.gz')[0])
-# 	concat_spm_tokNames=load_pickle(fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'*_USERs_TOKENs_spm_token_names_*_nTOKs.gz')[0])
-# 	idf_vec=load_pickle(fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'*_idf_vec_1_x_*_nTOKs.gz')[0])
-# 	usrNorms=load_pickle(fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'*_users_norm_1_x_*_nUSRs.gz')[0])
-
-# left_image = PILImage.open(BytesIO(requests.get(left_image_path).content))
-# right_image = PILImage.open(BytesIO(requests.get(right_image_path).content))
-# left_image_widget = widgets.Image(value=requests.get(left_image_path).content, format='png', width=300, height=300)
-# right_image_widget = widgets.Image(value=requests.get(right_image_path).content, format='png', width=300, height=300)
-# welcome_lbl = widgets.HTML(value="<h2 style=font-family:verdana;font-size:22px;color:black;text-align:center;>Welcome to User-based Recommendation System!<br>What are you looking after?</h2>")
-
-# # Modified entry widget
-# entry = widgets.Text(placeholder="Enter your query keywords here...", 
-# 										 layout=widgets.Layout(width='800px', 
-# 																					 height='50px',
-# 																					 font_size='30px', 
-# 																					 padding='5px',
-# 																					 font_weight='bold',
-# 																					 font_family='Ubuntu',
-# 																					)
-# 										)
-
-# # Added vertical padding
-# vbox_layout = widgets.Layout(align_items='center', padding='15px')
-
-# button_style = {'button_color': 'darkgray', 'font_weight': 'bold', 'font_size': '16px'}
-# search_btn = widgets.Button(description="Search NLF", layout=widgets.Layout(width='150px'), style=button_style)
-# clean_search_btn = widgets.Button(description="Clear", layout=widgets.Layout(width='150px'), style=button_style)
-# rec_btn = widgets.Button(description="Recommend Me", layout=widgets.Layout(width='150px'), style=button_style)
-# clean_recsys_btn = widgets.Button(description="Clear", layout=widgets.Layout(width='150px'), style=button_style)
-# exit_btn = widgets.Button(description="Exit", layout=widgets.Layout(width='100px'), style=button_style)
-
-# countdown_lbl = widgets.HTML()
-# recys_lbl = widgets.HTML()
-# nlf_link_lable = widgets.HTML()
-
-# # Modified slider to have a minimum value of 3 and a maximum value of 15
-# slider_style={'description_width': 'initial'}
-# slider_value = widgets.IntSlider(value=5, min=3, max=20, description='Recsys Count', style=slider_style)
-# slider_value.layout.visibility = 'hidden'  # Initially hidden
-
-# progress_bar_style = {'description_width': 'initial', 'bar_color': 'blue', 'background_color': 'darkgray'}
-# progress_bar_description_style = {'description_width': 'initial', 'font-size': '25px', 'fort_family': 'Futura'}
-# progress_bar = widgets.IntProgress(value=0, min=0, max=350, description='Please wait...', style=progress_bar_style)
-# progress_bar.description_style = progress_bar_description_style
-# progress_bar.layout.visibility = 'hidden'  # Initially hidden
-
-# def run_recSys(query_phrase: str="This is a sample raw query phrase!", ):
-# 	query_phrase_tk = get_lemmatized_sqp(qu_list=[query_phrase], lm=lmMethod)
-# 	query_vector=get_query_vec(	mat=concat_spm_U_x_T,
-# 															mat_row=concat_spm_usrNames, 
-# 															mat_col=concat_spm_tokNames, 
-# 															tokenized_qu_phrases=query_phrase_tk,
-# 														)
-# 	ccs=get_optimized_cs(	spMtx=concat_spm_U_x_T,
-# 												query_vec=query_vector, 
-# 												idf_vec=idf_vec,
-# 												spMtx_norm=usrNorms, # must be adjusted, accordingly!
-# 											)
-# 	avgRecSys=get_avg_rec(spMtx=concat_spm_U_x_T,
-# 												cosine_sim=ccs**5,
-# 												idf_vec=idf_vec,
-# 												spMtx_norm=usrNorms,
-# 											)
-# 	topKtokens=get_topK_tokens(	mat=concat_spm_U_x_T, 
-# 															mat_rows=concat_spm_usrNames,
-# 															mat_cols=concat_spm_tokNames,
-# 															avgrec=avgRecSys,
-# 															qu=query_phrase_tk,
-# 														)
-# 	return topKtokens
-
-# def close_window(count=8):
-# 	if count > 0:
-# 		countdown_lbl.value = f"Thanks for using our service, Have a Good Day!<br><br>closing in {count} sec..."
-# 		time.sleep(1)
-# 		close_window(count-1)
-# 	else:
-# 		display(HTML("<b>Bye</b>"))
-
-# def get_nlf_link(change):
-# 	query = entry.value
-# 	if query and query != "Enter your query keywords here...":
-# 		encoded_query = urllib.parse.quote(query)
-# 		gen_link=f"{digi_base_url}?query={encoded_query}"
-# 		nlf_link_lable.value=f"<b style=font-family:verdana;font-size:20px;color:blue><a href={gen_link} target='_blank'>Click here to open National Library Results</a></b>"
-# 	else:
-# 		nlf_link_lable.value = "<p style=font-family:Courier;font-size:18px;color:red>Oops! Enter a valid search query to proceed!</p>"
-
-# def on_entry_click(widget, event, data):
-# 	if widget.value == "Enter your query keywords here...":
-# 		widget.value = ""
-# 		widget.style = {'description_width': 'initial', 'color': 'black'}
-
-# def clean_search_entry(change):
-# 	nlf_link_lable.value = ""
-# 	entry.value = ""
-# 	entry.placeholder = "Enter your query keywords here..."
-
-# def update_recys_lbl(_):
-# 	query = entry.value
-# 	if query and query != "Enter your query keywords here...":
-# 		recys_lbl.value = generate_recys_html(query, TKs, flinks, slider_value.value)
-# 	else:
-# 		recys_lbl.value = "<p style=font-family:verdana;font-size:18px;color:red;text-align:center;>Enter a valid search query first!</p>"
-
-# def generate_recys_html(query, TKs, flinks, slider_value):
-# 	recys_lines = ""
-# 	for i in np.arange(slider_value):
-# 		recys_lines += f"<b style=font-family:verdana;font-size:20px;color:blue><a href={flinks[i]} target='_blank'>{query} + {TKs[i]}</a></b><br>"
-# 	return f"<p style=font-family:verdana;color:green;font-size:20px;text-align:center;>" \
-# 				 f"Since you searched<br>" \
-# 				 f"<b><i font-size:30px;>{query}</i></b><br>" \
-# 				 f"you might be also interested in:<br>" \
-# 				 f"{recys_lines}" \
-# 				 f"</p>"
-
-# def clean_recsys_entry(change):
-# 	entry.value = ""
-# 	entry.placeholder = "Enter your query keywords here..."
-# 	recys_lbl.value = ""
-# 	slider_value.layout.visibility = 'hidden'  # Hide slider
-
-# def rec_btn_click(change):
-# 	query = entry.value
-# 	if query and query != "Enter your query keywords here...":
-# 		progress_bar.layout.visibility = 'visible'  # Show progress bar
-# 		global TKs, flinks
-# 		with HiddenPrints():
-# 			TKs=run_recSys(query_phrase=query)
-# 		flinks=[f"{digi_base_url}?query={urllib.parse.quote(f'{query} {tk}')}" for tk in TKs]
-# 		progress_bar.layout.visibility = 'hidden'  # Hide progress bar
-# 		slider_value.layout.visibility = 'visible'  # Show slider
-# 	else:
-# 		recys_lbl.value = "<p style=font-family:verdana;font-size:18px;color:red;text-align:center;>Enter a valid search query first!</p>"
-# 	slider_value.value = 5  # Reset slider to its initial value
-# 	update_recys_lbl(None)
-
-# def run_gui():
-# 	# load files and spm:
-
-# 	GUI=widgets.VBox(
-# 		[widgets.HBox([left_image_widget, widgets.Label(value=' '), right_image_widget], layout=vbox_layout),
-# 		 welcome_lbl,
-# 		 entry,
-# 		 widgets.HBox([search_btn, widgets.Label(value=' '), clean_search_btn], layout=vbox_layout),
-# 		 nlf_link_lable,
-# 		 widgets.HBox([rec_btn, widgets.Label(value=' '), clean_recsys_btn], layout=vbox_layout),
-# 		 slider_value,  # Added slider
-# 		 recys_lbl,
-# 		 progress_bar,  # Added progress bar
-# 		 widgets.HBox([exit_btn], layout=vbox_layout),
-# 		 countdown_lbl],
-# 		layout=vbox_layout
-# 	)
-# 	display(GUI)
-
-# search_btn.on_click(get_nlf_link)
-# clean_search_btn.on_click(clean_search_entry)
-# slider_value.observe(update_recys_lbl, names='value') # real-time behavior
-# rec_btn.on_click(rec_btn_click)
-# clean_recsys_btn.on_click(clean_recsys_entry)

@@ -39,11 +39,11 @@ def get_query_vec(mat, mat_row, mat_col, tokenized_qu_phrases=["åbo", "akademi"
 	return query_vector
 
 def get_optimized_cs(spMtx, query_vec, idf_vec, spMtx_norm, exponent: float=1.0):
-	print(f"Optimized Cosine Similarity (1 x nUsers={spMtx.shape[0]})".center(150, "-"))
-	print(f"<spMtx> {type(spMtx)} {spMtx.shape} {spMtx.dtype}")
-	print(f"<quVec> {type(query_vec)} {query_vec.shape} {query_vec.dtype}")
-	print(f"<IDF> {type(idf_vec)} {idf_vec.shape} {idf_vec.dtype}")
-	st_t=time.time()
+	# print(f"Optimized Cosine Similarity (1 x nUsers={spMtx.shape[0]})".center(150, "-"))
+	# print(f"<spMtx> {type(spMtx)} {spMtx.shape} {spMtx.dtype}")
+	# print(f"<quVec> {type(query_vec)} {query_vec.shape} {query_vec.dtype}")
+	# print(f"<IDF> {type(idf_vec)} {idf_vec.shape} {idf_vec.dtype}")
+	# st_t=time.time()
 	nUsers, _ = spMtx.shape
 	quInterest=np.squeeze(query_vec)*np.squeeze(np.asarray(idf_vec))#(nTokens,)x(nTokens,)
 	quInterestNorm=np.linalg.norm(quInterest)#.astype("float32") # float	
@@ -65,7 +65,7 @@ def get_optimized_cs(spMtx, query_vec, idf_vec, spMtx_norm, exponent: float=1.0)
 
 		cs[ui]=np.sum(usrInterest*quInterest_nonZeros)
 		# cs[ui]*=temp_cs_multiplier # added Nov 10th
-	print(f"Elapsed_t: {time.time()-st_t:.1f} s {type(cs)} {cs.dtype} {cs.shape}".center(150, "-"))
+	# print(f"Elapsed_t: {time.time()-st_t:.1f} s {type(cs)} {cs.dtype} {cs.shape}".center(150, "-"))
 	return cs # (nUsers,)
 
 def get_avg_rec(spMtx, cosine_sim, idf_vec, spMtx_norm):

@@ -10,5 +10,5 @@ pandas
 dill
 scipy
 gdown
-stanza=1.5.0
+stanza==1.5.0
 nltk

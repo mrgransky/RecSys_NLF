@@ -18,7 +18,7 @@ def main_page(request):
 		if request.POST.get('isRecSys')=="true":
 			# print(f">> RecSys POST entered qu: {query} request.POST.get('isRecSys'): {request.POST.get('isRecSys')}")
 			# context['recommendation_results'] = get_recsys_results(query_phrase=query, nTokens=10)
-			context['recommendation_results'] = [f"Token_{i}" for i in np.arange(nTokens)]
+			context['recommendation_results'] = [f"Token_{i}" for i in np.arange(10)]
 		else:
 			print(f"ERROORRR!")
 	return render(request, 'recsys_app/index.html', context)

@@ -69,10 +69,11 @@ def get_optimized_cs(spMtx, query_vec, idf_vec, spMtx_norm, exponent: float=1.0)
 	return cs # (nUsers,)
 
 def get_avg_rec(spMtx, cosine_sim, idf_vec, spMtx_norm):
-	print(f"Getting avgRecSysVec (1 x nTokens={spMtx.shape[1]})".center(150, " "))
-	print(f"<spMtx> {type(spMtx)} {spMtx.shape} {spMtx.dtype}")
-	print(f"<Cosine> {type(cosine_sim)} {cosine_sim.shape} {cosine_sim.dtype}")
-	print(f"<IDF> {type(idf_vec)} {idf_vec.shape} {idf_vec.dtype}")
+	print(f"avgRecSys nTKs={spMtx.shape[1]} "
+				f"spMtx {type(spMtx)} {spMtx.shape} {spMtx.dtype} "
+				f"CS {type(cosine_sim)} {cosine_sim.shape} {cosine_sim.dtype} "
+				f"IDF {type(idf_vec)} {idf_vec.shape} {idf_vec.dtype}"
+			)
 	st_t = time.time()
 	nUsers, nTokens= spMtx.shape
 	avg_rec=np.zeros(nTokens, dtype=np.float32)# (nTokens,)
@@ -85,7 +86,7 @@ def get_avg_rec(spMtx, cosine_sim, idf_vec, spMtx_norm):
 		update_vec=cosine_sim[ui]*userInterest # (nTokens,)
 		avg_rec[nonzero_idxs]+=update_vec # (nTokens,) + (len(idx_nonzeros),)
 	avg_rec*=(1/np.sum(cosine_sim)) # (nTokens,)
-	print(f"Elapsed_t: {time.time()-st_t:.2f} s {type(avg_rec)} {avg_rec.dtype} {avg_rec.shape}".center(150, " "))	
+	print(f"Elapsed_t: {time.time()-st_t:.2f} s {type(avg_rec)} {avg_rec.dtype} {avg_rec.shape}".center(150, "-"))	
 	return avg_rec # (nTokens,)
 
 def get_topK_tokens(mat, mat_rows, mat_cols, avgrec, qu, K: int=80):

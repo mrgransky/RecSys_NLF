@@ -11,4 +11,4 @@ dill
 scipy
 gdown
 nltk
-stanza==1.5.0
+stanza==1.5

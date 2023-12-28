@@ -19,7 +19,7 @@ right_image_path = "https://digi.kansalliskirjasto.fi/images/logos/logo_fi_darkb
 
 HOME=os.getenv('HOME')
 lmMethod: str="stanza"
-nSPMs: int=2
+nSPMs: int=9
 extracted_spm_file=os.path.join(HOME, f"datasets/NLF/concat_x{nSPMs}.tar.gz")
 spm_files_dir=os.path.join(HOME, f"datasets/NLF/concat_x{nSPMs}")
 fprefix=f"concatinated_{nSPMs}_SPMs"
@@ -65,7 +65,7 @@ def get_optimized_cs(spMtx, query_vec, idf_vec, spMtx_norm, exponent: float=1.0)
 
 		cs[ui]=np.sum(usrInterest*quInterest_nonZeros)
 		# cs[ui]*=temp_cs_multiplier # added Nov 10th
-	# print(f"Elapsed_t: {time.time()-st_t:.1f} s {type(cs)} {cs.dtype} {cs.shape}".center(150, "-"))
+	# print(f"Elapsed_t: {time.time()-st_t:.2f} s {type(cs)} {cs.dtype} {cs.shape}".center(150, "-"))
 	return cs # (nUsers,)
 
 def get_avg_rec(spMtx, cosine_sim, idf_vec, spMtx_norm):

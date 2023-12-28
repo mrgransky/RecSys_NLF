@@ -5,7 +5,6 @@ from django.contrib import admin
 from welcome.views import index, health
 from recsys_app.views import main_page, about_us_page
 
-
 urlpatterns = [
 	path('admin/', admin.site.urls),
 	# ############# only welcome templates #############

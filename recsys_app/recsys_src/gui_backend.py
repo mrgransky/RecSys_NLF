@@ -19,10 +19,12 @@ right_image_path = "https://digi.kansalliskirjasto.fi/images/logos/logo_fi_darkb
 
 HOME=os.getenv('HOME')
 lmMethod: str="stanza"
-nSPMs: int=2
-extracted_spm_file=os.path.join(HOME, f"datasets/NLF/concat_x{nSPMs}.tar.gz")
-spm_files_dir=os.path.join(HOME, f"datasets/NLF/concat_x{nSPMs}")
-fprefix=f"concatinated_{nSPMs}_SPMs"
+nSPMs: int=4
+
+DATASET_DIR: str = f"datasets/compressed_concatenated_SPMs"
+compressed_spm_file = os.path.join(HOME, DATASET_DIR, f"concat_x{nSPMs}.tar.gz")
+spm_files_dir = os.path.join(HOME, DATASET_DIR, f"concat_x{nSPMs}")
+fprefix: str = f"concatinated_{nSPMs}_SPMs"
 
 def get_lemmatized_sqp(qu_list, lm: str="stanza"):
 	# qu_list = ['some word in this format with always length 1']
@@ -148,8 +150,8 @@ def get_recsys_results(query_phrase: str="This is a sample query phrase!", nToke
 														)
 	return topKtokens
 
-print(f'extracting spm x{nSPMs}: {extracted_spm_file}...')
-extract_tar(fname=extracted_spm_file)
+print(f'extracting spm x{nSPMs}: {compressed_spm_file}...')
+extract_tar(fname=compressed_spm_file)
 concat_spm_U_x_T=load_pickle(fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'*_USERs_TOKENs_spm_*_nUSRs_x_*_nTOKs.gz')[0])
 concat_spm_usrNames=load_pickle(fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'*_USERs_TOKENs_spm_user_ip_names_*_nUSRs.gz')[0])
 concat_spm_tokNames=load_pickle(fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'*_USERs_TOKENs_spm_token_names_*_nTOKs.gz')[0])

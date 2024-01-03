@@ -149,6 +149,7 @@ def get_recsys_results(query_phrase: str="This is a sample query phrase!", nToke
 															avgrec=avgRecSys,
 															qu=query_phrase_tk,
 														)
+	print(f"Found {len(topKtokens)} Recommendations")
 	return topKtokens
 
 extract_tar(fname=compressed_spm_file)

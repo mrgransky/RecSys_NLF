@@ -115,6 +115,7 @@ def load_pickle(fpath:str="unknown",):
 def extract_tar(fname):
 	output_folder = fname.split(".")[0]
 	if not os.path.isdir(output_folder):
+		print(f'extracting spm x{nSPMs}: {fname}...')
 		print(f"{output_folder} does not exist, creating...")
 		with tarfile.open(fname, 'r:gz') as tfile:
 			tfile.extractall(output_folder)
@@ -149,7 +150,6 @@ def get_recsys_results(query_phrase: str="This is a sample query phrase!", nToke
 														)
 	return topKtokens
 
-print(f'extracting spm x{nSPMs}: {compressed_spm_file}...')
 extract_tar(fname=compressed_spm_file)
 concat_spm_U_x_T=load_pickle(fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'*_USERs_TOKENs_spm_*_nUSRs_x_*_nTOKs.gz')[0])
 concat_spm_usrNames=load_pickle(fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'*_USERs_TOKENs_spm_user_ip_names_*_nUSRs.gz')[0])

@@ -18,6 +18,7 @@ left_image_path = "https://www.topuniversities.com/sites/default/files/profiles/
 right_image_path = "https://digi.kansalliskirjasto.fi/images/logos/logo_fi_darkblue.png"
 
 HOME=os.getenv('HOME')
+
 lmMethod: str="stanza"
 nSPMs: int=14
 DATASET_DIR: str = f"datasets/compressed_concatenated_SPMs"

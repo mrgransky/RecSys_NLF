@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from recsys_app.recsys_src.gui_backend import *
 
+
 def about_us_page(request):
 	return render(request, 'recsys_app/about_us.html')
 

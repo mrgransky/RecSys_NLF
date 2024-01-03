@@ -20,7 +20,7 @@ right_image_path = "https://digi.kansalliskirjasto.fi/images/logos/logo_fi_darkb
 HOME=os.getenv('HOME')
 
 lmMethod: str="stanza"
-nSPMs: int=14
+nSPMs: int=58
 DATASET_DIR: str = f"datasets/compressed_concatenated_SPMs"
 compressed_spm_file = os.path.join(HOME, DATASET_DIR, f"concat_x{nSPMs}.tar.gz")
 spm_files_dir = os.path.join(HOME, DATASET_DIR, f"concat_x{nSPMs}")

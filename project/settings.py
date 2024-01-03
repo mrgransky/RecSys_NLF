@@ -5,7 +5,9 @@ SECRET_KEY = os.getenv(
 		'9e4@&tw46$l31)zrqe3wi+-slqm(ruvz&se0^%9#6(_w3ui!c0'
 )
 
-DEBUG = True
+# DEBUG = True # causes "Broken pipe from ('94.72.62.225', 53959)" error!
+DEBUG = False
+
 ALLOWED_HOSTS = ['*']
 INSTALLED_APPS = [
 		'django.contrib.admin',

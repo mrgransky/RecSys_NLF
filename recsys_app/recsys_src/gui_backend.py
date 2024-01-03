@@ -16,7 +16,7 @@ lemmatizer_methods = {"nltk": nltk_lemmatizer,
 digi_base_url = "https://digi.kansalliskirjasto.fi/search"
 left_image_path = "https://www.topuniversities.com/sites/default/files/profiles/logos/tampere-university_5bbf14847d023f5bc849ec9a_large.jpg"
 right_image_path = "https://digi.kansalliskirjasto.fi/images/logos/logo_fi_darkblue.png"
-
+###########################################################################################
 HOME=os.getenv('HOME')
 lmMethod: str="stanza"
 nSPMs: int=20
@@ -24,6 +24,7 @@ DATASET_DIR: str = f"datasets/compressed_concatenated_SPMs"
 compressed_spm_file = os.path.join(HOME, DATASET_DIR, f"concat_x{nSPMs}.tar.gz")
 spm_files_dir = os.path.join(HOME, DATASET_DIR, f"concat_x{nSPMs}")
 fprefix: str = f"concatinated_{nSPMs}_SPMs"
+###########################################################################################
 
 def get_lemmatized_sqp(qu_list, lm: str="stanza"):
 	# qu_list = ['some word in this format with always length 1']

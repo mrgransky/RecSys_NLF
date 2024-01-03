@@ -198,7 +198,7 @@
 		<form method="post" action="{% url 'index' %}" id="searchForm">
 			<input type="hidden" name="isRecSys" id="isRecSys" value="false">
 			{% csrf_token %}
-			<input type="text" name="query" placeholder="Enter your query keywords here...">
+			<input type="text" name="query" placeholder="Query Keywords (Ex: Suomen sosialistinen tasavalta)...">
 			<div class="button-container">
 				<input type="button" value="Search NLF" onclick="searchNLF()">
 				<input type="button" value="Clear" onclick="cleanSearch()">
@@ -256,7 +256,7 @@
 		function cleanSearch() {
 			document.getElementById("libraryLinkContainer").innerHTML = "";
 			document.getElementsByName("query")[0].value = "";
-			document.getElementsByName("query")[0].placeholder = "Enter your query keywords here...";
+			document.getElementsByName("query")[0].placeholder = "Query Keywords (Ex: Suomen sosialistinen tasavalta)...";
 		}
 		function showLoadingSpinner() {
 			document.getElementById("loadingSpinner").style.display = "flex";
@@ -278,7 +278,7 @@
 		}
 		function cleanRecSys() {
 			document.getElementsByName("query")[0].value = "";
-			document.getElementsByName("query")[0].placeholder = "Enter your query keywords here...";
+			document.getElementsByName("query")[0].placeholder = "Query Keywords (Ex: Suomen sosialistinen tasavalta)...";
 			document.getElementById("recSysIntroContainer").remove();
 			document.getElementById("recSysResultsContainer").remove();
 			document.getElementById("recSysSlider").remove();

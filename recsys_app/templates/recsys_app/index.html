@@ -32,6 +32,12 @@
 				background-color: #ddd;
 				color: black;
 			}
+			.navbar a.home {
+            background-color: #5b37b1;
+            color: rgb(255, 255, 255);
+						font-style: oblique;
+						font-weight: bold;
+      }
 			.container {
 				text-align: center;
 				margin: 0 auto;
@@ -45,10 +51,10 @@
 				margin-bottom: 20px;
 			}
 			form {
-				margin-top: 20px;
+				margin: 10px;
 			}
 			input[type="text"] {
-				width: 850px;
+				width: 800px;
 				height: 20px;
 				font-size: 20px;
 				padding: 15px;
@@ -182,7 +188,7 @@
 
 <body>
 	<div class="navbar">
-		<a href="{% url 'index' %}">Home</a>
+		<a href="{% url 'main_page' %}" class="home">Home</a>
 		<a href="{% url 'about_us' %}">About Us</a>
 	</div>
 
@@ -195,7 +201,7 @@
 
 		<h2>{{ welcome_text|safe }}</h2>
 
-		<form method="post" action="{% url 'index' %}" id="searchForm">
+		<form method="post" action="{% url 'main_page' %}" id="searchForm">
 			<input type="hidden" name="isRecSys" id="isRecSys" value="false">
 			{% csrf_token %}
 			<input type="text" name="query" placeholder="Query Keywords (Ex: Suomen sosialistinen tasavalta)...">
@@ -243,11 +249,15 @@
 	</script>
 
 	<script>
+		var digi_base_url = "https://digi.kansalliskirjasto.fi/search?query=";
+	</script>
+
+	<script>
 		function searchNLF() {
 			var query = document.getElementsByName("query")[0].value.trim();
 			if (query !== "") {
 				var libLinkContainer = document.getElementById("libraryLinkContainer");
-				var libLink = "https://digi.kansalliskirjasto.fi/search?query=" + encodeURIComponent(query)
+				var libLink = digi_base_url + encodeURIComponent(query)
 				libLinkContainer.innerHTML = "<a href='" + libLink + "' target='_blank'>Click here to open National Library Results</a>";
 			} else {
 					alert('Oops! Enter a valid search query to proceed!');
@@ -301,8 +311,8 @@
 			var recsysRes = document.getElementById('recSysResultsContainer');
 			recsysRes.innerHTML = "";
 			for (let i = 0; i < sliderValue; i++) {
-				var recSysLink_i = "https://digi.kansalliskirjasto.fi/search?query=" + encodeURIComponent(globalQuery + " " + recommendationResults[i]);
-				recsysRes.innerHTML += `<p><a href='${recSysLink_i}' target='_blank'>${globalQuery} + ${recommendationResults[i]}</a></p>`;
+				var recSysLink_i = digi_base_url + encodeURIComponent(globalQuery + " " + recommendationResults[i]);
+				recsysRes.innerHTML += `<p><a href='${recSysLink_i}' target='_blank'><span style="font-size: 75%;">${globalQuery}</span> + ${recommendationResults[i]}</a></p>`;
 			}
 		}
 		updateResultsBasedOnSliderValue();

@@ -2,110 +2,145 @@
 <html lang="en">
 
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Contact Information | TAU | NLF</title>
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-	<style>
-			body {
-					margin: 50px;
-					/* padding: 10px; */
-					/* font-family: 'Arial', sans-serif; */
-			}
-			#heading-container {
-					text-align: left;
-					margin-bottom: 10px;
-					font-size: 50px;
-					color: rgb(116, 32, 211);
-			}
-			h1 {
-				font-weight: bold;
-				font-style: italic;
-			}
-			hr {
-				width: 30%;
-				margin: 0 0;
-				border: 5px solid #8d3bf8; /* Adjust the border style as needed */
-			}
-			div {
-				font-size: 18px;
-			}
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Contact Information | TAU | NLF</title>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+		<style>
+				body {
+						margin: 0;
+				}
 
-		h2 {
-				font-size: 25px;
-				font-weight: bold;
-				font-style: oblique;
-				margin: 1px;
-				/* margin-top: 20px;
-				margin-bottom: 20px; */
-			}
+				.navbar {
+						display: flex;
+						justify-content: flex-start;
+						align-items: center;
+						background-color: #2c2c2c;
+						padding: 0px;
+						width: 100%;
+				}
 
-		p {
-				font-size: 20px;
-				font-family: Georgia, 'Times New Roman', Times, serif; 
-			}
+				.navbar a {
+						text-decoration: none;
+						color: white;
+						font-size: 18px;
+						padding: 16px 25px;
+						margin-right: 20px;
+				}
+				.navbar a.about {
+						background-color: #5b37b1;
+						color: rgb(255, 255, 255);
+						font-style: oblique;
+						font-weight: bold;
+				}
+				.navbar a:hover {
+						background-color: #ddd;
+						color: black;
+				}
 
-			img {
-				width: 80px;
-				height: 80px;
-				/* margin-left: 1px; */
-				margin-right: 7px;
-			}
+				.people-info {
+						text-align: left;
+						/* margin-bottom: 20px;
+						padding: 20px; */
+						/* border: 2px solid #8d3bf8; */
+						/* border-radius: 10px; */
+						margin: 30px;
+				}
 
-			#project-info {
-					position: absolute;
-					bottom: 10px;
-					left: 20px;
-					/* margin: 50px; */
-					/* margin-bottom: 50px; */
-			}
+				#heading-container {
+						font-size: 30px;
+						color: rgb(116, 32, 211);
+				}
 
-			#project-info img {
-				width: 160px;
-				height: 140px;
-		}
-			#project-info p {
-			text-align: justify;
-			font-family: Georgia, 'Times New Roman', Times, serif;
-			font-size: 17px;
-		}
-</style>
+				hr {
+						width: 14%;
+						margin: 0 0;
+						margin-bottom: 20px;
+						border: 5px solid #8d3bf8;
+						/* Adjust the border style as needed */
+				}
+
+				h2 {
+						font-size: 25px;
+						font-weight: bold;
+						font-style: oblique;
+						margin: 1px;
+				}
+
+				p {
+						font-size: 20px;
+						font-family: Georgia, 'Times New Roman', Times, serif;
+				}
+
+				img {
+						width: 80px;
+						height: 80px;
+						margin-right: 7px;
+				}
+
+				.project-info {
+						margin: 25px;
+						margin-top: 150px;
+				}
+
+				.project-info img {
+						width: 160px;
+						height: 140px;
+				}
+
+				.project-info p {
+						text-align: justify;
+						font-family: Georgia, 'Times New Roman', Times, serif;
+						font-size: 17px;
+				}
+		</style>
 </head>
 
 <body>
-		<div id="heading-container">
-			<i class="fa fa-envelope"> Contact Information</i>
-			<hr>
+		<div class="navbar">
+				<a href="{% url 'main_page' %}">Home</a>
+				<a href="{% url 'about_us' %}" class="about">About Us</a>
 		</div>
 
-		<div>
+		<div class="people-info">
+				<div id="heading-container">
+						<i class="fa fa-envelope"> Contact Information</i>
+						<hr>
+				</div>
+
 				<h2>Developer:</h2>
 				<p>
-						<img src="https://research.tuni.fi/uploads/2022/02/f2cbe7c4-farid_alijani-320x401.jpg" alt="Farid Alijani">
+						<img src="https://research.tuni.fi/uploads/2022/02/f2cbe7c4-farid_alijani-320x401.jpg"
+								alt="Farid Alijani">
 						<a href="mailto:farid.alijani@tuni.fi">Farid Alijani</a>
 				</p>
 
 				<h2>Supervisors:</h2>
 				<p>
-						<img src="https://content-webapi.tuni.fi/image-style/base_square_lg/proxy/public/profile_pictures/1496.jpg" alt="Sanna Kumpulainen">
-						Associate Professor <a href="https://www.tuni.fi/en/sanna-kumpulainen" target="_blank">Sanna Kumpulainen</a>
+						<img
+								src="https://content-webapi.tuni.fi/image-style/base_square_lg/proxy/public/profile_pictures/1496.jpg"
+								alt="Sanna Kumpulainen"> Associate Professor <a
+								href="https://www.tuni.fi/en/sanna-kumpulainen" target="_blank">Sanna Kumpulainen</a>
 				</p>
 
 				<p>
-						<img src="https://content-webapi.tuni.fi/image-style/base_square_lg/proxy/public/profile_pictures/2498.jpg" alt="Jaakko Peltonen">
-						Professor <a href="https://homepages.tuni.fi/jaakko.peltonen/" target="_blank">Jaakko Peltonen</a>
+						<img
+								src="https://content-webapi.tuni.fi/image-style/base_square_lg/proxy/public/profile_pictures/2498.jpg"
+								alt="Jaakko Peltonen"> Professor <a href="https://homepages.tuni.fi/jaakko.peltonen/"
+								target="_blank">Jaakko Peltonen</a>
 				</p>
-
-				<div id="project-info">
-					<img src="https://www.vilpe.com/app/uploads/2020/06/tonem502.bmp" alt="made_in_suomi"> 
-					<p>
-							This project is an integral component of the <a href="https://www.dariah.fi/education-and-dissemination/" target="_blank">WP 5.X</a>
-							national research infrastructure and consortium of
-							<a href="https://www.dariah.fi/" target="_blank">DARIAH-FI</a>, specifically<br> developed to address the requirements of data-intensive research in the social sciences and humanities (SSH) domain in Finland.
-					</p>
-				</div>
-
 		</div>
+
+		<div class="project-info">
+			<img src="https://www.vilpe.com/app/uploads/2020/06/tonem502.bmp" alt="made_in_suomi">
+			<p>
+					This project is an integral component of the <a href="https://www.dariah.fi/education-and-dissemination/"
+							target="_blank">WP 5.X</a> national research infrastructure and consortium of <a
+							href="https://www.dariah.fi/" target="_blank">DARIAH-FI</a>, specifically<br> developed to address the
+					requirements of data-intensive research in the social sciences and humanities (SSH) domain in Finland.
+			</p>
+		</div>
+
 </body>
 
 </html>

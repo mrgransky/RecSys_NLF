@@ -9,7 +9,7 @@
 				display: flex;
 				flex-direction: column;
 				align-items: center;
-				height: 100vh;
+				height: 80vh;
 				margin: 0;
 				padding-top: 0px;
 			}
@@ -42,31 +42,36 @@
 				text-align: center;
 				margin: 0 auto;
 			}
-			.image-container {
+			
+			.imageContainer {
 				display: flex;
 				justify-content: space-between;
-				/* gap: 15px; */
 			}
+
 			img {
-				margin-bottom: 20px;
+				width: 200px;
+				height: 200px;
+				margin: 25px;
 			}
+
 			form {
 				margin: 10px;
 			}
 			input[type="text"] {
-				width: 800px;
+				width: 650px;
 				height: 20px;
 				font-size: 20px;
 				padding: 15px;
 				font-weight: bold;
 				font-family: Georgia, 'Times New Roman', Times, serif;
 				border-color: #7b4ce9;
+				border-radius: 25px;
 			}
 			.button-container {
 				display: flex;
 				justify-content: center;
 				align-items: center;
-				gap: 30px;
+				gap: 20px;
 				margin: 20px;
 			}
 			input[type="button"] {
@@ -74,9 +79,9 @@
 				height: 45px;
 				font-size: 18px;
 				font-weight: bold;
+				border-radius: 10px;
 				background-color: darkgray;
 				color: rgb(0, 0, 0);
-				border: none;
 				cursor: pointer;
 				font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
 			}
@@ -86,8 +91,8 @@
 				font-size: 18px;
 				font-weight: bold;
 				background-color: darkgray;
+				border-radius: 10px;
 				color: rgb(0, 0, 0);
-				border: none;
 				cursor: pointer;
 				font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
 			}
@@ -193,49 +198,49 @@
 	</div>
 
 	<div class="container">
-		
-		<div class="image-container">
-			<img src="{{ left_image_url }}" alt="Left Image" width="200" height="200">
-			<img src="{{ right_image_url }}" alt="Right Image" width="200" height="200">
+		<div id="imageContainer">
+			<img src="https://www.topuniversities.com/sites/default/files/profiles/logos/tampere-university_5bbf14847d023f5bc849ec9a_large.jpg" alt="Left Image">
+			<img src="https://netpreserve.org/resources/logo_KK.fi_-150x150.png" alt="Right Image">	
 		</div>
-
-		<h2>{{ welcome_text|safe }}</h2>
+	
+		<h2>Hi there, <i>{{ user_name|safe }}</i> &#128521;</h2>
+		<h3>{{ welcome_text|safe }}</h3>
 
 		<form method="post" action="{% url 'main_page' %}" id="searchForm">
-			<input type="hidden" name="isRecSys" id="isRecSys" value="false">
-			{% csrf_token %}
-			<input type="text" name="query" placeholder="Query Keywords (Ex: Suomen sosialistinen tasavalta)...">
-			<div class="button-container">
-				<input type="button" value="Search NLF" onclick="searchNLF()">
-				<input type="button" value="Clear" onclick="cleanSearch()">
-			</div>
-			<div id="libraryLinkContainer"></div>
-		
-			<div class="loading-container">
+				<input type="hidden" name="isRecSys" id="isRecSys" value="false">
+				{% csrf_token %}
+				<input type="text" name="query" placeholder="Query Keywords (Ex: Suomen sosialistinen tasavalta)...">
 				<div class="button-container">
-					<input type="submit" value="Recommend Me" onclick="recommendMe(event)">
-					<input type="button" value="Clear" onclick="cleanRecSys()">
+					<input type="button" value="Search NLF" onclick="searchNLF()">
+					<input type="button" value="Clear" onclick="cleanSearch()">
 				</div>
-				<div id="loadingSpinner" class="loading-spinner">
-					<p id="loadingText" class="spinner-text">Please Wait (~2.0 min)...</p>
+				<div id="libraryLinkContainer"></div>
+			
+				<div class="loading-container">
+					<div class="button-container">
+						<input type="submit" value="Recommend Me" onclick="recommendMe(event)">
+						<input type="button" value="Clear" onclick="cleanRecSys()">
+					</div>
+					<div id="loadingSpinner" class="loading-spinner">
+						<p id="loadingText" class="spinner-text">Please Wait (~2.0 min)...</p>
+					</div>
 				</div>
-			</div>
 
-			<div class="slider-container">
-				{% if recommendation_results %}
-					<label for="recSysSlider" id="recSysSliderLbl">Number of RecSys Results:</label>
-					<input type="range" id="recSysSlider" name="recSysSlider" min="3" max="20" value="5" oninput="updateSliderValue(this.value)">
-					<span id="sliderValueDisplay">5</span>
-				{% endif %}
-			</div>
+				<div class="slider-container">
+					{% if recommendation_results %}
+						<label for="recSysSlider" id="recSysSliderLbl">Number of RecSys Results:</label>
+						<input type="range" id="recSysSlider" name="recSysSlider" min="3" max="20" value="5" oninput="updateSliderValue(this.value)">
+						<span id="sliderValueDisplay">5</span>
+					{% endif %}
+				</div>
 
-			<div id="recSysIntroContainer">
-				{% if recommendation_results %}
-					<p>Since you Searched<br> <b>{{input_query}}</b> <br>You might be also interested in<br></p>
-				{% endif %}
-			</div>
+				<div id="recSysIntroContainer">
+					{% if recommendation_results %}
+						<p>Since you Searched<br> <b>{{input_query}}</b> <br>You might be also interested in<br></p>
+					{% endif %}
+				</div>
 
-			<div id="recSysResultsContainer"></div>
+				<div id="recSysResultsContainer"></div>
 		</form>
 
 	</div>

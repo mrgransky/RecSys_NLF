@@ -1,22 +1,33 @@
+import random
 from django.shortcuts import render, redirect
 from recsys_app.recsys_src.gui_backend import *
 
+USR: str = "XXXXXX"
+
+def generate_random_username():
+	return f"user_{random.randint(100, 999)}"
+
 def check_password(request):
+	global USR
 	if request.method == 'POST':
+		user_name = request.POST.get('user_name', '')
+		if not user_name:
+			user_name = generate_random_username()
+		USR = user_name
 		password = request.POST.get('password', '')
 		if password == '12345':
 			return redirect('main_page')  # Redirect to the main_page view
 		else:
-			return render(request, 'recsys_app/password_page.html', {'error_message': 'Incorrect password. Try again...'})
+			return render(request, 
+										'recsys_app/password_page.html', 
+										{'error_message': 'Incorrect password. Try again...'},
+									)
 	else:
 		return render(request, 'recsys_app/password_page.html')
 
 def main_page(request):
-	left_image_url = "https://www.topuniversities.com/sites/default/files/profiles/logos/tampere-university_5bbf14847d023f5bc849ec9a_large.jpg"
-	right_image_url = "https://netpreserve.org/resources/logo_KK.fi_-150x150.png"
 	context = {
-		'left_image_url': left_image_url,
-		'right_image_url': right_image_url,
+		'user_name': USR,
 		'welcome_text': "Welcome to User-based Recommendation System!<br>What are you looking after?",
 	}
 	if request.method == 'POST':

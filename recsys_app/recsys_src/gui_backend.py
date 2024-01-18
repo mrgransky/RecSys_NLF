@@ -8,6 +8,8 @@ import numpy as np
 import pandas as pd
 from recsys_app.recsys_src.tokenizer_utils import *
 
+
+
 lemmatizer_methods = {"nltk": nltk_lemmatizer,
 											"trankit": trankit_lemmatizer,
 											"stanza": stanza_lemmatizer,

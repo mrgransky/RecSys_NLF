@@ -21,6 +21,7 @@ HOME=os.getenv('HOME')
 lmMethod: str="stanza"
 nSPMs: int=20
 
+
 DATASET_DIR: str = f"datasets/compressed_concatenated_SPMs"
 compressed_spm_file = os.path.join(HOME, DATASET_DIR, f"concat_x{nSPMs}.tar.gz")
 spm_files_dir = os.path.join(HOME, DATASET_DIR, f"concat_x{nSPMs}")

@@ -81,7 +81,7 @@ def clean_(docs):
 @cache
 def stanza_lemmatizer(docs):
 	try:
-		print(f'>> Stanza[{stanza.__version__}] Raw Input: {docs}')
+		print(f'Stanza[{stanza.__version__}] Raw Input: {docs}')
 		# print(f"{f'nW: { len( docs.split() ) }':<10}{str(docs.split()[:7]):<150}", end="")
 		st_t = time.time()
 		all_ = smp(docs)
@@ -105,6 +105,6 @@ def stanza_lemmatizer(docs):
 		print(f"<!> Stanza Error: {e}")
 		return
 	# print( lemmas_list )
-	print(f"{len(lemmas_list)} lemma(s) {lemmas_list} Elapsed_t: {end_t-st_t:.2f} s")
+	print(f"Lemmatized to {len(lemmas_list)} lemma(s) {lemmas_list} Elapsed_t: {end_t-st_t:.2f} s")
 	print("-"*100)
 	return lemmas_list

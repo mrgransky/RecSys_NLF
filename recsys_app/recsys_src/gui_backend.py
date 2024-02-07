@@ -55,7 +55,7 @@ def get_optimized_cs(spMtx, query_vec, idf_vec, spMtx_norm, exponent: float=1.0)
 	cs=np.zeros(nUsers, dtype=np.float32) # (nUsers,)
 	idf_squeezed=np.squeeze(np.asarray(idf_vec))
 	quInterest_nonZeros=quInterest[idx_nonzeros]*(1/quInterestNorm)	
-	for ui in np.arange(nUsers, dtype=np.int32): # ip1, ip2, ..., ipN
+	for ui,_ in enumerate(spMtx): # slightly faster than for ui in np.arange(nUsers, dtype=np.int32)
 		usrInterest=np.squeeze(spMtx[ui, idx_nonzeros].toarray())*idf_squeezed[idx_nonzeros] # 1 x len(idx[1])
 		usrInterestNorm=spMtx_norm[ui]+1e-18
 
@@ -73,16 +73,17 @@ def get_optimized_cs(spMtx, query_vec, idf_vec, spMtx_norm, exponent: float=1.0)
 	return cs # (nUsers,)
 
 def get_avg_rec(spMtx, cosine_sim, idf_vec, spMtx_norm):
-	print(f"avgRecSys nTKs={spMtx.shape[1]} "
-				f"spMtx {type(spMtx)} {spMtx.shape} {spMtx.dtype} "
-				f"CS {type(cosine_sim)} {cosine_sim.shape} {cosine_sim.dtype} "
-				f"IDF {type(idf_vec)} {idf_vec.shape} {idf_vec.dtype}"
-			)
+	print(
+		f"avgRecSys nTKs={spMtx.shape[1]}\n"
+		f"spMtx {type(spMtx)} {spMtx.shape} {spMtx.dtype}\n"
+		f"CS {type(cosine_sim)} {cosine_sim.shape} {cosine_sim.dtype}\n"
+		f"IDF {type(idf_vec)} {idf_vec.shape} {idf_vec.dtype}"
+	)
 	st_t = time.time()
 	nUsers, nTokens= spMtx.shape
 	avg_rec=np.zeros(nTokens, dtype=np.float32)# (nTokens,)
 	idf_squeezed=np.squeeze(np.asarray(idf_vec))
-	for ui in np.arange(nUsers, dtype=np.int32):
+	for ui,_ in enumerate(spMtx): # slightly faster than for ui in np.arange(nUsers, dtype=np.int32)
 		nonzero_idxs=np.nonzero(spMtx[ui, :])[1] # necessary!
 		userInterest=np.squeeze(spMtx[ui, nonzero_idxs].toarray())*idf_squeezed[nonzero_idxs] #(nTokens,)x(nTokens,)
 		userInterestNorm=spMtx_norm[ui]+1e-18

@@ -21,7 +21,7 @@ HOME = os.getenv('HOME')
 USER = os.getenv('USER')
 
 lmMethod: str="stanza"
-nSPMs=60 if USER == "ubuntu" else 20
+nSPMs=60 if USER == "ubuntu" else 20 # dynamic changing of nSPMs
 
 DATASET_DIR: str = f"datasets/compressed_concatenated_SPMs"
 compressed_spm_file = os.path.join(HOME, DATASET_DIR, f"concat_x{nSPMs}.tar.gz")

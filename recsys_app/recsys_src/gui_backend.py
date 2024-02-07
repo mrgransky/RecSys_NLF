@@ -54,8 +54,9 @@ def get_optimized_cs(spMtx, query_vec, idf_vec, spMtx_norm, exponent: float=1.0)
 	idx_nonzeros=np.nonzero(quInterest)#[1]
 	cs=np.zeros(nUsers, dtype=np.float32) # (nUsers,)
 	idf_squeezed=np.squeeze(np.asarray(idf_vec))
-	quInterest_nonZeros=quInterest[idx_nonzeros]*(1/quInterestNorm)	
-	for ui,_ in enumerate(spMtx): # slightly faster than for ui in np.arange(nUsers, dtype=np.int32)
+	quInterest_nonZeros=quInterest[idx_nonzeros]*(1/quInterestNorm)
+	# for ui,_ in enumerate(spMtx): # slightly faster than for ui in np.arange(nUsers, dtype=np.int32)
+	for ui in np.arange(nUsers, dtype=np.int32)
 		usrInterest=np.squeeze(spMtx[ui, idx_nonzeros].toarray())*idf_squeezed[idx_nonzeros] # 1 x len(idx[1])
 		usrInterestNorm=spMtx_norm[ui]+1e-18
 
@@ -83,7 +84,8 @@ def get_avg_rec(spMtx, cosine_sim, idf_vec, spMtx_norm):
 	nUsers, nTokens= spMtx.shape
 	avg_rec=np.zeros(nTokens, dtype=np.float32)# (nTokens,)
 	idf_squeezed=np.squeeze(np.asarray(idf_vec))
-	for ui,_ in enumerate(spMtx): # slightly faster than for ui in np.arange(nUsers, dtype=np.int32)
+	# for ui,_ in enumerate(spMtx): # slightly faster than for ui in np.arange(nUsers, dtype=np.int32)
+	for ui in np.arange(nUsers, dtype=np.int32)
 		nonzero_idxs=np.nonzero(spMtx[ui, :])[1] # necessary!
 		userInterest=np.squeeze(spMtx[ui, nonzero_idxs].toarray())*idf_squeezed[nonzero_idxs] #(nTokens,)x(nTokens,)
 		userInterestNorm=spMtx_norm[ui]+1e-18
@@ -135,7 +137,7 @@ def get_recsys_results(query_phrase: str="This is a sample query phrase!", nToke
 	print(
 		f"quVec {type(query_vector)} {query_vector.dtype} {query_vector.shape} Allzero? {np.all(query_vector==0.0)}\n"
 		f"|NonZeros|: {np.count_nonzero(query_vector)} "
-		f"@ idx(s): {np.where(query_vector.flatten()!=0)[0]} "
+		f"@ idx(s): {np.where(query_vector.flatten()!=0)[0]}\n"
 		f"{[f'idx[{qidx}]: {concat_spm_tokNames[qidx]}' for _, qidx in enumerate(np.where(query_vector.flatten()!=0)[0])]}"
 	)
 	ccs=get_optimized_cs(

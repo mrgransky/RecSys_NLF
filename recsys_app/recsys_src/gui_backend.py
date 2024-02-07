@@ -100,7 +100,7 @@ def get_avg_rec(spMtx, cosine_sim, idf_vec, spMtx_norm):
 	print(
 		f"avgRecSys nTKs={spMtx.shape[1]}\n"
 		f"spMtx {type(spMtx)} {spMtx.shape} {spMtx.dtype}\n"
-		f"CS {type(cosine_sim)} {cosine_sim.shape} {cosine_sim.dtype} NonZero(s):{np.nonzero(cosine_sim)[0].shape[0]}\n"
+		f"Cosine {type(cosine_sim)} {cosine_sim.shape} {cosine_sim.dtype} NonZero(s): {np.nonzero(cosine_sim)[0].shape[0]}\n"
 		f"IDF {type(idf_vec)} {idf_vec.shape} {idf_vec.dtype}"
 	)
 	st_t = time.time()

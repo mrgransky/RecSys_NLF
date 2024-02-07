@@ -21,7 +21,7 @@ HOME = os.getenv('HOME')
 USER = os.getenv('USER')
 
 lmMethod: str="stanza"
-nSPMs: int=20 # must be adjusted!
+nSPMs: int=60 # must be adjusted!
 DATASET_DIR: str = f"datasets/compressed_concatenated_SPMs"
 compressed_spm_file = os.path.join(HOME, DATASET_DIR, f"concat_x{nSPMs}.tar.gz")
 spm_files_dir = os.path.join(HOME, DATASET_DIR, f"concat_x{nSPMs}")
@@ -109,12 +109,12 @@ def get_avg_rec(spMtx, cosine_sim, idf_vec, spMtx_norm):
 	idf_squeezed=np.squeeze(np.asarray(idf_vec))
 	non_zero_cosines = np.nonzero(cosine_sim)[0]
 	for nonzero_idx_CCS in non_zero_cosines: # only for those users with NON-Zero Cosine:
-			nonzero_idxs=np.nonzero(spMtx[nonzero_idx_CCS, :])[1] # necessary!
-			userInterest=np.squeeze(spMtx[nonzero_idx_CCS, nonzero_idxs].toarray())*idf_squeezed[nonzero_idxs] #(nTokens,)x(nTokens,)
-			userInterestNorm=spMtx_norm[nonzero_idx_CCS]+1e-18
-			userInterest*=(1/userInterestNorm) # (nTokens,)
-			update_vec=cosine_sim[nonzero_idx_CCS]*userInterest # (nTokens,)
-			avg_rec[nonzero_idxs]+=update_vec # (nTokens,) + (len(idx_nonzeros),)
+		nonzero_idxs=np.nonzero(spMtx[nonzero_idx_CCS, :])[1] # necessary!
+		userInterest=np.squeeze(spMtx[nonzero_idx_CCS, nonzero_idxs].toarray())*idf_squeezed[nonzero_idxs] #(nTokens,)x(nTokens,)
+		userInterestNorm=spMtx_norm[nonzero_idx_CCS]+1e-18
+		userInterest*=(1/userInterestNorm) # (nTokens,)
+		update_vec=cosine_sim[nonzero_idx_CCS]*userInterest # (nTokens,)
+		avg_rec[nonzero_idxs]+=update_vec # (nTokens,) + (len(idx_nonzeros),)
 	avg_rec*=(1/np.sum(cosine_sim))# (nTokens,)
 	print(f"Elapsed_t: {time.time()-st_t:.2f} s {type(avg_rec)} {avg_rec.dtype} {avg_rec.shape}".center(150, "-"))	
 	return avg_rec #(nTokens,) #(nTokens_shrinked,) # smaller matrix

@@ -11,8 +11,8 @@ DEBUG = True # causes "Broken pipe from ('94.72.62.225', 53959)" error!
 
 
 
-# ALLOWED_HOSTS = ['*']
-ALLOWED_HOSTS = ['128.214.254.157', '10.130.15.23', '127.0.0.1', 'localhost',]  # Add the IP address of your VM # $lsof -i :8000
+ALLOWED_HOSTS = ['*']
+# ALLOWED_HOSTS = ['128.214.254.157', '10.130.15.24', '127.0.0.1', 'localhost',]  # Add the IP address of your VM # $lsof -i :8000
 
 INSTALLED_APPS = [
 		'django.contrib.admin',

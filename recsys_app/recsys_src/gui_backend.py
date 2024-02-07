@@ -21,7 +21,7 @@ HOME = os.getenv('HOME')
 USER = os.getenv('USER')
 
 lmMethod: str="stanza"
-nSPMs: int=60 # must be adjusted!
+nSPMs: int=20 # must be adjusted!
 DATASET_DIR: str = f"datasets/compressed_concatenated_SPMs"
 compressed_spm_file = os.path.join(HOME, DATASET_DIR, f"concat_x{nSPMs}.tar.gz")
 spm_files_dir = os.path.join(HOME, DATASET_DIR, f"concat_x{nSPMs}")
@@ -70,7 +70,7 @@ def get_optimized_cs(spMtx, query_vec, idf_vec, spMtx_norm, exponent: float=1.0)
 
 		cs[ui]=np.sum(usrInterest*quInterest_nonZeros)
 		# cs[ui]*=temp_cs_multiplier # added Nov 10th
-	print(f"Elapsed_t: {time.time()-st_t:.2f} s {type(cs)} {cs.dtype} {cs.shape}".center(150, "-"))
+	print(f"Elapsed_t: {time.time()-st_t:.1f} s {type(cs)} {cs.dtype} {cs.shape}".center(150, "-"))
 	return cs # (nUsers,)
 
 # def get_avg_rec(spMtx, cosine_sim, idf_vec, spMtx_norm):

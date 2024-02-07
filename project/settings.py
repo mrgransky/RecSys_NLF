@@ -5,8 +5,8 @@ SECRET_KEY = os.getenv(
 		'9e4@&tw46$l31)zrqe3wi+-slqm(ruvz&se0^%9#6(_w3ui!c0'
 )
 
-# DEBUG = False
-DEBUG = True # causes "Broken pipe from ('94.72.62.225', 53959)" error!
+DEBUG = False
+# DEBUG = True # causes "Broken pipe from ('94.72.62.225', 53959)" error!
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
 SECURE_SSL_REDIRECT = False

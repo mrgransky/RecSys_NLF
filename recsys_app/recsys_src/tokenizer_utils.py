@@ -50,7 +50,8 @@ def trankit_lemmatizer(docs):
 	return None
 
 def clean_(docs):
-	print(f'>> Raw input: >>{docs}<<')
+	print(f"<>"*50)
+	print(f'>> Raw input >>{docs}<<')
 	# print(f"{f'Inp. word(s): { len( docs.split() ) }':<20}", end="")
 	# st_t = time.time()
 	if not docs or len(docs) == 0 or docs == "":
@@ -69,7 +70,7 @@ def clean_(docs):
 								re.sub(r'\b\w{,2}\b', ' ', docs)#.strip() 
 				).strip() # rm words with len() < 3 ex) ö v or l m and extra spaces
 
-	print(f'>> Cleaned input: >>{docs}<<')
+	print(f'>> Cleaned input >>{docs}<<')
 	print(f"<>"*50)
 
 	# # print(f"{f'Preprocessed: { len( docs.split() ) } words':<30}{str(docs.split()[:3]):<65}", end="")
@@ -105,4 +106,5 @@ def stanza_lemmatizer(docs):
 		return
 	# print( lemmas_list )
 	print(f"{len(lemmas_list)} lemma(s) {lemmas_list} Elapsed_t: {end_t-st_t:.2f} s")
+	print("-"*100)
 	return lemmas_list

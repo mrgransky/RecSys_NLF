@@ -732,7 +732,7 @@ def get_query_phrase(inp_url):
 	return params.get("query")
 
 def clean_(docs):
-	print(f'Raw doc:\n>>{docs}<<')
+	print(f'>> Raw input: >>{docs}<<')
 	# print(f"{f'Inp. word(s): { len( docs.split() ) }':<20}", end="")
 	# st_t = time.time()
 	if not docs or len(docs) == 0 or docs == "":
@@ -751,7 +751,8 @@ def clean_(docs):
 								re.sub(r'\b\w{,2}\b', ' ', docs)#.strip() 
 				).strip() # rm words with len() < 3 ex) ö v or l m and extra spaces
 
-	print(f'Cleaned doc:\n{docs}');print(f"<>"*100)
+	print(f'>> Cleaned input: >>{docs}<<')
+	print(f"<>"*50)
 
 	# # print(f"{f'Preprocessed: { len( docs.split() ) } words':<30}{str(docs.split()[:3]):<65}", end="")
 	if not docs or len(docs) == 0 or docs == "":

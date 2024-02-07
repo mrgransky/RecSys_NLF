@@ -123,32 +123,37 @@ def extract_tar(fname):
 
 def get_recsys_results(query_phrase: str="This is a sample query phrase!", nTokens: int=5):
 	query_phrase_tk = get_lemmatized_sqp(qu_list=[query_phrase], lm=lmMethod)
-	query_vector=get_query_vec(	mat=concat_spm_U_x_T,
-															mat_row=concat_spm_usrNames, 
-															mat_col=concat_spm_tokNames, 
-															tokenized_qu_phrases=query_phrase_tk,
-														)
-	print(f"quVec {type(query_vector)} {query_vector.dtype} {query_vector.shape} Allzero? {np.all(query_vector==0.0)}\n"
-				f"|NonZeros|: {np.count_nonzero(query_vector)} "
-				f"@ idx(s): {np.where(query_vector.flatten()!=0)[0]} "
-				f"{[f'idx[{qidx}]: {concat_spm_tokNames[qidx]}' for _, qidx in enumerate(np.where(query_vector.flatten()!=0)[0])]}"
+	query_vector=get_query_vec(
+		mat=concat_spm_U_x_T,
+		mat_row=concat_spm_usrNames,
+		mat_col=concat_spm_tokNames,
+		tokenized_qu_phrases=query_phrase_tk,
 	)
-	ccs=get_optimized_cs(	spMtx=concat_spm_U_x_T,
-												query_vec=query_vector, 
-												idf_vec=idf_vec,
-												spMtx_norm=usrNorms, # must be adjusted, accordingly!
-											)
-	avgRecSys=get_avg_rec(spMtx=concat_spm_U_x_T,
-												cosine_sim=ccs**5,
-												idf_vec=idf_vec,
-												spMtx_norm=usrNorms,
-											)
-	topKtokens=get_topK_tokens(	mat=concat_spm_U_x_T, 
-															mat_rows=concat_spm_usrNames,
-															mat_cols=concat_spm_tokNames,
-															avgrec=avgRecSys,
-															qu=query_phrase_tk,
-														)
+	print(
+		f"quVec {type(query_vector)} {query_vector.dtype} {query_vector.shape} Allzero? {np.all(query_vector==0.0)}\n"
+		f"|NonZeros|: {np.count_nonzero(query_vector)} "
+		f"@ idx(s): {np.where(query_vector.flatten()!=0)[0]} "
+		f"{[f'idx[{qidx}]: {concat_spm_tokNames[qidx]}' for _, qidx in enumerate(np.where(query_vector.flatten()!=0)[0])]}"
+	)
+	ccs=get_optimized_cs(
+		spMtx=concat_spm_U_x_T,
+		query_vec=query_vector, 
+		idf_vec=idf_vec,
+		spMtx_norm=usrNorms, # must be adjusted, accordingly!
+	)
+	avgRecSys=get_avg_rec(
+		spMtx=concat_spm_U_x_T,
+		cosine_sim=ccs**5,
+		idf_vec=idf_vec,
+		spMtx_norm=usrNorms,
+	)
+	topKtokens=get_topK_tokens(
+		mat=concat_spm_U_x_T, 
+		mat_rows=concat_spm_usrNames,
+		mat_cols=concat_spm_tokNames,
+		avgrec=avgRecSys,
+		qu=query_phrase_tk,
+	)
 	print(f"Found {len(topKtokens)} Recommendations")
 	return topKtokens
 
@@ -160,7 +165,7 @@ if nSPMs == 20:
 	concat_spm_tokNames=load_pickle(fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'*_USERs_TOKENs_spm_token_names_*_nTOKs.gz')[0])
 	idf_vec=load_pickle(fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'*_idf_vec_1_x_*_nTOKs.gz')[0])
 	usrNorms=load_pickle(fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'*_users_norm_1_x_*_nUSRs.gz')[0])
-elif nSPMs == 58 or nSPMs == 55 or nSPMs == 55 or nSPMs == 50:
+elif nSPMs == 58 or nSPMs == 55 or nSPMs == 55 or nSPMs == 50 or nSPMs == 40:
 	concat_spm_U_x_T=load_pickle(fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'_shrinked_spMtx_USERs_vs_TOKENs_*_nUSRs_x_*_nTOKs.gz')[0])
 	concat_spm_usrNames=load_pickle(fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'_shrinked_spMtx_rows_*_nUSRs.gz')[0])
 	concat_spm_tokNames=load_pickle(fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'_shrinked_spMtx_cols_*_nTOKs.gz')[0])

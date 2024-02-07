@@ -8,8 +8,8 @@ SECRET_KEY = os.getenv(
 DEBUG = True # causes "Broken pipe from ('94.72.62.225', 53959)" error!
 # DEBUG = False
 
-# ALLOWED_HOSTS = ['*']
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '128.214.254.157']  # Add the IP address of your VM
+ALLOWED_HOSTS = ['*']
+# ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '128.214.254.157']  # Add the IP address of your VM
 
 INSTALLED_APPS = [
 		'django.contrib.admin',

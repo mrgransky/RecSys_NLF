@@ -56,7 +56,7 @@ def get_optimized_cs(spMtx, query_vec, idf_vec, spMtx_norm, exponent: float=1.0)
 	idf_squeezed=np.squeeze(np.asarray(idf_vec))
 	quInterest_nonZeros=quInterest[idx_nonzeros]*(1/quInterestNorm)
 	# for ui,_ in enumerate(spMtx): # slightly faster than for ui in np.arange(nUsers, dtype=np.int32)
-	for ui in np.arange(nUsers, dtype=np.int32)
+	for ui in np.arange(nUsers, dtype=np.int32):
 		usrInterest=np.squeeze(spMtx[ui, idx_nonzeros].toarray())*idf_squeezed[idx_nonzeros] # 1 x len(idx[1])
 		usrInterestNorm=spMtx_norm[ui]+1e-18
 
@@ -85,7 +85,7 @@ def get_avg_rec(spMtx, cosine_sim, idf_vec, spMtx_norm):
 	avg_rec=np.zeros(nTokens, dtype=np.float32)# (nTokens,)
 	idf_squeezed=np.squeeze(np.asarray(idf_vec))
 	# for ui,_ in enumerate(spMtx): # slightly faster than for ui in np.arange(nUsers, dtype=np.int32)
-	for ui in np.arange(nUsers, dtype=np.int32)
+	for ui in np.arange(nUsers, dtype=np.int32):
 		nonzero_idxs=np.nonzero(spMtx[ui, :])[1] # necessary!
 		userInterest=np.squeeze(spMtx[ui, nonzero_idxs].toarray())*idf_squeezed[nonzero_idxs] #(nTokens,)x(nTokens,)
 		userInterestNorm=spMtx_norm[ui]+1e-18

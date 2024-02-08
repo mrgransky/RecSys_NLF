@@ -337,9 +337,9 @@
 
 		var recommendationResults = {{ recommendation_results|safe }};
 		console.log(recommendationResults);
+		console.log(typeof recommendationResults);
 		document.addEventListener("DOMContentLoaded", function() {
-			// if (recommendationResults !== null && recommendationResults !== undefined && recommendationResults !== "None") {
-			if (recommendationResults !== "None") {
+			if (recommendationResults !== null && recommendationResults !== undefined && recommendationResults !== "None") {
 				updateResultsBasedOnSliderValue();
 			} else {
 				alert("Oops!, what you searched for does not exist in our database! Search again!");

@@ -345,15 +345,22 @@
 
 
 		document.addEventListener("DOMContentLoaded", function() {
-			if (recommendationResults !== null && recommendationResults !== undefined) {
-				if (recommendationResults !== "None") {
-					updateResultsBasedOnSliderValue();
-				} else {
-					alert("Oops!, what you searched for does not exist in our database! Search again!");
-				}
+			if (recommendationResults !== "None") {
+				updateResultsBasedOnSliderValue();
 			} else {
-				alert("Error: Recommendation results are not available.");
+				alert("Oops!, what you searched for does not exist in our database! Search again!");
 			}
+			
+			// if (recommendationResults !== null && recommendationResults !== undefined) {
+			// 	if (recommendationResults !== "None") {
+			// 		updateResultsBasedOnSliderValue();
+			// 	} else {
+			// 		alert("Oops!, what you searched for does not exist in our database! Search again!");
+			// 	}
+			// } else {
+			// 	alert("Error: Recommendation results are not available.");
+			// }
+		
 		});
 
 		function updateResultsBasedOnSliderValue() {

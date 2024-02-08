@@ -336,9 +336,7 @@
 		// });
 
 		var recommendationResults = {{ recommendation_results|safe }};
-		console.log(recommendationResults);
-		console.log(recommendation_results);
-		
+		console.log(recommendationResults);		
 		document.addEventListener("DOMContentLoaded", function() {
 			if (recommendationResults !== null && recommendationResults !== undefined) {
 				updateResultsBasedOnSliderValue();

@@ -268,9 +268,9 @@
 
 	</div>
 
-	<script>
+	<!-- <script>
 		var recommendationResults = {{ recommendation_results|safe }};
-	</script>
+	</script> -->
 
 	<script>
 		let globalQuery = `{{ input_query|safe }}`;
@@ -313,10 +313,6 @@
 				hideLoadingSpinner();
 				event.preventDefault();
 			}
-			// // check if recommendationResults exists:
-			// if () {
-
-			// }
 		}
 		function cleanRecSys() {
 			document.getElementsByName("query")[0].value = "";
@@ -335,9 +331,20 @@
 	</script>
 
 	<script>
+		// document.addEventListener("DOMContentLoaded", function() {
+		// 	updateResultsBasedOnSliderValue();
+		// });
+
+		var recommendationResults = {{ recommendation_results|safe }};
+
 		document.addEventListener("DOMContentLoaded", function() {
-			updateResultsBasedOnSliderValue();
+			if (recommendationResults !== null && recommendationResults !== undefined) {
+				updateResultsBasedOnSliderValue();
+			} else {
+				alert("Oops!, what you searched for does not exist in our database! Search again!");
+			}
 		});
+
 		function updateResultsBasedOnSliderValue() {
 			var sliderValue = document.getElementById('recSysSlider').value;
 			var recsysRes = document.getElementById('recSysResultsContainer');

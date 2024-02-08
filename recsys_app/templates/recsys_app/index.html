@@ -335,8 +335,14 @@
 		// 	updateResultsBasedOnSliderValue();
 		// });
 
-		var recommendationResults = {{ recommendation_results|safe }};
-		console.log(recommendationResults);
+		var recommendationResults;
+		try {
+			recommendationResults = {{ recommendation_results|safe }};
+		} catch (error) {
+			alert("Error: Recommendation results are not available.");
+			recommendationResults = null;
+		}
+
 
 		document.addEventListener("DOMContentLoaded", function() {
 			if (recommendationResults !== null && recommendationResults !== undefined) {

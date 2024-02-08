@@ -331,15 +331,11 @@
 	</script>
 
 	<script>
-		// document.addEventListener("DOMContentLoaded", function() {
-		// 	updateResultsBasedOnSliderValue();
-		// });
-
 		var recommendationResults;
 		try {
 			recommendationResults = {{ recommendation_results|safe }};
 		} catch (error) {
-			alert(`Oops! ${globalQuery} not found in our database! Search something else, please!`);
+			alert(`Sorry! ${globalQuery} NOT found in our database! Search something else!`);
 			recommendationResults = null;
 		}
 
@@ -360,7 +356,6 @@
 				recsysRes.innerHTML += `<p><a href='${recSysLink_i}' target='_blank'><span style="font-size: 75%;">${globalQuery}</span> + ${recommendationResults[i]}</a></p>`;
 			}
 		}
-		// updateResultsBasedOnSliderValue();
 	</script>
 </body>
 

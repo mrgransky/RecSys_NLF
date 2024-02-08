@@ -151,13 +151,16 @@ def extract_tar(fname):
 			tfile.extractall(output_folder)
 
 def get_recsys_results(query_phrase: str="This is a sample query phrase!", nTokens: int=5):
-	query_phrase_tk = get_lemmatized_sqp(qu_list=[query_phrase], lm=lmMethod)
-	print(query_phrase_tk)
+	tokenized_query_phrase = get_lemmatized_sqp(qu_list=[query_phrase], lm=lmMethod)
+	print(f"tokenized_query_phrase: {tokenized_query_phrase}")
+	if not tokenized_query_phrase:
+		print(f"tokenized_query_phrase none=> return!!!!")
+		return 
 	query_vector=get_query_vec(
 		mat=concat_spm_U_x_T,
 		mat_row=concat_spm_usrNames,
 		mat_col=concat_spm_tokNames,
-		tokenized_qu_phrases=query_phrase_tk,
+		tokenized_qu_phrases=tokenized_query_phrase,
 	)
 	print(
 		f"quVec {type(query_vector)} {query_vector.dtype} {query_vector.shape} Allzero? {np.all(query_vector==0.0)}\n"
@@ -185,7 +188,7 @@ def get_recsys_results(query_phrase: str="This is a sample query phrase!", nToke
 		mat_rows=concat_spm_usrNames,
 		mat_cols=concat_spm_tokNames,
 		avgrec=avgRecSys,
-		qu=query_phrase_tk,
+		qu=tokenized_query_phrase,
 	)
 	print(f">>> Found {len(topKtokens)} Recommendations...")
 	return topKtokens

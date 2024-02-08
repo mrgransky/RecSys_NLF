@@ -64,7 +64,7 @@
 			}
 
 			input[type="text"] {
-				width: 650px;
+				width: 780px;
 				height: 20px;
 				font-size: 20px;
 				padding: 15px;
@@ -232,7 +232,7 @@
 		<form method="post" action="{% url 'main_page' %}" id="searchForm">
 				<input type="hidden" name="isRecSys" id="isRecSys" value="false">
 				{% csrf_token %}
-				<input type="text" name="query" placeholder="Query Keywords (Ex: Suomen sosialistinen tasavalta)...">
+				<input type="text" name="query" placeholder="Your query prompt here (Example: Suomen sosialistinen tasavalta)">
 				<div class="button-container">
 					<input type="button" value="Search NLF" onclick="searchNLF()">
 					<input type="button" value="Clear" onclick="cleanSearch()">

@@ -152,6 +152,7 @@ def extract_tar(fname):
 
 def get_recsys_results(query_phrase: str="This is a sample query phrase!", nTokens: int=5):
 	query_phrase_tk = get_lemmatized_sqp(qu_list=[query_phrase], lm=lmMethod)
+	print(query_phrase_tk)
 	query_vector=get_query_vec(
 		mat=concat_spm_U_x_T,
 		mat_row=concat_spm_usrNames,
@@ -165,7 +166,7 @@ def get_recsys_results(query_phrase: str="This is a sample query phrase!", nToke
 		f"{[f'idx[{qidx}]: {concat_spm_tokNames[qidx]}' for _, qidx in enumerate(np.where(query_vector.flatten()!=0)[0])]}"
 	)
 	if np.count_nonzero(query_vector) == 0:
-		print(f"Sorry! >> {query_vector} << Not Found in our database! Search something else!")
+		print(f"Sorry! >> {query_phrase} << Not Found in our database! Search something else...")
 		return
 	ccs=get_optimized_cs(
 		spMtx=concat_spm_U_x_T,

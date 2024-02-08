@@ -336,7 +336,9 @@
 		// });
 
 		var recommendationResults = {{ recommendation_results|safe }};
-
+		console.log(recommendationResults);
+		console.log(recommendation_results);
+		
 		document.addEventListener("DOMContentLoaded", function() {
 			if (recommendationResults !== null && recommendationResults !== undefined) {
 				updateResultsBasedOnSliderValue();

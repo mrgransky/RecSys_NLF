@@ -13,9 +13,9 @@ lemmatizer_methods = {"nltk": nltk_lemmatizer,
 											"stanza": stanza_lemmatizer,
 											}
 
-digi_base_url = "https://digi.kansalliskirjasto.fi/search"
-left_image_path = "https://www.topuniversities.com/sites/default/files/profiles/logos/tampere-university_5bbf14847d023f5bc849ec9a_large.jpg"
-right_image_path = "https://digi.kansalliskirjasto.fi/images/logos/logo_fi_darkblue.png"
+# digi_base_url = "https://digi.kansalliskirjasto.fi/search"
+# left_image_path = "https://www.topuniversities.com/sites/default/files/profiles/logos/tampere-university_5bbf14847d023f5bc849ec9a_large.jpg"
+# right_image_path = "https://digi.kansalliskirjasto.fi/images/logos/logo_fi_darkblue.png"
 ###########################################################################################
 HOME: str = os.getenv('HOME') # echo $HOME
 USER: str = os.getenv('USER') # echo $USER
@@ -23,10 +23,8 @@ Files_DIR: str = "/media/volume" if USER == "ubuntu" else HOME
 lmMethod: str="stanza"
 nSPMs: int = 60 #if USER == "ubuntu" else 50 # dynamic changing of nSPMs due to Rahti CPU memory issues!
 DATASET_DIR: str = f"datasets/compressed_concatenated_SPMs"
-
 compressed_spm_file = os.path.join(Files_DIR, DATASET_DIR, f"concat_x{nSPMs}.tar.gz")
 spm_files_dir = os.path.join(Files_DIR, DATASET_DIR, f"concat_x{nSPMs}")
-
 fprefix: str = f"concatinated_{nSPMs}_SPMs"
 ###########################################################################################
 

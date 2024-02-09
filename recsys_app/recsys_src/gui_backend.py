@@ -21,7 +21,7 @@ HOME = os.getenv('HOME')
 USER = os.getenv('USER')
 
 lmMethod: str="stanza"
-nSPMs = 60 if USER == "ubuntu" else 20 # dynamic changing of nSPMs
+nSPMs = 60 if USER == "ubuntu" else 50 # dynamic changing of nSPMs
 
 DATASET_DIR: str = f"datasets/compressed_concatenated_SPMs"
 compressed_spm_file = os.path.join(HOME, DATASET_DIR, f"concat_x{nSPMs}.tar.gz")
@@ -145,7 +145,7 @@ def load_pickle(fpath:str="unknown",):
 def extract_tar(fname):
 	output_folder = fname.split(".")[0]
 	if not os.path.isdir(output_folder):
-		print(f'extracting spm x{nSPMs}: {fname}...')
+		print(f'extracting {nSPMs} nSPMs: {fname}')
 		print(f"{output_folder} does not exist, creating...")
 		with tarfile.open(fname, 'r:gz') as tfile:
 			tfile.extractall(output_folder)

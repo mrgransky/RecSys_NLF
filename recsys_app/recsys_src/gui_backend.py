@@ -17,15 +17,16 @@ digi_base_url = "https://digi.kansalliskirjasto.fi/search"
 left_image_path = "https://www.topuniversities.com/sites/default/files/profiles/logos/tampere-university_5bbf14847d023f5bc849ec9a_large.jpg"
 right_image_path = "https://digi.kansalliskirjasto.fi/images/logos/logo_fi_darkblue.png"
 ###########################################################################################
-HOME = os.getenv('HOME')
-USER = os.getenv('USER')
-
+HOME: str = os.getenv('HOME') # echo $HOME
+USER: str = os.getenv('USER') # echo $USER
+Files_DIR: str = "/media/volume" if USER == "ubuntu" else HOME
 lmMethod: str="stanza"
-nSPMs = 60 #if USER == "ubuntu" else 50 # dynamic changing of nSPMs due to Rahti CPU memory issues!
-
+nSPMs: int = 60 #if USER == "ubuntu" else 50 # dynamic changing of nSPMs due to Rahti CPU memory issues!
 DATASET_DIR: str = f"datasets/compressed_concatenated_SPMs"
-compressed_spm_file = os.path.join(HOME, DATASET_DIR, f"concat_x{nSPMs}.tar.gz")
-spm_files_dir = os.path.join(HOME, DATASET_DIR, f"concat_x{nSPMs}")
+
+compressed_spm_file = os.path.join(Files_DIR, DATASET_DIR, f"concat_x{nSPMs}.tar.gz")
+spm_files_dir = os.path.join(Files_DIR, DATASET_DIR, f"concat_x{nSPMs}")
+
 fprefix: str = f"concatinated_{nSPMs}_SPMs"
 ###########################################################################################
 
@@ -74,29 +75,6 @@ def get_optimized_cs(spMtx, query_vec, idf_vec, spMtx_norm, exponent: float=1.0)
 	print(f"Elapsed_t: {time.time()-st_t:.1f} s {type(cs)} {cs.dtype} {cs.shape}".center(150, "-"))
 	return cs # (nUsers,)
 
-# def get_avg_rec(spMtx, cosine_sim, idf_vec, spMtx_norm):
-# 	print(
-# 		f"avgRecSys nTKs={spMtx.shape[1]}\n"
-# 		f"spMtx {type(spMtx)} {spMtx.shape} {spMtx.dtype}\n"
-# 		f"CS {type(cosine_sim)} {cosine_sim.shape} {cosine_sim.dtype}\n"
-# 		f"IDF {type(idf_vec)} {idf_vec.shape} {idf_vec.dtype}"
-# 	)
-# 	st_t = time.time()
-# 	nUsers, nTokens= spMtx.shape
-# 	avg_rec=np.zeros(nTokens, dtype=np.float32)# (nTokens,)
-# 	idf_squeezed=np.squeeze(np.asarray(idf_vec))
-# 	# for ui,_ in enumerate(spMtx): # slightly faster than for ui in np.arange(nUsers, dtype=np.int32)
-# 	for ui in np.arange(nUsers, dtype=np.int32):
-# 		nonzero_idxs=np.nonzero(spMtx[ui, :])[1] # necessary!
-# 		userInterest=np.squeeze(spMtx[ui, nonzero_idxs].toarray())*idf_squeezed[nonzero_idxs] #(nTokens,)x(nTokens,)
-# 		userInterestNorm=spMtx_norm[ui]+1e-18
-# 		userInterest*=(1/userInterestNorm) # (nTokens,)
-# 		update_vec=cosine_sim[ui]*userInterest # (nTokens,)
-# 		avg_rec[nonzero_idxs]+=update_vec # (nTokens,) + (len(idx_nonzeros),)
-# 	avg_rec*=(1/np.sum(cosine_sim)) # (nTokens,)
-# 	print(f"Elapsed_t: {time.time()-st_t:.2f} s {type(avg_rec)} {avg_rec.dtype} {avg_rec.shape}".center(150, "-"))	
-# 	return avg_rec # (nTokens,)
-
 def get_avg_rec(spMtx, cosine_sim, idf_vec, spMtx_norm): 
 	print(
 		f"avgRecSys nTKs={spMtx.shape[1]}\n"
@@ -138,8 +116,8 @@ def load_pickle(fpath:str="unknown",):
 		print(f"<<!>> {e} loading for pandas read_pkl...")
 		pkl = pd.read_pickle(fpath)
 	elpt = time.time()-st_t
-	fsize = os.stat( fpath ).st_size / 1e6
-	print(f"Loaded in: {elpt:.3f} s | {type(pkl)} | {fsize:.2f} MB".center(130, " "))
+	fsize = os.stat( fpath ).st_size / 1e9 # in GB
+	print(f"Loaded in: {elpt:.1f} s {type(pkl)} {fsize:.1f} GB".center(150, " "))
 	return pkl
 
 def extract_tar(fname):

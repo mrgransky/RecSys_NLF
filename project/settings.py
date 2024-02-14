@@ -1,5 +1,6 @@
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+print(BASE_DIR)
 SECRET_KEY = os.getenv(
 		'DJANGO_SECRET_KEY',
 		'9e4@&tw46$l31)zrqe3wi+-slqm(ruvz&se0^%9#6(_w3ui!c0'
@@ -84,9 +85,14 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
-STATIC_URL = '/static/'
+# STATIC_URL = '/static/'
+STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-if os.getenv('USER') == "ubuntu":
-	STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),) # Extra places for collectstatic to find static files
+
+# if os.getenv('USER') == "ubuntu":
+# 	STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),) # Extra places for collectstatic to find static files
+# STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),) # Extra places for collectstatic to find static files
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')] # Extra places for collectstatic to find static files
+
 INTERNAL_IPS = ['127.0.0.1']

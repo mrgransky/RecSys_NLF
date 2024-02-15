@@ -1,0 +1,26 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Contact Information | TAU | NLF</title>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+		<link rel="stylesheet" href="{% static 'css/help_page_style.css' %}">
+</head>
+
+<body>
+		<div class="navbar">
+				<a href="{% url 'main_page' %}">Home</a>
+				<a href="{% url 'about_us' %}">About Us</a>
+		</div>
+
+		<div class="help-instruction">
+			<p>How to...</p>
+		</div>
+
+</body>
+
+</html>

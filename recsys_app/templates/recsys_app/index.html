@@ -16,56 +16,91 @@
 	</div>
 
 	<div class="container">
-		<div id="imageContainer">
+
+		<div class="imageContainer">
 			<img src="https://www.topuniversities.com/sites/default/files/profiles/logos/tampere-university_5bbf14847d023f5bc849ec9a_large.jpg" alt="Left Image">
 			<img src="https://netpreserve.org/resources/logo_KK.fi_-150x150.png" alt="Right Image">	
 		</div>
 	
-		<h2>Hi there, <i>{{ user_name|safe }}</i> &#128521;</h2>
-		<h3>{{ welcome_text|safe }}</h3>
+		<div class="search-container">
+			<h2>Hi there, <i>{{ user_name|safe }}</i> &#128521;</h2>
+			<h3>{{ welcome_text|safe }}</h3>
 
-		<form method="post" action="{% url 'main_page' %}" id="searchForm">
+			<form method="post" action="{% url 'main_page' %}" id="searchForm">
 				<input type="hidden" name="isRecSys" id="isRecSys" value="false">
 				{% csrf_token %}
-				<input type="text" name="query" placeholder="Your query prompt here (Example: Suomen sosialistinen tasavalta)">
+				<input type="text" name="query" placeholder="Query prompt (Example: Suomen sosialistinen tasavalta)">
+				
+				<div class="help">
+					<a href="{% url 'help' %}">Search Instruction</a>
+				</div>
+				
 				<div class="button-container">
 					<input type="button" value="Search NLF" onclick="searchNLF()">
 					<input type="button" value="Clear" onclick="cleanSearch()">
 				</div>
+				
 				<div id="libraryLinkContainer"></div>
-			
+				
+				<div class="button-container">
+					<input type="submit" value="Recommend Me" onclick="recommendMe(event)">
+					<input type="button" value="Clear" onclick="cleanRecSys()">
+				</div>
+
 				<div class="loading-container">
-					<div class="button-container">
-						<input type="submit" value="Recommend Me" onclick="recommendMe(event)">
-						<input type="button" value="Clear" onclick="cleanRecSys()">
-					</div>
 					<div id="loadingSpinner" class="loading-spinner">
 						<p id="loadingText" class="spinner-text">Please Wait (~2.0 min)...</p>
 					</div>
 				</div>
+			</form>
+			</div>
 
-				<div class="slider-container">
-					{% if recommendation_results %}
-						<label for="recSysSlider" id="recSysSliderLbl">Number of RecSys Results:</label>
-						<input type="range" id="recSysSlider" name="recSysSlider" min="3" max="20" value="5" oninput="updateSliderValue(this.value)">
-						<span id="sliderValueDisplay">5</span>
-					{% endif %}
-				</div>
+			<!-- #################################### functional  ####################################-->
+			<!-- <div class="slider-container">
+				{% if recommendation_results %}
+					<label for="recSysSlider" id="recSysSliderLbl">Number of RecSys Results:</label>
+					<input type="range" id="recSysSlider" name="recSysSlider" min="3" max="20" value="5" oninput="updateSliderValue(this.value)">
+					<span id="sliderValueDisplay">5</span>
+				{% endif %}
+			</div>
 
-				<div id="recSysIntroContainer">
-					{% if recommendation_results %}
-						<p>Since you Searched<br> <b>{{input_query}}</b> <br>You might be also interested in<br></p>
-					{% endif %}
-				</div>
+			<div id="recSysIntroContainer">
+				{% if recommendation_results %}
+					<p>Since you Searched<br> <b>{{input_query}}</b> <br>You might be also interested in<br></p>
+				{% endif %}
+			</div>
 
-				<div id="recSysResultsContainer"></div>
-		</form>
+			<div id="recSysResultsContainer"></div>-->
+			<!-- #################################### functional  ####################################-->
 
+			<div class="recommendation-container">
+				{% if recommendation_results %}
+					<div class="slider-container">
+							<label for="recSysSlider" id="recSysSliderLbl">Number of RecSys Results:</label>
+							<input type="range" id="recSysSlider" name="recSysSlider" min="3" max="20" value="5" oninput="updateSliderValue(this.value)">
+							<span id="sliderValueDisplay">5</span>
+					</div>
+					
+					<div id="recSysIntroContainer">
+						
+						<div>
+							<p>Since you Searched</p>
+						</div>
+						
+						<div>
+							<h1 class="glow">{{input_query}}</h1>
+						</div>
+
+						<div>
+							<p>You might be also interested in</p>
+						</div>
+
+					</div>
+					
+					<div id="recSysResultsContainer"></div>
+				{% endif %}
+			</div>
 	</div>
-
-	<!-- <script>
-		var recommendationResults = {{ recommendation_results|safe }};
-	</script> -->
 
 	<script>
 		let globalQuery = `{{ input_query|safe }}`;
@@ -89,7 +124,7 @@
 		function cleanSearch() {
 			document.getElementById("libraryLinkContainer").innerHTML = "";
 			document.getElementsByName("query")[0].value = "";
-			document.getElementsByName("query")[0].placeholder = "Your query prompt here (Example: Suomen sosialistinen tasavalta)";
+			document.getElementsByName("query")[0].placeholder = "Query prompt (Example: Suomen sosialistinen tasavalta)";
 		}
 		function showLoadingSpinner() {
 			document.getElementById("loadingSpinner").style.display = "flex";
@@ -111,7 +146,7 @@
 		}
 		function cleanRecSys() {
 			document.getElementsByName("query")[0].value = "";
-			document.getElementsByName("query")[0].placeholder = "Your query prompt here (Example: Suomen sosialistinen tasavalta)";
+			document.getElementsByName("query")[0].placeholder = "Query prompt (Example: Suomen sosialistinen tasavalta)";
 			document.getElementById("recSysIntroContainer").remove();
 			document.getElementById("recSysResultsContainer").remove();
 			document.getElementById("recSysSlider").remove();

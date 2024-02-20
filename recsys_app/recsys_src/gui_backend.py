@@ -73,18 +73,18 @@ def get_optimized_cs(spMtx, query_vec, idf_vec, spMtx_norm, exponent: float=1.0)
 	print(f"Elapsed_t: {time.time()-st_t:.1f} s {type(cs)} {cs.dtype} {cs.shape}".center(150, "-"))
 	return cs # (nUsers,)
 
-def get_avg_rec(spMtx, cosine_sim, idf_vec, spMtx_norm): 
-	print(
-		f"avgRecSys nTKs={spMtx.shape[1]}\n"
-		f"spMtx {type(spMtx)} {spMtx.shape} {spMtx.dtype}\n"
-		f"Cosine {type(cosine_sim)} {cosine_sim.shape} {cosine_sim.dtype} NonZero(s): {np.nonzero(cosine_sim)[0].shape[0]}\n"
-		f"IDF {type(idf_vec)} {idf_vec.shape} {idf_vec.dtype}"
-	)
-	st_t = time.time()
+def get_avg_rec(spMtx, cosine_sim, idf_vec, spMtx_norm):
 	nUsers, nTokens= spMtx.shape
 	avg_rec=np.zeros(nTokens, dtype=np.float32)# (nTokens,)
 	idf_squeezed=np.squeeze(np.asarray(idf_vec))
 	non_zero_cosines = np.nonzero(cosine_sim)[0]
+	print(
+		f"avgRecSys nTKs={spMtx.shape[1]}\n"
+		f"spMtx {type(spMtx)} {spMtx.shape} {spMtx.dtype}\n"
+		f"CS {type(cosine_sim)} {cosine_sim.shape} {cosine_sim.dtype} NonZero(s): {non_zero_cosines.shape[0]}\n"
+		f"IDF {type(idf_vec)} {idf_vec.shape} {idf_vec.dtype}"
+	)
+	st_t = time.time()
 	for nonzero_idx_CCS in non_zero_cosines: # only for those users with NON-Zero Cosine:
 		nonzero_idxs=np.nonzero(spMtx[nonzero_idx_CCS, :])[1] # necessary!
 		userInterest=np.squeeze(spMtx[nonzero_idx_CCS, nonzero_idxs].toarray())*idf_squeezed[nonzero_idxs] #(nTokens,)x(nTokens,)

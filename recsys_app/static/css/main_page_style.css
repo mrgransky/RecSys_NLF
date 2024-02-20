@@ -23,10 +23,10 @@ body {
 @keyframes glow {
 	from {
 		text-shadow: 
-			0 0 10px #02008f, 
-			0 0 20px #a2bd08, 
-			0 0 40px #d11840, 
-			0 0 80px #d11840;
+			0 0 10px #2c29c2, 
+			0 0 20px #c4e217, 
+			0 0 40px #f77390, 
+			0 0 80px #f75b7d;
 	}
 	
 	to {
@@ -46,7 +46,7 @@ body {
 	align-items: center;
 	background-color: #2c2c2c;
 	padding: 0px;
-	/* width: 100%; */
+	width: 100%;
 }
 
 .navbar a {
@@ -58,10 +58,10 @@ body {
 }
 
 .navbar a.home {
-			background-color: #5b37b1;
-			color: rgb(255, 255, 255);
-			font-style: oblique;
-			font-weight: bold;
+	background-color: #5b37b1;
+	color: rgb(255, 255, 255);
+	font-style: oblique;
+	font-weight: bold;
 }
 
 .navbar a:hover {
@@ -71,7 +71,7 @@ body {
 
 .container {
 	text-align: center;
-	/* margin: 0 auto; */
+	transition: transform 0.5s ease;
 }
 
 .imageContainer {
@@ -89,7 +89,7 @@ img {
 .search-container {
 	width: 100%;
 	justify-content: center;
-	background-color: #fff6f0d8;
+	/* background-color: #ffdac1d8; */
 	align-items: center;
 }
 
@@ -105,63 +105,128 @@ img {
 	margin-bottom: 10px;
 }
 
-form {
+/* ######## Only if you are looking for grayscale bakgound image ########*/
+.search-form {
 	justify-content: center;
-	background-image: url("https://i0.wp.com/www.aptitude-test.com/blog/wp-content/uploads/2020/11/typing.jpg");
-	/* background-image: url("https://www.ed2go.com/common/images/1/17194.webp"); */
-	background-size: 800px auto;
-	background-repeat: no-repeat;
-	background-position: center top 10px;
+	position: relative;
 	height: 380px;
-	/* filter: grayscale(100%); */
 }
 
-input[type="text"] {
-	width: 700px;
-	height: 20px;
+.search-form::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	background-image: url("https://i0.wp.com/www.aptitude-test.com/blog/wp-content/uploads/2020/11/typing.jpg");
+	background-size: 35% 100%;
+	background-repeat: no-repeat;
+	background-position: center top 15px;
+	filter: grayscale(0.6);
+	z-index: -1;
+}
+/* ######## Only if you are looking for grayscale bakgound image ########*/
+
+/* .search-form{
+	justify-content: center;
+	background-image: url("https://i0.wp.com/www.aptitude-test.com/blog/wp-content/uploads/2020/11/typing.jpg");
+	background-size: 32% 100%;
+	background-repeat: no-repeat;
+	background-position: center top 15px;
+	height: 380px;
+} */
+
+.search-input {
+	position: relative;
+}
+
+.search-input-field {
+	width: 32%;
+	height: 22px;
 	font-size: 20px;
 	padding: 10px;
 	font-weight: bold;
 	font-family: Georgia, 'Times New Roman', Times, serif;
 	border-radius: 8px;
 	border-color: #000;
-	background-color: #f4f3ffe0;
-	color: #686767;
+	background-color: #ffffffe0;
+	color: #272727c5;
 	margin-top: 30px;
 }
 
-.help {
-	width: 100%;
-	height: 60px;
-	font-size: 12px;
+.help-container {
+	width: 66%;
+	height: 75%;
+	font-size: 14px;
 	font-weight: bold;
-	position: relative;
-	top: -80px;
-	left: 380px;
-	background-color: transparent;
-	/* background: transparent url("https://svenska.se/img/bubble2.png") no-repeat scroll center; */
+	position: absolute;
+	top: 0;
+	right: 0;
 	background: transparent url("https://i.pinimg.com/564x/1c/f7/80/1cf7809521b1fc112c8b116ccb1e2a01.jpg") no-repeat scroll center;
-	background-size: 150px 60px;
+	background-size: 140px 60px;
 	display: flex;
-  justify-content: center;
-  align-items: center;
+	justify-content: center;
+	align-items: center;
+	text-decoration: none;
 }
 
-.help a {
-	color: #4203a8;
-	text-decoration: none; /* Remove underline */
+.fold {
+	width: 35%;
+	height: 320px;
+	border-radius: 15px;
+	color: #0c0c0cc4;
+	position: absolute;
+	left: calc(52% + 0px);
+	top: calc(75% + 0px);
+	text-align: left;
+	padding: 10px;
+	background: -webkit-linear-gradient(top, #e6e6e6e7, #d1b5fd93);
+	font-size: 20px;
+	font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+	transition: all 0.7s ease;
+}
+
+.unfolder { display: none; }
+
+.toggle-label {
+	display: inline-block;
+	cursor: pointer;
+}
+
+.unfold-icon, .fold-icon {
+	color: #7b47db;
+	width: 10px;
+	display: inline-block;
+}
+
+.unfolder ~ .fold {
+	display: none;
+}
+.unfolder ~ label .fold-icon {
+	display: none;
+}
+
+.unfolder:checked ~ .fold {
+	display: block;
+}
+.unfolder:checked ~ label .fold-icon {
+	display: inline-block;
+}
+.unfolder:checked ~ label .unfold-icon {
+	display: none;
 }
 
 .button-container {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	gap: 10px;
-	margin: 10px;
+	gap: 15px;
+	margin: 25px;
 }
 
-input[type="button"] {
-	width: 160px;
+.btn-nlf-search, .btn-clear {
+	width: 150px;
 	height: 35px;
 	font-size: 18px;
 	font-weight: normal;
@@ -174,8 +239,20 @@ input[type="button"] {
 	font-family: 'Times New Roman', Times, serif;
 }
 
+.btn-nlf-search:hover {
+	background-color: rgba(0, 3, 200, 0.8);
+	color: #e2e0e0;
+	font-weight: bold;
+}
+
+.btn-clear:hover {
+	background-color: rgba(200, 1, 0, 0.8);
+	color: #e2e0e0;
+	font-weight: bold;
+}
+
 input[type="submit"] {
-	width: 160px;
+	width: 150px;
 	height: 35px;
 	font-size: 18px;
 	font-weight: normal;
@@ -189,17 +266,23 @@ input[type="submit"] {
 }
 
 input[type="submit"]:hover {
-	background-color: rgba(5, 116, 8, 0.7);
+	background-color: rgba(5, 116, 8, 0.8);
 	color: #e2e0e0;
 	font-weight: bold;
 }
 
 #libraryLinkContainer {
-	font-size: 25px;
+	font-size: 18px;
 	font-weight: bold;
-	font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
-	/* background-color: #faf4f4; */
+	color: rgb(1, 20, 250);
+	font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
 
+.blur-background {
+	backdrop-filter: blur(5px);
+	padding: 10px;
+	background-color: rgba(255, 255, 255, 0.4);
+	-webkit-backdrop-filter: blur(20px);
 }
 
 .recommendation-container {
@@ -279,7 +362,6 @@ input[type="submit"]:hover {
 
 .loading-spinner {
 	display: none;
-	/* margin: 50px; */
 }
 
 .loading-spinner:before {

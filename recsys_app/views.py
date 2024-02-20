@@ -1,6 +1,6 @@
 import random
 from django.shortcuts import render, redirect
-from recsys_app.recsys_src.gui_backend import *
+# from recsys_app.recsys_src.gui_backend import *
 
 USR: str = "XXXXXX"
 
@@ -35,8 +35,8 @@ def main_page(request):
 		context["input_query"] = query
 		if request.POST.get('isRecSys') == "true":
 			# print(f">> RecSys POST entered qu: {query} request.POST.get('isRecSys'): {request.POST.get('isRecSys')}")
-			# context['recommendation_results'] = [f"Token_{i}" for i in range(20)]
-			context['recommendation_results'] = get_recsys_results(query_phrase=query, nTokens=55)
+			context['recommendation_results'] = [f"Token_{i}" for i in range(20)]
+			# context['recommendation_results'] = get_recsys_results(query_phrase=query, nTokens=55)
 		else:
 			print(f"ERROORRR!")
 	return render(request, 'recsys_app/index.html', context)

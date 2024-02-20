@@ -25,26 +25,45 @@
 		<div class="search-container">
 			<h2>Hi there, <i>{{ user_name|safe }}</i> &#128521;</h2>
 			<h3>{{ welcome_text|safe }}</h3>
-
-			<form method="post" action="{% url 'main_page' %}" id="searchForm">
+			<form method="post" action="{% url 'main_page' %}" class="search-form">
 				<input type="hidden" name="isRecSys" id="isRecSys" value="false">
 				{% csrf_token %}
-				<input type="text" name="query" placeholder="Query prompt (Example: Suomen sosialistinen tasavalta)">
-				
-				<div class="help">
-					<a href="{% url 'help' %}">Search Instruction</a>
+				<div class="search-input">
+					<input type="text" name="query" class="search-input-field" placeholder="Hakusana | Sökord | Query prompt">
+					<div class="help-container">
+						<input type="checkbox" id="toggle" class="unfolder"/>
+						<label for="toggle" class="toggle-label">
+							<span class="unfold-icon">&#9654;</span>
+							<span class="fold-icon">&#9660;</span>
+							Instruction
+						</label>
+						<div class="fold">
+							<dl>
+								<dt>Search query prompts can be either in &#x1F1EB;&#x1F1EE; / &#x1F1F8;&#x1F1EA;</dt>
+								<dt>Avoid using punctuations in search query prompts</dt>
+									<dd>Example: *~/.!# NOT required</dd>
+								<dt>Choose search query prompts with >= 5 characters</dt>
+									<dd>Example 1: Suomen sosialistinen tasavalta</dd>
+									<dd>Example 2: Ålands kulturhistoriska museum</dd>
+									<dd>Example 3: Helsingin pörssi ja suomen pankki</dd>
+								<dt>XXXXX XXXXX XXXXX XXXXX XXXXX XXXXX</dt>
+									<dd>Example: text text text</dd>
+								<dt>XXXXX XXXXX XXXXX XXXXX XXXXX XXXXX</dt>
+									<dd>Example: text text text</dd>
+							</dl>
+						</div>
+					</div>
 				</div>
-				
 				<div class="button-container">
-					<input type="button" value="Search NLF" onclick="searchNLF()">
-					<input type="button" value="Clear" onclick="cleanSearch()">
+					<input class="btn-nlf-search" type="button" value="Search NLF" onclick="searchNLF()">
+					<input class="btn-clear" type="button" value="Clear" onclick="cleanSearch()">
 				</div>
-				
+
 				<div id="libraryLinkContainer"></div>
 				
 				<div class="button-container">
 					<input type="submit" value="Recommend Me" onclick="recommendMe(event)">
-					<input type="button" value="Clear" onclick="cleanRecSys()">
+					<input class="btn-clear" type="button" value="Clear" onclick="cleanRecSys()">
 				</div>
 
 				<div class="loading-container">
@@ -53,61 +72,42 @@
 					</div>
 				</div>
 			</form>
-			</div>
+		</div>
 
-			<!-- #################################### functional  ####################################-->
-			<!-- <div class="slider-container">
-				{% if recommendation_results %}
-					<label for="recSysSlider" id="recSysSliderLbl">Number of RecSys Results:</label>
-					<input type="range" id="recSysSlider" name="recSysSlider" min="3" max="20" value="5" oninput="updateSliderValue(this.value)">
-					<span id="sliderValueDisplay">5</span>
-				{% endif %}
+		<div class="recommendation-container">
+			{% if recommendation_results %}
+			<div class="slider-container">
+				<label for="recSysSlider" id="recSysSliderLbl">Number of RecSys Results:</label>
+				<input type="range" id="recSysSlider" name="recSysSlider" min="3" max="20" value="5" oninput="updateSliderValue(this.value)">
+				<span id="sliderValueDisplay">5</span>
 			</div>
-
+					
 			<div id="recSysIntroContainer">
-				{% if recommendation_results %}
-					<p>Since you Searched<br> <b>{{input_query}}</b> <br>You might be also interested in<br></p>
+						
+				<div>
+					<p>Since you Searched</p>
+				</div>
+				
+				<div>
+					<h1 class="glow">{{input_query}}</h1>
+				</div>
+
+				<div>
+					<p>You might be also interested in</p>
+				</div>
+
+			</div>
+					
+			<div id="recSysResultsContainer"></div>
 				{% endif %}
 			</div>
-
-			<div id="recSysResultsContainer"></div>-->
-			<!-- #################################### functional  ####################################-->
-
-			<div class="recommendation-container">
-				{% if recommendation_results %}
-					<div class="slider-container">
-							<label for="recSysSlider" id="recSysSliderLbl">Number of RecSys Results:</label>
-							<input type="range" id="recSysSlider" name="recSysSlider" min="3" max="20" value="5" oninput="updateSliderValue(this.value)">
-							<span id="sliderValueDisplay">5</span>
-					</div>
-					
-					<div id="recSysIntroContainer">
-						
-						<div>
-							<p>Since you Searched</p>
-						</div>
-						
-						<div>
-							<h1 class="glow">{{input_query}}</h1>
-						</div>
-
-						<div>
-							<p>You might be also interested in</p>
-						</div>
-
-					</div>
-					
-					<div id="recSysResultsContainer"></div>
-				{% endif %}
-			</div>
-	</div>
+		</div>
 
 	<script>
 		let globalQuery = `{{ input_query|safe }}`;
-	</script>
-
-	<script>
 		var digi_base_url = "https://digi.kansalliskirjasto.fi/search?query=";
+		let recommendationResults;
+		let myWindow;
 	</script>
 
 	<script>
@@ -117,6 +117,7 @@
 				var libLinkContainer = document.getElementById("libraryLinkContainer");
 				var libLink = digi_base_url + encodeURIComponent(query)
 				libLinkContainer.innerHTML = "<a href='" + libLink + "' target='_blank'>Click here to open National Library Results</a>";
+				libLinkContainer.classList.add('blur-background');
 			} else {
 					alert('Oops! Enter a valid search query to proceed!');
 				}
@@ -124,7 +125,7 @@
 		function cleanSearch() {
 			document.getElementById("libraryLinkContainer").innerHTML = "";
 			document.getElementsByName("query")[0].value = "";
-			document.getElementsByName("query")[0].placeholder = "Query prompt (Example: Suomen sosialistinen tasavalta)";
+			document.getElementsByName("query")[0].placeholder = "Hakusana | Sökord | Query prompt";
 		}
 		function showLoadingSpinner() {
 			document.getElementById("loadingSpinner").style.display = "flex";
@@ -146,12 +147,21 @@
 		}
 		function cleanRecSys() {
 			document.getElementsByName("query")[0].value = "";
-			document.getElementsByName("query")[0].placeholder = "Query prompt (Example: Suomen sosialistinen tasavalta)";
+			document.getElementsByName("query")[0].placeholder = "Hakusana | Sökord | Query prompt";
 			document.getElementById("recSysIntroContainer").remove();
 			document.getElementById("recSysResultsContainer").remove();
 			document.getElementById("recSysSlider").remove();
 			document.getElementById("sliderValueDisplay").remove();
 			document.getElementById("recSysSliderLbl").remove();
+	
+			// Close the opened window if it exists and is not closed
+			if (myWindow && !myWindow.closed) {
+				myWindow.close();
+			}
+	
+			// Translate the container back to its original position
+			var container = document.querySelector('.container');
+			container.style.transform = 'translateX(0)';
 		}
 		function updateSliderValue(sliderValue) {
 			document.getElementById('recSysSlider').value = sliderValue;
@@ -161,7 +171,7 @@
 	</script>
 
 	<script>
-		var recommendationResults;
+
 		try {
 			recommendationResults = {{ recommendation_results|safe }};
 		} catch (error) {
@@ -174,17 +184,66 @@
 		document.addEventListener("DOMContentLoaded", function() {
 			updateResultsBasedOnSliderValue();
 		});
-
+		
 		function updateResultsBasedOnSliderValue() {
 			var sliderValue = document.getElementById('recSysSlider').value;
 			var recsysRes = document.getElementById('recSysResultsContainer');
 			recsysRes.innerHTML = "";
 			for (let i = 0; i < sliderValue; i++) {
 				var recSysLink_i = digi_base_url + encodeURIComponent(globalQuery + " " + recommendationResults[i]);
-				recsysRes.innerHTML += `<p><a href='${recSysLink_i}' target='_blank'><span style="font-size: 75%;">${globalQuery}</span> + ${recommendationResults[i]}</a></p>`;
+				recsysRes.innerHTML += `<p><a class="rec-link" href='${recSysLink_i}' target='_blank'><span style="font-size: 75%;">${globalQuery}</span> + ${recommendationResults[i]}</a></p>`;
 			}
+			// Add event listener to all recommendation links
+			var recLinks = document.querySelectorAll('.rec-link');
+			recLinks.forEach(function(link) {
+				link.addEventListener('click', function(event) {
+						event.preventDefault(); // Prevent default link behavior
+						
+						// Smoothly shift the page layout to the left
+						var container = document.querySelector('.container');
+						container.style.transform = 'translateX(-30%)';
+
+						// Get the URL of the clicked link
+						var url = link.href;
+						console.log(url)
+
+						// console.log("myWindow:", myWindow);
+						// console.log("myWindow is opened:", myWindow && !myWindow.closed);
+
+						if (myWindow) {
+							try {
+									console.log("closing...");
+									myWindow.close();
+							} catch (error) {
+									console.error("Error closing window:", error);
+									// Handle the error gracefully, e.g., display a message to the user
+							}
+						}
+
+						// Calculate the width and height of the window
+						const screenWidth = window.screen.width;
+						const screenHeight = window.screen.height;
+						const width = Math.round(screenWidth * 0.5); // 50% width
+						const height = screenHeight;
+
+						// Calculate the left position to place the window on the right side of the screen
+						const left = screenWidth - width;
+
+						// myWindow.close(() => {
+						// 	// Open the new window here
+						// 	myWindow = window.open(url, "", `width=${width}, height=${height}, left=${left}, top=0`);
+						// 	myWindow.focus();
+						// });
+
+						myWindow = window.open(url, "", `width=${width}, height=${height}, left=${left}, top=0`);
+						myWindow.focus();						
+						console.log("myWindow name, url:", myWindow.name, myWindow.location.href)
+
+					});
+			});
 		}
-	</script>
+
+</script>
 </body>
 
 </html>

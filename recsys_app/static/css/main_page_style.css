@@ -11,32 +11,31 @@ body {
 
 .glow {
 	font-size: 35px;
-	color: #02008f;
+	color: #0300c9;
 	font-weight: bold;
-	font-family: Verdana, Geneva, Tahoma, sans-serif;
+	font-family: 'Poppins', sans-serif;
 	text-align: center;
 	margin-top: 25px;
 	margin-bottom: 25px;
-	animation: glow 1s ease-in-out infinite alternate;
+	animation: glow 0.9s ease-in-out infinite alternate;
 }
 
 @keyframes glow {
 	from {
 		text-shadow: 
 			0 0 10px #2c29c2, 
-			0 0 20px #c4e217, 
-			0 0 40px #f77390, 
-			0 0 80px #f75b7d;
+			0 0 20px #e2fd48, 
+			0 0 40px #e6fa74, 
+			0 0 80px #f3ffaf;
 	}
 	
 	to {
 		text-shadow: 
-			0 0 10px rgb(57, 120, 255), 
-			0 0 30px #ff4da6, 
-			0 0 50px #ff4da6, 
-			0 0 50px #ff4da6, 
-			0 0 70px #ff4da6, 
-			0 0 90px #ff4da6;
+			0 0 10px rgb(84, 134, 241), 
+			0 0 30px #ffa9d4, 
+			0 0 50px #ffadd6, 
+			0 0 50px #fdbddd,
+			0 0 90px #f7bad9;
 	}
 }
 
@@ -102,7 +101,7 @@ img {
 
 .search-container h3 {
 	color: #000;
-	margin-bottom: 10px;
+	margin-bottom: 20px;
 }
 
 /* ######## Only if you are looking for grayscale bakgound image ########*/
@@ -122,7 +121,7 @@ img {
 	background-image: url("https://i0.wp.com/www.aptitude-test.com/blog/wp-content/uploads/2020/11/typing.jpg");
 	background-size: 35% 100%;
 	background-repeat: no-repeat;
-	background-position: center top 15px;
+	background-position: center top 0px;
 	filter: grayscale(0.6);
 	z-index: -1;
 }
@@ -143,32 +142,46 @@ img {
 
 .search-input-field {
 	width: 32%;
-	height: 22px;
+	height: 25px;
 	font-size: 20px;
 	padding: 10px;
 	font-weight: bold;
 	font-family: Georgia, 'Times New Roman', Times, serif;
 	border-radius: 8px;
-	border-color: #000;
-	background-color: #ffffffe0;
-	color: #272727c5;
-	margin-top: 30px;
+	border: none;
+	background-color: #e1e2e2;
+	margin-top: 18px;
+}
+
+.search-input-field:focus {
+	background-color: #ffffff;
+	color: #303030c5;
+	border: 2px solid #080808;
 }
 
 .help-container {
-	width: 66%;
+	width: 67%;
 	height: 75%;
-	font-size: 14px;
+	font-size: 16px;
 	font-weight: bold;
 	position: absolute;
 	top: 0;
 	right: 0;
 	background: transparent url("https://i.pinimg.com/564x/1c/f7/80/1cf7809521b1fc112c8b116ccb1e2a01.jpg") no-repeat scroll center;
-	background-size: 140px 60px;
+	background-size: 180px 50px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	/* Initially hidden */
+	display: none; 
+}
+
+.search-input-field:focus + .help-container {
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	text-decoration: none;
+	z-index: 1;
 }
 
 .fold {
@@ -177,8 +190,8 @@ img {
 	border-radius: 15px;
 	color: #0c0c0cc4;
 	position: absolute;
-	left: calc(52% + 0px);
-	top: calc(75% + 0px);
+	left: calc(54% + 0px);
+	top: calc(80% + 0px);
 	text-align: left;
 	padding: 10px;
 	background: -webkit-linear-gradient(top, #e6e6e6e7, #d1b5fd93);
@@ -187,7 +200,9 @@ img {
 	transition: all 0.7s ease;
 }
 
-.unfolder { display: none; }
+.unfolder { 
+	display: none;
+}
 
 .toggle-label {
 	display: inline-block;
@@ -203,6 +218,7 @@ img {
 .unfolder ~ .fold {
 	display: none;
 }
+
 .unfolder ~ label .fold-icon {
 	display: none;
 }
@@ -210,6 +226,7 @@ img {
 .unfolder:checked ~ .fold {
 	display: block;
 }
+
 .unfolder:checked ~ label .fold-icon {
 	display: inline-block;
 }
@@ -272,17 +289,18 @@ input[type="submit"]:hover {
 }
 
 #libraryLinkContainer {
-	font-size: 18px;
+	font-size: 22px;
 	font-weight: bold;
-	color: rgb(1, 20, 250);
-	font-family: Verdana, Geneva, Tahoma, sans-serif;
+	color: rgb(1, 10, 250);
+	font-family: 'Times New Roman', Times, serif;
 }
 
 .blur-background {
-	backdrop-filter: blur(5px);
+	backdrop-filter: invert(80%);
+	display: inline-block;
 	padding: 10px;
-	background-color: rgba(255, 255, 255, 0.4);
-	-webkit-backdrop-filter: blur(20px);
+	/* color: #ebebff; */
+	background-color: #9b9b9bc7;
 }
 
 .recommendation-container {
@@ -299,13 +317,13 @@ input[type="submit"]:hover {
 }
 
 #recSysIntroContainer {
-	color: rgba(0, 73, 10, 0.692);
+	color: rgba(2, 131, 19, 0.692);
 	font-weight: bold;
 	font-size: 21px;
 }
 
 #recSysResultsContainer {
-	margin-top: 20px;
+	margin-top: 12px;
 	font-size: 20px;
 	font-weight: bold;
 }
@@ -313,14 +331,14 @@ input[type="submit"]:hover {
 #recSysSlider {
 	-webkit-appearance: none;
 	appearance: none;
-	width: 20%;
-	height: 15px;
-	background: darkgray;
+	width: 30%;
+	height: 12px;
+	background: rgb(151, 151, 151);
 	outline: none;
-	opacity: 0.5;
-	-webkit-transition: .2s;
-	transition: opacity .2s;
-	border-radius: 10px;
+	opacity: 0.4;
+	-webkit-transition: .4s;
+	transition: opacity .4s;
+	border-radius: 8px;
 }
 
 #recSysSlider:hover {
@@ -332,7 +350,7 @@ input[type="submit"]:hover {
 	appearance: none;
 	width: 20px;
 	height: 20px;
-	background: #4CAF50;
+	background: #07880c;
 	cursor: pointer;
 	border-radius: 50%;
 }
@@ -348,16 +366,19 @@ input[type="submit"]:hover {
 .loading-container {
 	display: flex;
 	flex-direction: column;
-	align-items: center;
+	align-items: center;	
 }
 
 .spinner-text {
-	color: #fbf8ff;
-	font-family: 'Segoe UI', Tahoma, Geneva, Helvetica, sans-serif;
-	font-size: 22px;
+	color: #f7f7f7;
+	font-family: 'Times New Roman', Times, serif;
+	font-size: 25px;
 	font-weight: bold;
 	font-style: oblique;
-	margin: 20px;
+	backdrop-filter: blur(5px);
+	/* padding: 8px; */
+	background-color: rgba(200, 200, 200, 0.5);
+	-webkit-backdrop-filter: blur(5px);
 }
 
 .loading-spinner {
@@ -368,13 +389,17 @@ input[type="submit"]:hover {
 	content: '';
 	box-sizing: border-box;
 	position: absolute;
-	width: 80px;
-	height: 80px;
-	margin-left: -80px;
+
+	width: 65px;
+	height: 65px;
+	/* top: calc(62% + 0px);  */
+	margin-left: -70px;
+	/* left: calc(42% - 0px); */
+
 	border-radius: 70%;
-	border: 7px solid #fbf8ff;
-	border-top: 3px solid transparent;
-	animation: spin 0.9s linear infinite;
+	border: 5px solid #f7f7f7;
+	border-top: 1px solid transparent;
+	animation: spin 0.7s linear infinite;
 }
 
 @keyframes spin {

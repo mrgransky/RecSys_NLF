@@ -7,6 +7,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>User-based Recommendation System | TAU | NLF</title>
 		<link rel="stylesheet" href="{% static 'css/main_page_style.css' %}">
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Audiowide|Sofia|Trirong|Roboto|Pacifico|Indie+Flower|Kaushan+Script">
 	</head>
 
 <body>
@@ -54,23 +55,25 @@
 						</div>
 					</div>
 				</div>
+
 				<div class="button-container">
 					<input class="btn-nlf-search" type="button" value="Search NLF" onclick="searchNLF()">
-					<input class="btn-clear" type="button" value="Clear" onclick="cleanSearch()">
+					<input class="btn-clear" type="button" value="Clear" onclick="clearNlfSearch()">
 				</div>
 
 				<div id="libraryLinkContainer"></div>
-				
+
 				<div class="button-container">
 					<input type="submit" value="Recommend Me" onclick="recommendMe(event)">
-					<input class="btn-clear" type="button" value="Clear" onclick="cleanRecSys()">
+					<input class="btn-clear" type="button" value="Clear" onclick="clearRecSys()">
 				</div>
 
 				<div class="loading-container">
 					<div id="loadingSpinner" class="loading-spinner">
-						<p id="loadingText" class="spinner-text">Please Wait (~2.0 min)...</p>
+						<p id="loadingText" class="spinner-text">Please Wait (~2.0 min)</p>
 					</div>
 				</div>
+				
 			</form>
 		</div>
 
@@ -108,24 +111,48 @@
 		var digi_base_url = "https://digi.kansalliskirjasto.fi/search?query=";
 		let recommendationResults;
 		let myWindow;
+	
 	</script>
 
 	<script>
+
 		function searchNLF() {
 			var query = document.getElementsByName("query")[0].value.trim();
 			if (query !== "") {
 				var libLinkContainer = document.getElementById("libraryLinkContainer");
-				var libLink = digi_base_url + encodeURIComponent(query)
-				libLinkContainer.innerHTML = "<a href='" + libLink + "' target='_blank'>Click here to open National Library Results</a>";
+
+				// Create a link element
+				var link = document.createElement("a");
+				link.href = digi_base_url + encodeURIComponent(query);
+				link.target = "_blank";
+				link.textContent = "Click here to open National Library Results";
+
+				// Clear any previous content
+				libLinkContainer.innerHTML = "";
+				
+				// Append the link to the container
+				libLinkContainer.appendChild(link);
+
 				libLinkContainer.classList.add('blur-background');
 			} else {
-					alert('Oops! Enter a valid search query to proceed!');
+					alert('Enter a valid search query to proceed!');
 				}
 		}
-		function cleanSearch() {
-			document.getElementById("libraryLinkContainer").innerHTML = "";
-			document.getElementsByName("query")[0].value = "";
-			document.getElementsByName("query")[0].placeholder = "Hakusana | Sökord | Query prompt";
+		function clearNlfSearch() {
+			// Clear the search results
+			var libLinkContainer = document.getElementById("libraryLinkContainer");
+			libLinkContainer.innerHTML = "";
+
+			// Clear the search input field
+			var queryInput = document.getElementsByName("query")[0];
+			queryInput.value = "";
+			queryInput.placeholder = "Hakusana | Sökord | Query prompt";
+
+			// Remove blur effect from all elements with the class .blur-background
+			var blurElements = document.querySelectorAll('.blur-background');
+			blurElements.forEach(function(element) {
+					element.classList.remove('blur-background');
+			});
 		}
 		function showLoadingSpinner() {
 			document.getElementById("loadingSpinner").style.display = "flex";
@@ -145,7 +172,7 @@
 				event.preventDefault();
 			}
 		}
-		function cleanRecSys() {
+		function clearRecSys() {
 			document.getElementsByName("query")[0].value = "";
 			document.getElementsByName("query")[0].placeholder = "Hakusana | Sökord | Query prompt";
 			document.getElementById("recSysIntroContainer").remove();
@@ -243,7 +270,40 @@
 			});
 		}
 
-</script>
+	</script>
+
+	<script>
+		document.addEventListener("DOMContentLoaded", function() {
+			const searchInputField = document.querySelector('.search-input-field');
+			const helpContainer = document.querySelector('.help-container');
+			const foldElement = document.querySelector('.fold');
+
+			searchInputField.addEventListener('focus', function() {
+					helpContainer.style.display = 'flex'; // Show the help container
+					foldElement.classList.remove('unfolder'); // Remove the unfold class to fold element
+					foldElement.classList.add('fold'); // Ensure the initial folded state
+			});
+
+			// Toggle fold/unfold when clicking on the help container
+			helpContainer.addEventListener('click', function(event) {
+					// Toggle the fold class
+					foldElement.classList.toggle('unfold');
+
+					// Prevent event propagation to parent elements
+					event.stopPropagation();
+			});
+
+			// Close the help container when clicking outside of it
+			document.addEventListener('click', function(event) {
+					if (!searchInputField.contains(event.target)) {
+							helpContainer.style.display = 'none'; // Hide the help container
+							foldElement.classList.remove('unfolder'); // Remove the unfold class
+							foldElement.classList.add('fold'); // Ensure the folded state
+					}
+			});
+		});
+	</script>
+	
 </body>
 
 </html>

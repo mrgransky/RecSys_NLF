@@ -230,6 +230,7 @@ img {
 .unfolder:checked ~ label .fold-icon {
 	display: inline-block;
 }
+
 .unfolder:checked ~ label .unfold-icon {
 	display: none;
 }

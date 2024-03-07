@@ -7,12 +7,11 @@ import dill
 import numpy as np
 import pandas as pd
 from recsys_app.recsys_src.tokenizer_utils import *
-
-lemmatizer_methods = {"nltk": nltk_lemmatizer,
-											"trankit": trankit_lemmatizer,
-											"stanza": stanza_lemmatizer,
-											}
-
+lemmatizer_methods = {
+	"nltk": nltk_lemmatizer,
+	"trankit": trankit_lemmatizer,
+	"stanza": stanza_lemmatizer,
+}
 # digi_base_url = "https://digi.kansalliskirjasto.fi/search"
 # left_image_path = "https://www.topuniversities.com/sites/default/files/profiles/logos/tampere-university_5bbf14847d023f5bc849ec9a_large.jpg"
 # right_image_path = "https://digi.kansalliskirjasto.fi/images/logos/logo_fi_darkblue.png"

@@ -53,7 +53,7 @@ with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
 		download_method=DownloadMethod.REUSE_RESOURCES,
 	)
 	print(f"Elapsed_t: {time.time()-tt:.3f} sec")
-		useless_upos_tags = [
+	useless_upos_tags = [
 		"PUNCT",
 		"CCONJ",
 		"SCONJ",

@@ -21,20 +21,54 @@ with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
 	import stanza
 	from stanza.pipeline.multilingual import MultilingualPipeline
 	from stanza.pipeline.core import DownloadMethod
-	lang_id_config={"langid_lang_subset": ['en', 'sv', 'da', 'ru', 'fi', 'de', 'fr']}
-	lang_configs = {"en": {"processors":"tokenize,lemma,pos", "package":'lines',"tokenize_no_ssplit":True},
-									"sv": {"processors":"tokenize,lemma,pos","tokenize_no_ssplit":True},
-									"da": {"processors":"tokenize,lemma,pos","tokenize_no_ssplit":True},
-									"ru": {"processors":"tokenize,lemma,pos","tokenize_no_ssplit":True},
-									"fi": {"processors":"tokenize,lemma,pos,mwt", "package":'ftb',"tokenize_no_ssplit":True},
-									"de": {"processors":"tokenize,lemma,pos", "package":'hdt',"tokenize_no_ssplit":True},
-									"fr": {"processors":"tokenize,lemma,pos", "package":'sequoia',"tokenize_no_ssplit":True},
-								}
-	smp=MultilingualPipeline(	lang_id_config=lang_id_config,
-														lang_configs=lang_configs,
-														download_method=DownloadMethod.REUSE_RESOURCES,
-													)
-	useless_upos_tags = ["PUNCT", "CCONJ", "SYM", "AUX", "NUM", "DET", "ADP", "PRON", "PART", "ADV", "INTJ", "X"]
+
+	lang_id_config={
+		"langid_lang_subset": [
+			'fi', 
+			'sv', 
+			'en', 
+			'da', 
+			'ru', 
+			'de', 
+			# 'fr',
+		]
+	}
+
+	lang_configs = {
+		"en": {"processors":"tokenize,lemma,pos", "package":'lines',"tokenize_no_ssplit":True},
+		"sv": {"processors":"tokenize,lemma,pos","tokenize_no_ssplit":True},
+		"da": {"processors":"tokenize,lemma,pos","tokenize_no_ssplit":True},
+		"ru": {"processors":"tokenize,lemma,pos","tokenize_no_ssplit":True},
+		"fi": {"processors":"tokenize,lemma,pos,mwt", "package":'tdt',"tokenize_no_ssplit":True},
+		"et": {"processors":"tokenize,lemma,pos", "package":'edt',"tokenize_no_ssplit":True},
+		"de": {"processors":"tokenize,lemma,pos", "package":'hdt',"tokenize_no_ssplit":True},
+		# "fr": {"processors":"tokenize,lemma,pos,mwt", "package":'sequoia',"tokenize_no_ssplit":True},
+	}
+	print(f"Creating Stanza[{stanza.__version__}] < MultilingualPipeline >", end=" ")
+	tt = time.time()
+	# Create the MultilingualPipeline object
+	smp = MultilingualPipeline( 
+		lang_id_config=lang_id_config,
+		lang_configs=lang_configs,
+		download_method=DownloadMethod.REUSE_RESOURCES,
+	)
+	print(f"Elapsed_t: {time.time()-tt:.3f} sec")
+		useless_upos_tags = [
+		"PUNCT",
+		"CCONJ",
+		"SCONJ",
+		"SYM",
+		"AUX",
+		"NUM",
+		"DET",
+		"ADP",
+		"PRON",
+		"PART",
+		"ADV",
+		"INTJ",
+		# "X", # foriegn words will be excluded,
+	]
+	
 	STOPWORDS = nltk.corpus.stopwords.words(nltk.corpus.stopwords.fileids())
 	with open('recsys_app/recsys_src/meaningless_lemmas.txt', 'r') as file_:
 		my_custom_stopwords=[line.strip() for line in file_]

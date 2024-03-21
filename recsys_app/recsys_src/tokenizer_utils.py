@@ -89,7 +89,7 @@ def trankit_lemmatizer(docs):
 	return None
 
 @cache
-def clean_(docs: str="This is a <NORMAL> string!!", del_misspelled: bool=True):
+def clean_(docs: str="This is a <NORMAL> string!!"):
 	print(f'Raw Input:\n>>{docs}<<')
 	if not docs or len(docs) == 0 or docs == "":
 		return
@@ -111,8 +111,6 @@ def clean_(docs: str="This is a <NORMAL> string!!", del_misspelled: bool=True):
 		re.sub(r'\b\w{,2}\b', ' ', docs)#.strip() 
 	).strip()
 	##########################################################################################
-	if (del_misspelled and os.environ['USER']!="alijanif"):
-		docs = remove_misspelled_(documents=docs)
 	docs = docs.lower()
 	##########################################################################################
 	print(f'Cleaned Input [elasped_t: {time.time()-t0:.3f} s]:\n{docs}')

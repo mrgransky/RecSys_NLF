@@ -7,29 +7,31 @@ import time
 
 with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
 	import nltk
-	nltk_modules = ['punkt',
-								'stopwords',
-								'wordnet',
-								'averaged_perceptron_tagger', 
-								'omw-1.4',
-								]
-	nltk.download(#'all',
-								nltk_modules,
-								quiet=True, 
-								raise_on_error=True,
-								)	
+	# nltk_modules = ['punkt',
+	# 							'stopwords',
+	# 							'wordnet',
+	# 							'averaged_perceptron_tagger', 
+	# 							'omw-1.4',
+	# 							]
+	# nltk.download(#'all',
+	# 							nltk_modules,
+	# 							quiet=True, 
+	# 							raise_on_error=True,
+	# 							)
+
 	import stanza
 	from stanza.pipeline.multilingual import MultilingualPipeline
 	from stanza.pipeline.core import DownloadMethod
-
 	lang_id_config={
 		"langid_lang_subset": [
 			'fi', 
 			'sv', 
-			'en', 
-			'da', 
-			'ru', 
-			'de', 
+			'en',
+			'da',
+			# 'nb', 
+			'ru',
+			'et',
+			'de',
 			# 'fr',
 		]
 	}
@@ -37,13 +39,16 @@ with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
 	lang_configs = {
 		"en": {"processors":"tokenize,lemma,pos", "package":'lines',"tokenize_no_ssplit":True},
 		"sv": {"processors":"tokenize,lemma,pos","tokenize_no_ssplit":True},
+		# "sv": {"processors":"tokenize,lemma,pos", "package":'lines',"tokenize_no_ssplit":True}, # errors!!!
 		"da": {"processors":"tokenize,lemma,pos","tokenize_no_ssplit":True},
+		# "nb": {"processors":"tokenize,lemma,pos","tokenize_no_ssplit":True},
 		"ru": {"processors":"tokenize,lemma,pos","tokenize_no_ssplit":True},
 		"fi": {"processors":"tokenize,lemma,pos,mwt", "package":'tdt',"tokenize_no_ssplit":True},
 		"et": {"processors":"tokenize,lemma,pos", "package":'edt',"tokenize_no_ssplit":True},
 		"de": {"processors":"tokenize,lemma,pos", "package":'hdt',"tokenize_no_ssplit":True},
 		# "fr": {"processors":"tokenize,lemma,pos,mwt", "package":'sequoia',"tokenize_no_ssplit":True},
 	}
+
 	print(f"Creating Stanza[{stanza.__version__}] < MultilingualPipeline >", end=" ")
 	tt = time.time()
 	# Create the MultilingualPipeline object
@@ -83,31 +88,35 @@ def nltk_lemmatizer(docs):
 def trankit_lemmatizer(docs):
 	return None
 
-def clean_(docs: str="This is a <NORMAL> string!!"):
-	print(f"<>"*50)
-	print(f'Raw input >>{docs}<<')
-	# print(f"{f'Inp. word(s): { len( docs.split() ) }':<20}", end="")
-	# st_t = time.time()
+@cache
+def clean_(docs: str="This is a <NORMAL> string!!", del_misspelled: bool=True):
+	print(f'Raw Input:\n>>{docs}<<')
 	if not docs or len(docs) == 0 or docs == "":
 		return
+	t0 = time.time()
+	docs = re.sub(
+		r'[\{\}@®¤†±©§½✓%,+–;,=&\'\-$€£¥#*"°^~?!❁—.•()˶“”„:/।|‘’<>»«□™♦_■►▼▲❖★☆¶…\\\[\]]+',
+		' ',
+		docs,
+	)
+	docs = re.sub(
+		r'\b(?:\w*(\w)(\1{2,})\w*)\b|\d+',
+		" ",
+		docs,
+	)
+	docs = re.sub(
+		r'\s{2,}', 
+		" ", 
+		# re.sub(r'\b\w{,2}\b', ' ', docs).strip() 
+		re.sub(r'\b\w{,2}\b', ' ', docs)#.strip() 
+	).strip()
+	##########################################################################################
+	if (del_misspelled and os.environ['USER']!="alijanif"):
+		docs = remove_misspelled_(documents=docs)
 	docs = docs.lower()
-	# treat all as document
-	# docs = re.sub(r'\"|\'|<[^>]+>|[~*^][\d]+', ' ', docs).strip() # "kuuslammi janakkala"^5 or # "karl urnberg"~1
-	docs = re.sub(r'[\{\}@®¤†±©§½✓%,+;,=&\'\-$€£¥#*"°^~?!❁—.•()˶“”„:/।|‘’<>»«□™♦_■►▼▲❖★☆¶…\\\[\]]+', ' ', docs )#.strip()
-	# docs = " ".join(map(str, [w for w in docs.split() if len(w)>2]))
-	# docs = " ".join([w for w in docs.split() if len(w)>2])
-	docs = re.sub(r'\b(?:\w*(\w)(\1{2,})\w*)\b|\d+', " ", docs)#.strip()
-	# docs = re.sub(r'\s{2,}', " ", re.sub(r'\b\w{,2}\b', ' ', docs).strip() ) # rm words with len() < 3 ex) ö v or l m and extra spaces
-	docs = re.sub(r'\s{2,}', 
-								" ", 
-								# re.sub(r'\b\w{,2}\b', ' ', docs).strip() 
-								re.sub(r'\b\w{,2}\b', ' ', docs)#.strip() 
-				).strip() # rm words with len() < 3 ex) ö v or l m and extra spaces
-
-	print(f'Cleaned input >>{docs}<<')
-	print(f"<>"*50)
-
-	# # print(f"{f'Preprocessed: { len( docs.split() ) } words':<30}{str(docs.split()[:3]):<65}", end="")
+	##########################################################################################
+	print(f'Cleaned Input [elasped_t: {time.time()-t0:.3f} s]:\n{docs}')
+	print(f"<>"*100)
 	if not docs or len(docs) == 0 or docs == "":
 		return
 	return docs

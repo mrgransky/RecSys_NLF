@@ -120,23 +120,30 @@ def clean_(docs: str="This is a <NORMAL> string!!"):
 	return docs
 
 @cache
-def stanza_lemmatizer(docs):
+def stanza_lemmatizer(docs: str="This is a <NORMAL> sentence in document."):
 	try:
-		print(f'Stanza[{stanza.__version__}] Raw Input: {docs}')
+		# print(f'Stanza[{stanza.__version__}] Raw Input:\n{docs}\n')
 		# print(f"{f'nW: { len( docs.split() ) }':<10}{str(docs.split()[:7]):<150}", end="")
 		st_t = time.time()
+		smp_t = time.time()
+		print(f">> smp elasped_t: {time.time()-smp_t:.3f} sec")
+
 		all_ = smp(docs)
-		# list comprehension: slow but functional alternative
-		# print(f"{f'{ len(all_.sentences) } sent.: { [ len(vsnt.words) for _, vsnt in enumerate(all_.sentences) ] } words':<40}", end="")
-		# lemmas_list = [ re.sub(r'"|#|_|\-','', wlm.lower()) for _, vsnt in enumerate(all_.sentences) for _, vw in enumerate(vsnt.words) if ( (wlm:=vw.lemma) and len(wlm)>=3 and len(wlm)<=40 and not re.search(r"\b(?:\w*(\w)(\1{2,})\w*)\b|<eos>|<EOS>|<sos>|<SOS>|<UNK>|<unk>|\s+", wlm) and vw.upos not in useless_upos_tags and wlm not in UNQ_STW ) ]
+		# for i, v in enumerate(all_.sentences):
+		# 	print(i, v)
+		# 	for ii, vv in enumerate(v.words):
+		# 		print(ii, vv.text, vv.lemma, vv.upos)
+		# 	print()
+
 		lemmas_list = [ 
-			re.sub(r'["#_\-]', '', wlm.lower())
+			# re.sub(r'["#_\-]', '', wlm.lower())
+			re.sub(r'[";&#<>_\-\+\^\.\$\[\]]', '', wlm.lower())
 			for _, vsnt in enumerate(all_.sentences) 
 			for _, vw in enumerate(vsnt.words) 
 			if ( 
 					(wlm:=vw.lemma)
-					and 3 <= len(wlm) <= 40
-					and not re.search(r'\b(?:\w*(\w)(\1{2,})\w*)\b|<eos>|<EOS>|<sos>|<SOS>|<UNK>|"|#|<unk>|\s+', wlm) 
+					and 4 <= len(wlm) <= 43
+					and not re.search(r'\b(?:\w*(\w)(\1{2,})\w*)\b|<eos>|<EOS>|<sos>|<SOS>|<UNK>|\$|\^|<unk>|\s+', wlm) 
 					and vw.upos not in useless_upos_tags 
 					and wlm not in UNQ_STW
 			)
@@ -145,7 +152,6 @@ def stanza_lemmatizer(docs):
 	except Exception as e:
 		print(f"<!> Stanza Error: {e}")
 		return
-	# print( lemmas_list )
-	print(f"Lemmatized to {len(lemmas_list)} lemma(s) {lemmas_list} Elapsed_t: {end_t-st_t:.2f} s")
-	print("-"*100)
+	print( lemmas_list )
+	print(f"Found {len(lemmas_list)} lemma(s) in {end_t-st_t:.2f} s".center(140, "-") )
 	return lemmas_list

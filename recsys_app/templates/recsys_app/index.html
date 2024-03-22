@@ -125,7 +125,8 @@
 		function searchNLF() {
 			var query = document.getElementsByName("query")[0].value.trim();
 			if (query !== "") {
-				document.title = "Q: " + query;
+				// document.title = "Q: " + query;
+				document.title = query;
 				var libLinkContainer = document.getElementById("libraryLinkContainer");
 
 				// Create a link element

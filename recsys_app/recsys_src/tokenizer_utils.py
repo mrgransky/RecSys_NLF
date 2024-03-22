@@ -58,19 +58,20 @@ with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
 		download_method=DownloadMethod.REUSE_RESOURCES,
 	)
 	print(f"Elapsed_t: {time.time()-tt:.3f} sec")
+
 	useless_upos_tags = [
-		"PUNCT",
+		"PUNCT", 
 		"CCONJ",
-		"SCONJ",
-		"SYM",
-		"AUX",
-		"NUM",
-		"DET",
-		"ADP",
-		"PRON",
-		"PART",
-		"ADV",
-		"INTJ",
+		"SCONJ", 
+		"SYM", 
+		"AUX", 
+		"NUM", 
+		"DET", 
+		"ADP", 
+		"PRON", 
+		"PART", 
+		"ADV", 
+		"INTJ", 
 		# "X", # foriegn words will be excluded,
 	]
 	
@@ -80,7 +81,7 @@ with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
 	STOPWORDS.extend(my_custom_stopwords)
 	UNQ_STW = list(set(STOPWORDS))
 
-logging.getLogger("stanza").setLevel(logging.WARNING) # disable stanza log messages with severity levels of WARNING and higher (ERROR, CRITICAL)
+# logging.getLogger("stanza").setLevel(logging.WARNING) # disable stanza log messages with severity levels of WARNING and higher (ERROR, CRITICAL)
 
 def nltk_lemmatizer(docs):
 	return None
@@ -113,8 +114,8 @@ def clean_(docs: str="This is a <NORMAL> string!!"):
 	##########################################################################################
 	docs = docs.lower()
 	##########################################################################################
-	print(f'Cleaned Input [elasped_t: {time.time()-t0:.3f} s]:\n{docs}')
-	print(f"<>"*100)
+	print(f'Cleaned Input [elasped_t: {time.time()-t0:.5f} s]:\n{docs}')
+	print(f"<>"*40)
 	if not docs or len(docs) == 0 or docs == "":
 		return
 	return docs
@@ -122,18 +123,10 @@ def clean_(docs: str="This is a <NORMAL> string!!"):
 @cache
 def stanza_lemmatizer(docs: str="This is a <NORMAL> sentence in document."):
 	try:
-		# print(f'Stanza[{stanza.__version__}] Raw Input:\n{docs}\n')
+		print(f'Stanza[{stanza.__version__}] Raw Input:\n{docs}\n')
 		# print(f"{f'nW: { len( docs.split() ) }':<10}{str(docs.split()[:7]):<150}", end="")
 		st_t = time.time()
-		smp_t = time.time()
-		print(f">> smp elasped_t: {time.time()-smp_t:.3f} sec")
-
 		all_ = smp(docs)
-		# for i, v in enumerate(all_.sentences):
-		# 	print(i, v)
-		# 	for ii, vv in enumerate(v.words):
-		# 		print(ii, vv.text, vv.lemma, vv.upos)
-		# 	print()
 
 		lemmas_list = [ 
 			# re.sub(r'["#_\-]', '', wlm.lower())

@@ -6,7 +6,6 @@ import gzip
 import dill
 import numpy as np
 import pandas as pd
-
 from typing import List, Set, Dict, Tuple
 from recsys_app.recsys_src.tokenizer_utils import *
 lemmatizer_methods = {
@@ -97,9 +96,9 @@ def get_avg_rec(spMtx, cosine_sim, idf_vec, spMtx_norm):
 	print(f"Elapsed_t: {time.time()-st_t:.2f} s {type(avg_rec)} {avg_rec.dtype} {avg_rec.shape}".center(150, "-"))	
 	return avg_rec #(nTokens,) #(nTokens_shrinked,) # smaller matrix
 
-# def get_topK_tokens(mat, mat_rows, mat_cols, avgrec, tok_query: List[str], raw_query: str="Raw Query Phrase!", K: int=80):
+# def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], raw_query: str="Raw Query Phrase!", K: int=80):
 # 	# return [mat_cols[iTK] for iTK in avgrec.argsort()[-K:]][::-1]
-# 	return [mat_cols[iTK] for iTK in avgrec.argsort()[-K:] if mat_cols[iTK] not in qu][::-1] # 
+# 	return [mat_cols[iTK] for iTK in avgrec.argsort()[-K:] if mat_cols[iTK] not in tok_query][::-1] # 
 
 def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], raw_query: str="Raw Query Phrase!", K: int=100):
 	print(f"Query: raw: {raw_query} | {raw_query.lower().split()} | tk: {tok_query}")
@@ -166,8 +165,8 @@ def get_recsys_results(query_phrase: str="This is a sample query phrase!", nToke
 		spMtx_norm=usrNorms,
 	)
 	topKtokens=get_topK_tokens(
-		mat=concat_spm_U_x_T, 
-		mat_rows=concat_spm_usrNames,
+		# mat=concat_spm_U_x_T, 
+		# mat_rows=concat_spm_usrNames,
 		mat_cols=concat_spm_tokNames,
 		avgrec=avgRecSys,
 		raw_query=query_phrase,
@@ -178,7 +177,7 @@ def get_recsys_results(query_phrase: str="This is a sample query phrase!", nToke
 
 extract_tar(fname=compressed_spm_file)
 
-print(f">>>>> Temporary Solution for USER: >{USER}< using nSPMs: {nSPMs}...")
+print(f"USER: >{USER}< using nSPMs: {nSPMs}...")
 concat_spm_U_x_T=load_pickle(fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'_shrinked_spMtx_USERs_vs_TOKENs_*_nUSRs_x_*_nTOKs.gz')[0])
 concat_spm_usrNames=load_pickle(fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'_shrinked_spMtx_rows_*_nUSRs.gz')[0])
 concat_spm_tokNames=load_pickle(fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'_shrinked_spMtx_cols_*_nTOKs.gz')[0])

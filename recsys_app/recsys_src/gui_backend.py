@@ -96,13 +96,11 @@ def get_avg_rec(spMtx, cosine_sim, idf_vec, spMtx_norm):
 	print(f"Elapsed_t: {time.time()-st_t:.2f} s {type(avg_rec)} {avg_rec.dtype} {avg_rec.shape}".center(150, "-"))	
 	return avg_rec #(nTokens,) #(nTokens_shrinked,) # smaller matrix
 
-# def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], raw_query: str="Raw Query Phrase!", K: int=80):
-# 	# return [mat_cols[iTK] for iTK in avgrec.argsort()[-K:]][::-1]
-# 	return [mat_cols[iTK] for iTK in avgrec.argsort()[-K:] if mat_cols[iTK] not in tok_query][::-1] # 
-
 def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], raw_query: str="Raw Query Phrase!", K: int=100):
-	print(f"Query: raw: {raw_query} | {raw_query.lower().split()} | tk: {tok_query}")
+	print(f"[get_topK_tokens] Query: raw: {raw_query} | {raw_query.lower().split()} | tk: {tok_query}")
 	# return [mat_cols[iTK] for iTK in avgrec.argsort()[-K:]][::-1] # n
+	# return [mat_cols[iTK] for iTK in avgrec.argsort()[-K:] if mat_cols[iTK] not in tok_query][::-1] # 
+	# raw_query.lower().split() in case we have false lemma: ex) tiedusteluorganisaatio puolustusvoimat
 	return [mat_cols[iTK] for iTK in avgrec.argsort()[-K:] if ( mat_cols[iTK] not in tok_query and mat_cols[iTK] not in raw_query.lower().split() )][::-1] # 
 
 def load_pickle(fpath:str="unknown",):
@@ -165,8 +163,6 @@ def get_recsys_results(query_phrase: str="This is a sample query phrase!", nToke
 		spMtx_norm=usrNorms,
 	)
 	topKtokens=get_topK_tokens(
-		# mat=concat_spm_U_x_T, 
-		# mat_rows=concat_spm_usrNames,
 		mat_cols=concat_spm_tokNames,
 		avgrec=avgRecSys,
 		raw_query=query_phrase,

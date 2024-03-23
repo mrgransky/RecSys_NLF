@@ -7,17 +7,19 @@ import time
 
 with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
 	import nltk
-	# nltk_modules = ['punkt',
-	# 							'stopwords',
-	# 							'wordnet',
-	# 							'averaged_perceptron_tagger', 
-	# 							'omw-1.4',
-	# 							]
-	# nltk.download(#'all',
-	# 							nltk_modules,
-	# 							quiet=True, 
-	# 							raise_on_error=True,
-	# 							)
+	nltk_modules = [
+		'punkt',
+		'stopwords',
+		'wordnet',
+		'averaged_perceptron_tagger', 
+		'omw-1.4',
+	]
+	nltk.download(
+		#'all',
+		nltk_modules,
+		quiet=True, 
+		raise_on_error=True,
+	)
 
 	import stanza
 	from stanza.pipeline.multilingual import MultilingualPipeline

@@ -24,7 +24,6 @@ compressed_spm_file = os.path.join(Files_DIR, DATASET_DIR, f"concat_x{nSPMs}.tar
 spm_files_dir = os.path.join(Files_DIR, DATASET_DIR, f"concat_x{nSPMs}")
 fprefix: str = f"concatinated_{nSPMs}_SPMs"
 ###########################################################################################
-
 def get_lemmatized_sqp(qu_list, lm: str="stanza"):
 	# qu_list = ['some word in this format with always length 1']
 	#print(len(qu_list), qu_list)

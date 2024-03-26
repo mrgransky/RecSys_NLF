@@ -129,7 +129,6 @@ def stanza_lemmatizer(docs: str="This is a <NORMAL> sentence in document."):
 		# print(f"{f'nW: { len( docs.split() ) }':<10}{str(docs.split()[:7]):<150}", end="")
 		st_t = time.time()
 		all_ = smp(docs)
-
 		lemmas_list = [ 
 			# re.sub(r'["#_\-]', '', wlm.lower())
 			re.sub(r'[";&#<>_\-\+\^\.\$\[\]]', '', wlm.lower())

@@ -18,12 +18,13 @@ HOME: str = os.getenv('HOME') # echo $HOME
 USER: str = os.getenv('USER') # echo $USER
 Files_DIR: str = "/media/volume" if USER == "ubuntu" else HOME
 lmMethod: str="stanza"
-nSPMs: int = 113 #if USER == "ubuntu" else 50 # dynamic changing of nSPMs due to Rahti CPU memory issues!
+nSPMs: int = 114 #if USER == "ubuntu" else 50 # dynamic changing of nSPMs due to Rahti CPU memory issues!
 DATASET_DIR: str = f"Nationalbiblioteket/compressed_concatenated_SPMs" if USER == "ubuntu" else f"datasets/compressed_concatenated_SPMs"
 compressed_spm_file = os.path.join(Files_DIR, DATASET_DIR, f"concat_x{nSPMs}.tar.gz")
 spm_files_dir = os.path.join(Files_DIR, DATASET_DIR, f"concat_x{nSPMs}")
 fprefix: str = f"concatinated_{nSPMs}_SPMs"
 ###########################################################################################
+
 def get_lemmatized_sqp(qu_list, lm: str="stanza"):
 	# qu_list = ['some word in this format with always length 1']
 	#print(len(qu_list), qu_list)
@@ -92,12 +93,15 @@ def get_avg_rec(spMtx, cosine_sim, idf_vec, spMtx_norm):
 	print(f"Elapsed_t: {time.time()-st_t:.2f} s {type(avg_rec)} {avg_rec.dtype} {avg_rec.shape}".center(150, "-"))	
 	return avg_rec #(nTokens,) #(nTokens_shrinked,) # smaller matrix
 
-def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], raw_query: str="Raw Query Phrase!", K: int=100):
-	print(f"[get_topK_tokens] Query: raw: {raw_query} | {raw_query.lower().split()} | tk: {tok_query}")
+def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], raw_query: str="Raw Query Phrase!", K: int=50):
+	print(f"topK={K} token(s) Query [raw]: {raw_query} | {raw_query.lower().split()} | tk: {tok_query}")
+	st_t = time.time()
 	# return [mat_cols[iTK] for iTK in avgrec.argsort()[-K:]][::-1] # n
 	# return [mat_cols[iTK] for iTK in avgrec.argsort()[-K:] if mat_cols[iTK] not in tok_query][::-1] # 
 	# raw_query.lower().split() in case we have false lemma: ex) tiedusteluorganisaatio puolustusvoimat
-	return [mat_cols[iTK] for iTK in avgrec.argsort()[-K:] if ( mat_cols[iTK] not in tok_query and mat_cols[iTK] not in raw_query.lower().split() )][::-1] # 
+	topK_tokens_list = [mat_cols[iTK] for iTK in avgrec.argsort()[-K:] if ( mat_cols[iTK] not in tok_query and mat_cols[iTK] not in raw_query.lower().split() )][::-1] #
+	print(f"Found {len(topK_tokens_list)} Recommendation results in {time.time()-st_t:.2f} sec")
+	return topK_tokens_list
 
 def load_pickle(fpath:str="unknown",):
 	print(f"Checking for existence? {fpath}")
@@ -163,6 +167,7 @@ def get_recsys_results(query_phrase: str="This is a sample query phrase!", nToke
 		avgrec=avgRecSys,
 		raw_query=query_phrase,
 		tok_query=tokenized_query_phrase,
+		K=50,
 	)
 	print(f">>> Found {len(topKtokens)} Recommendations...")
 	return topKtokens

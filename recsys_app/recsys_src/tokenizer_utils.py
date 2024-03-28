@@ -34,7 +34,7 @@ with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
 			'ru',
 			'et',
 			'de',
-			# 'fr',
+			'fr',
 		]
 	}
 
@@ -49,7 +49,7 @@ with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
 		"fi": {"processors":"tokenize,lemma,pos,mwt", "package":'ftb',"tokenize_no_ssplit":True}, # FTB
 		"et": {"processors":"tokenize,lemma,pos", "package":'edt',"tokenize_no_ssplit":True},
 		"de": {"processors":"tokenize,lemma,pos", "package":'hdt',"tokenize_no_ssplit":True},
-		# "fr": {"processors":"tokenize,lemma,pos,mwt", "package":'sequoia',"tokenize_no_ssplit":True},
+		"fr": {"processors":"tokenize,lemma,pos,mwt", "package":'sequoia',"tokenize_no_ssplit":True},
 	}
 
 	print(f"Creating Stanza[{stanza.__version__}] < MultilingualPipeline >", end=" ")

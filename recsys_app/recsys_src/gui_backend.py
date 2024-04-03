@@ -118,7 +118,7 @@ def load_pickle(fpath:str="unknown",):
 		pkl = pd.read_pickle(fpath)
 	elpt = time.time()-st_t
 	fsize = os.stat( fpath ).st_size / 1e9 # in GB
-	print(f"Loaded in: {elpt:.1f} s {type(pkl)} {fsize:.1f} GB".center(150, " "))
+	print(f"Loaded in: {elpt:.3f} s {type(pkl)} {fsize:.2f} GB".center(150, " "))
 	return pkl
 
 def extract_tar(fname):

@@ -32,7 +32,7 @@ with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
 			'da',
 			# 'nb', 
 			'ru',
-			'et',
+			# 'et',
 			'de',
 			'fr',
 		]
@@ -47,7 +47,7 @@ with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
 		"ru": {"processors":"tokenize,lemma,pos","tokenize_no_ssplit":True},
 		# "fi": {"processors":"tokenize,lemma,pos,mwt", "package":'tdt',"tokenize_no_ssplit":True}, # TDT
 		"fi": {"processors":"tokenize,lemma,pos,mwt", "package":'ftb',"tokenize_no_ssplit":True}, # FTB
-		"et": {"processors":"tokenize,lemma,pos", "package":'edt',"tokenize_no_ssplit":True},
+		# "et": {"processors":"tokenize,lemma,pos", "package":'edt',"tokenize_no_ssplit":True},
 		"de": {"processors":"tokenize,lemma,pos", "package":'hdt',"tokenize_no_ssplit":True},
 		"fr": {"processors":"tokenize,lemma,pos,mwt", "package":'sequoia',"tokenize_no_ssplit":True},
 	}

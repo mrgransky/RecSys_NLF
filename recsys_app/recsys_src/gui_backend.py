@@ -40,7 +40,7 @@ def get_query_vec(mat, mat_row, mat_col, tokenized_qu_phrases=["åbo", "akademi"
 	return query_vector
 
 def get_optimized_cs(spMtx, query_vec, idf_vec, spMtx_norm, exponent: float=1.0):
-	print(f"Optimized Cosine Similarity (1 x nUsers={spMtx.shape[0]})".center(150, "-"))
+	print(f"Optimized Cosine Similarity (1 x nUsers={spMtx.shape[0]})".center(130, "-"))
 	print(f"<spMtx> {type(spMtx)} {spMtx.shape} {spMtx.dtype}")
 	print(f"<quVec> {type(query_vec)} {query_vec.shape} {query_vec.dtype}")
 	print(f"<IDF> {type(idf_vec)} {idf_vec.shape} {idf_vec.dtype}")
@@ -67,7 +67,7 @@ def get_optimized_cs(spMtx, query_vec, idf_vec, spMtx_norm, exponent: float=1.0)
 
 		cs[ui]=np.sum(usrInterest*quInterest_nonZeros)
 		# cs[ui]*=temp_cs_multiplier # added Nov 10th
-	print(f"Elapsed_t: {time.time()-st_t:.1f} s {type(cs)} {cs.dtype} {cs.shape}".center(150, "-"))
+	print(f"Elapsed_t: {time.time()-st_t:.1f} s {type(cs)} {cs.dtype} {cs.shape}".center(130, "-"))
 	return cs # (nUsers,)
 
 def get_avg_rec(spMtx, cosine_sim, idf_vec, spMtx_norm):
@@ -90,17 +90,20 @@ def get_avg_rec(spMtx, cosine_sim, idf_vec, spMtx_norm):
 		update_vec=cosine_sim[nonzero_idx_CCS]*userInterest # (nTokens,)
 		avg_rec[nonzero_idxs]+=update_vec # (nTokens,) + (len(idx_nonzeros),)
 	avg_rec*=(1/np.sum(cosine_sim))# (nTokens,)
-	print(f"Elapsed_t: {time.time()-st_t:.2f} s {type(avg_rec)} {avg_rec.dtype} {avg_rec.shape}".center(150, "-"))	
+	print(f"Elapsed_t: {time.time()-st_t:.2f} s {type(avg_rec)} {avg_rec.dtype} {avg_rec.shape}".center(130, "-"))	
 	return avg_rec #(nTokens,) #(nTokens_shrinked,) # smaller matrix
 
 def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], raw_query: str="Raw Query Phrase!", K: int=50):
-	print(f"topK={K} token(s) Query [raw]: {raw_query} | {raw_query.lower().split()} | tk: {tok_query}")
+	print(
+		f"topK={K} token(s)\n"
+		f"Query [raw]: {raw_query}\n"
+		f"Query [tokenized]: {raw_query.lower().split()} | tk: {tok_query}")
 	st_t = time.time()
 	# return [mat_cols[iTK] for iTK in avgrec.argsort()[-K:]][::-1] # n
 	# return [mat_cols[iTK] for iTK in avgrec.argsort()[-K:] if mat_cols[iTK] not in tok_query][::-1] # 
 	# raw_query.lower().split() in case we have false lemma: ex) tiedusteluorganisaatio puolustusvoimat
 	topK_tokens_list = [mat_cols[iTK] for iTK in avgrec.argsort()[-K:] if ( mat_cols[iTK] not in tok_query and mat_cols[iTK] not in raw_query.lower().split() )][::-1] #
-	print(f"Found {len(topK_tokens_list)} Recommendation results in {time.time()-st_t:.2f} sec")
+	print(f"Found {len(topK_tokens_list)} Recommendation results in {time.time()-st_t:.2f} sec".center(130, "-"))
 	return topK_tokens_list
 
 def load_pickle(fpath:str="unknown",):
@@ -170,7 +173,7 @@ def get_recsys_results(query_phrase: str="This is a sample query phrase!", nToke
 		tok_query=tokenized_query_phrase,
 		K=50,
 	)
-	print(f">>> Found {len(topKtokens)} Recommendations...")
+	# print(f">>> Found {len(topKtokens)} Recommendations...")
 	return topKtokens
 
 extract_tar(fname=compressed_spm_file)

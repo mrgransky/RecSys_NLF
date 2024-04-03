@@ -129,6 +129,7 @@ def extract_tar(fname):
 		with tarfile.open(fname, 'r:gz') as tfile:
 			tfile.extractall(output_folder)
 
+@cache
 def get_recsys_results(query_phrase: str="This is a sample query phrase!", nTokens: int=5):
 	tokenized_query_phrase = get_lemmatized_sqp(qu_list=[query_phrase], lm=lmMethod)
 	print(f"tokenized_query_phrase: {tokenized_query_phrase}")

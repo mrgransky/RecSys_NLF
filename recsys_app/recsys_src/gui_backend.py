@@ -93,7 +93,7 @@ def get_avg_rec(spMtx, cosine_sim, idf_vec, spMtx_norm):
 	print(f"Elapsed_t: {time.time()-st_t:.2f} s {type(avg_rec)} {avg_rec.dtype} {avg_rec.shape}".center(130, "-"))	
 	return avg_rec #(nTokens,) #(nTokens_shrinked,) # smaller matrix
 
-def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], raw_query: str="Raw Query Phrase!", K: int=50):
+def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], meaningless_lemmas_list: List[str], raw_query: str="Raw Query Phrase!", K: int=50):
 	print(
 		f"topK={K} token(s)\n"
 		f"Query [raw]: {raw_query}\n"
@@ -102,7 +102,17 @@ def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], raw_query: str="Raw 
 	# return [mat_cols[iTK] for iTK in avgrec.argsort()[-K:]][::-1] # n
 	# return [mat_cols[iTK] for iTK in avgrec.argsort()[-K:] if mat_cols[iTK] not in tok_query][::-1] # 
 	# raw_query.lower().split() in case we have false lemma: ex) tiedusteluorganisaatio puolustusvoimat
-	topK_tokens_list = [mat_cols[iTK] for iTK in avgrec.argsort()[-K:] if ( mat_cols[iTK] not in tok_query and mat_cols[iTK] not in raw_query.lower().split() )][::-1] #
+	# topK_tokens_list = [mat_cols[iTK] for iTK in avgrec.argsort()[-K:] if ( mat_cols[iTK] not in tok_query and mat_cols[iTK] not in raw_query.lower().split() )][::-1] #
+	topK_tokens_list = [
+		mat_cols[iTK] 
+		for iTK in avgrec.argsort()[-K:] 
+		if ( 
+			mat_cols[iTK] not in tok_query
+			and mat_cols[iTK] not in meaningless_lemmas_list
+			and mat_cols[iTK] not in raw_query.lower().split()
+		)
+	][::-1]
+
 	print(f"Found {len(topK_tokens_list)} Recommendation results in {time.time()-st_t:.2f} sec".center(130, "-"))
 	return topK_tokens_list
 
@@ -171,6 +181,7 @@ def get_recsys_results(query_phrase: str="This is a sample query phrase!", nToke
 		avgrec=avgRecSys,
 		raw_query=query_phrase,
 		tok_query=tokenized_query_phrase,
+		meaningless_lemmas_list=UNQ_STW,
 		K=50,
 	)
 	# print(f">>> Found {len(topKtokens)} Recommendations...")

@@ -127,6 +127,7 @@ def clean_(docs: str="This is a <NORMAL> string!!"):
 def stanza_lemmatizer(docs: str="This is a <NORMAL> sentence in document."):
 	try:
 		print(f'Stanza[{stanza.__version__}] Raw Input:\n{docs}\n')
+		docs = docs.title()
 		# print(f"{f'nW: { len( docs.split() ) }':<10}{str(docs.split()[:7]):<150}", end="")
 		st_t = time.time()
 		all_ = smp(docs)

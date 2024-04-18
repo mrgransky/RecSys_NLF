@@ -6,6 +6,7 @@ import gzip
 import dill
 import numpy as np
 import pandas as pd
+import urllib.parse
 from typing import List, Set, Dict, Tuple
 from recsys_app.recsys_src.tokenizer_utils import *
 lemmatizer_methods = {
@@ -18,7 +19,7 @@ HOME: str = os.getenv('HOME') # echo $HOME
 USER: str = os.getenv('USER') # echo $USER
 Files_DIR: str = "/media/volume" if USER == "ubuntu" else HOME
 lmMethod: str="stanza"
-nSPMs: int = 377 #if USER == "ubuntu" else 50 # dynamic changing of nSPMs due to Rahti CPU memory issues!
+nSPMs: int = 399 #if USER == "ubuntu" else 50 # dynamic changing of nSPMs due to Rahti CPU memory issues!
 DATASET_DIR: str = f"Nationalbiblioteket/compressed_concatenated_SPMs" if USER == "ubuntu" else f"datasets/compressed_concatenated_SPMs"
 compressed_spm_file = os.path.join(Files_DIR, DATASET_DIR, f"concat_x{nSPMs}.tar.gz")
 spm_files_dir = os.path.join(Files_DIR, DATASET_DIR, f"concat_x{nSPMs}")
@@ -97,7 +98,8 @@ def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], meaningless_lemmas_l
 	print(
 		f"topK={K} token(s)\n"
 		f"Query [raw]: {raw_query}\n"
-		f"Query [tokenized]: {raw_query.lower().split()} | tk: {tok_query}")
+		f"Query [tokenized]: {raw_query.lower().split()} | tk: {tok_query}"
+	)
 	st_t = time.time()
 	# return [mat_cols[iTK] for iTK in avgrec.argsort()[-K:]][::-1] # n
 	# return [mat_cols[iTK] for iTK in avgrec.argsort()[-K:] if mat_cols[iTK] not in tok_query][::-1] # 
@@ -112,7 +114,12 @@ def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], meaningless_lemmas_l
 			and mat_cols[iTK] not in raw_query.lower().split()
 		)
 	][::-1]
+	# TODO: send it to url_scapring for checking len of results:
+	base_url: str = "https://digi.kansalliskirjasto.fi/search?query="
 
+	# topK_tokens_urls = [scrap_search_page(URL=f"{base_url}" + urllib.parse.quote_plus(raw_query + " " + tk)) for tk in topK_tokens_list]
+	topK_tokens_urls = [f"{base_url}" + urllib.parse.quote_plus(raw_query + " " + tk) for tk in topK_tokens_list]
+	print(topK_tokens_urls)
 	print(f"Found {len(topK_tokens_list)} Recommendation results in {time.time()-st_t:.2f} sec".center(130, "-"))
 	return topK_tokens_list
 

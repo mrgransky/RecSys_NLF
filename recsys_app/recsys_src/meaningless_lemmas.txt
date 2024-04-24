@@ -3951,6 +3951,7 @@ dcb
 daz
 day
 month
+månad
 ddb
 dbb
 dbblr
@@ -8582,6 +8583,8 @@ wednesday
 torstai
 torst
 torsdag
+torsda
+torsd
 thursday
 perjantai
 fredag
@@ -8595,7 +8598,10 @@ sunnuntai
 söndag
 søndag
 sunday
+sonda
 vkcka
+vecka
+week
 tskillig
 iiatientrui
 joululahj
@@ -9630,3 +9636,14 @@ samfundets
 yhteiskunt
 patriarka
 ekens
+hiten
+dödsannon
+carpent
+kommissions
+hameenlinta
+seall
+pilwi
+liten
+forening
+generalag
+kaljaas

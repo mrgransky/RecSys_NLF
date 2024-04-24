@@ -1,12 +1,16 @@
 import os
+import re
 import tarfile
+import json
 import glob
 import time
 import gzip
 import dill
 import numpy as np
 import pandas as pd
-import urllib.parse
+# import urllib.parse
+import urllib
+import requests
 from typing import List, Set, Dict, Tuple
 from recsys_app.recsys_src.tokenizer_utils import *
 lemmatizer_methods = {
@@ -25,6 +29,92 @@ compressed_spm_file = os.path.join(Files_DIR, DATASET_DIR, f"concat_x{nSPMs}.tar
 spm_files_dir = os.path.join(Files_DIR, DATASET_DIR, f"concat_x{nSPMs}")
 fprefix: str = f"concatinated_{nSPMs}_SPMs"
 ###########################################################################################
+
+def get_num_results(URL: str="www.example.com"):
+	print(f"{URL:<200}")
+	st_t = time.time()
+
+	parsed_url = urllib.parse.urlparse(URL)
+	# print(parsed_url)
+	parameters = urllib.parse.parse_qs( parsed_url.query, keep_blank_values=True)
+	# print(parameters)
+	# print(f"<>"*50)
+	offset_pg=( int( re.search(r'page=(\d+)', URL).group(1) )-1)*20 if re.search(r'page=(\d+)', URL) else 0
+	search_pg_api = f"{parsed_url.scheme}://{parsed_url.netloc}/rest/binding-search/search/binding?offset={offset_pg}&count=20"
+	# print(offset_pg, search_pg_api)
+	payload = {
+		"authors": parameters.get('author') if parameters.get('author') else [],
+		"collections": parameters.get('collection') if parameters.get('collection') else [],
+		"districts": [], # TODO: must be investigated!!
+		"endDate": parameters.get('endDate')[0] if parameters.get('endDate') else None,
+		"exactCollectionMaterialType": "false", # TODO: must be investigated!!
+		"formats": parameters.get('formats') if parameters.get('formats') else [],
+		"fuzzy": parameters.get('fuzzy')[0] if parameters.get('fuzzy') else "false",
+		"hasIllustrations": parameters.get('hasIllustrations')[0] if parameters.get('hasIllustrations') else "false",
+		"importStartDate": parameters.get('importStartDate')[0] if parameters.get('importStartDate') else None,
+		"importTime": parameters.get('importTime')[0] if parameters.get('importStartDate') else "ANY",
+		"includeUnauthorizedResults": parameters.get('showUnauthorizedResults')[0] if parameters.get('showUnauthorizedResults') else "false",
+		"languages": parameters.get('lang') if parameters.get('lang') else [],
+		"orderBy": parameters.get('orderBy')[0] if parameters.get('orderBy') else "IMPORT_DATE",
+		"pages": parameters.get('pages')[0]  if parameters.get('pages') else "",
+		"publicationPlaces": parameters.get('publicationPlace') if parameters.get('publicationPlace') else [],
+		"publications": parameters.get('title') if parameters.get('title') else [],
+		"publishers": parameters.get('publisher') if parameters.get('publisher') else [],
+		"query": parameters.get('query')[0] if parameters.get('query') else "",
+		"queryTargetsMetadata": parameters.get('qMeta')[0] if parameters.get('qMeta') else "false",
+		"queryTargetsOcrText": parameters.get('qOcr')[0] if parameters.get('qOcr') else "true",
+		"requireAllKeywords": parameters.get('requireAllKeywords')[0]  if parameters.get('requireAllKeywords') else "false",
+		"searchForBindings": parameters.get('searchForBindings')[0]  if parameters.get('searchForBindings') else "false",
+		"showLastPage": parameters.get('showLastPage')[0]  if parameters.get('showLastPage') else "false",
+		"startDate": parameters.get('startDate')[0] if parameters.get('startDate') else None,
+		"tags": parameters.get('tag') if parameters.get('tag') else [],
+	}
+	
+	headers = {
+		'Content-type': 'application/json',
+		'Accept': 'application/json; text/plain; */*', 
+		'Cache-Control': 'no-cache',
+		'Connection': 'keep-alive',
+		'Pragma': 'no-cache',
+	}
+
+	try:
+		r = requests.post(
+			url=search_pg_api, 
+			json=payload, 
+			headers=headers,
+		)
+		res = r.json()
+		# a list of up to 20 results, each of which contains: 
+		#print(res.keys()): ['bindingId', 'bindingTitle', 'publicationId', 'generalType', 'authorized', 'authors', 'pageNumber', 'language', 'publisher', 'issue', 'importDate', 'dateAccuracy', 'placeOfPublication', 'textHighlights', 'terms', 'score', 'url', 'thumbnailUrl', 'date']
+		SEARCH_RESULTS = res.get("rows")
+		
+		print(f"Got {len(SEARCH_RESULTS)} result(s)\t{time.time()-st_t:.3f} sec")
+		numb = len(SEARCH_RESULTS)
+		# print(json.dumps(SEARCH_RESULTS, indent=2, ensure_ascii=False))
+		# print("#"*120)
+	# except Exception as e:
+	# 	print(f"<!> {e}")
+	# 	return
+	except (
+		requests.exceptions.Timeout,
+		requests.exceptions.ConnectionError, 
+		requests.exceptions.RequestException, 
+		requests.exceptions.TooManyRedirects,
+		requests.exceptions.InvalidSchema,
+		ValueError, 
+		TypeError, 
+		IndexError,
+		EOFError, 
+		RuntimeError,
+		json.JSONDecodeError,
+		json.decoder.JSONDecodeError,
+		Exception, 
+	) as e:
+		print(f"{type(e).__name__} line {e.__traceback__.tb_lineno} in {__file__}: {e.args}")
+		return
+
+	return numb
 
 def get_lemmatized_sqp(qu_list, lm: str="stanza"):
 	# qu_list = ['some word in this format with always length 1']
@@ -105,6 +195,8 @@ def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], meaningless_lemmas_l
 	# return [mat_cols[iTK] for iTK in avgrec.argsort()[-K:] if mat_cols[iTK] not in tok_query][::-1] # 
 	# raw_query.lower().split() in case we have false lemma: ex) tiedusteluorganisaatio puolustusvoimat
 	# topK_tokens_list = [mat_cols[iTK] for iTK in avgrec.argsort()[-K:] if ( mat_cols[iTK] not in tok_query and mat_cols[iTK] not in raw_query.lower().split() )][::-1] #
+	base_url: str = "https://digi.kansalliskirjasto.fi/search?requireAllKeywords=true&query="
+
 	topK_tokens_list = [
 		mat_cols[iTK] 
 		for iTK in avgrec.argsort()[-K:] 
@@ -112,14 +204,22 @@ def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], meaningless_lemmas_l
 			mat_cols[iTK] not in tok_query
 			and mat_cols[iTK] not in meaningless_lemmas_list
 			and mat_cols[iTK] not in raw_query.lower().split()
+			and get_num_results(URL=f"{base_url}" + urllib.parse.quote_plus(raw_query + " " + mat_cols[iTK]))>0
 		)
 	][::-1]
-	# TODO: send it to url_scapring for checking len of results:
-	base_url: str = "https://digi.kansalliskirjasto.fi/search?query="
 
+	# TODO: send it to url_scapring for checking len of results:
+	# base_url: str = "https://digi.kansalliskirjasto.fi/search?query="
+	
 	# topK_tokens_urls = [scrap_search_page(URL=f"{base_url}" + urllib.parse.quote_plus(raw_query + " " + tk)) for tk in topK_tokens_list]
-	topK_tokens_urls = [f"{base_url}" + urllib.parse.quote_plus(raw_query + " " + tk) for tk in topK_tokens_list]
-	print(topK_tokens_urls)
+	# topK_tokens_urls = [f"{base_url}" + urllib.parse.quote_plus(raw_query + " " + tk) for tk in topK_tokens_list]
+	# print(topK_tokens_urls)
+	
+	# for sq_url in topK_tokens_urls:
+	# 	# print(sq_url, type(sq_url))
+	# 	n = get_num_results(URL=sq_url)
+	# 	print(n)
+
 	print(f"Found {len(topK_tokens_list)} Recommendation results in {time.time()-st_t:.2f} sec".center(130, "-"))
 	return topK_tokens_list
 
@@ -189,7 +289,7 @@ def get_recsys_results(query_phrase: str="This is a sample query phrase!", nToke
 		raw_query=query_phrase,
 		tok_query=tokenized_query_phrase,
 		meaningless_lemmas_list=UNQ_STW,
-		K=60,
+		K=20,
 	)
 	# print(f">>> Found {len(topKtokens)} Recommendations...")
 	return topKtokens

@@ -3950,6 +3950,7 @@ dca
 dcb
 daz
 day
+month
 ddb
 dbb
 dbblr
@@ -8579,6 +8580,7 @@ keskiviikko
 onsdag
 wednesday
 torstai
+torst
 torsdag
 thursday
 perjantai
@@ -9621,3 +9623,10 @@ islama
 också
 theol
 postik
+bruns
+plötsligen
+jämsänkosk
+samfundets
+yhteiskunt
+patriarka
+ekens

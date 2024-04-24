@@ -289,7 +289,7 @@ def get_recsys_results(query_phrase: str="This is a sample query phrase!", nToke
 		raw_query=query_phrase,
 		tok_query=tokenized_query_phrase,
 		meaningless_lemmas_list=UNQ_STW,
-		K=20,
+		K=35,
 	)
 	# print(f">>> Found {len(topKtokens)} Recommendations...")
 	return topKtokens

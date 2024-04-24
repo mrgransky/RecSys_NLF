@@ -87,7 +87,8 @@
 			</script>
 			<div class="slider-container">
 				<label for="recSysSlider" id="recSysSliderLbl">Number of RecSys Results:</label>
-				<input type="range" id="recSysSlider" name="recSysSlider" min="3" max="20" value="5" oninput="updateSliderValue(this.value)">
+				<!-- <input type="range" id="recSysSlider" name="recSysSlider" min="3" max="20" value="5" oninput="updateSliderValue(this.value)"> -->
+				<input type="range" id="recSysSlider" name="recSysSlider" min="3" max="{{ max_length_recSys }}" value="5" oninput="updateSliderValue(this.value)">
 				<span id="sliderValueDisplay">5</span>
 			</div>
 					
@@ -107,7 +108,7 @@
 
 			</div>
 					
-			<div id="recSysResultsContainer"></div>
+			<div id="recommendationResultContainer"></div>
 				{% endif %}
 			</div>
 		</div>
@@ -116,7 +117,7 @@
 		let globalQuery = `{{ input_query|safe }}`;
 		var digi_base_url = "https://digi.kansalliskirjasto.fi/search?query=";
 		// var digi_base_url = "https://digi.kansalliskirjasto.fi/search?requireAllKeywords=false&query=";
-		let recommendationResults;
+		let recSysResults;
 		let myWindow;
 	</script>
 	
@@ -189,7 +190,7 @@
 			document.getElementsByName("query")[0].value = "";
 			document.getElementsByName("query")[0].placeholder = "Hakusana | Sökord | Query prompt";
 			document.getElementById("recSysIntroContainer").remove();
-			document.getElementById("recSysResultsContainer").remove();
+			document.getElementById("recommendationResultContainer").remove();
 			document.getElementById("recSysSlider").remove();
 			document.getElementById("sliderValueDisplay").remove();
 			document.getElementById("recSysSliderLbl").remove();
@@ -213,10 +214,10 @@
 	<script>
 
 		try {
-			recommendationResults = {{ recommendation_results|safe }};
+			recSysResults = {{ recommendation_results|safe }};
 		} catch (error) {
 			alert(`Sorry! ${globalQuery} NOT found in our database! Search something else!`);
-			recommendationResults = null;
+			recSysResults = null;
 			hideLoadingSpinner();
 			event.preventDefault();
 		}
@@ -227,11 +228,11 @@
 		
 		function updateResultsBasedOnSliderValue() {
 			var sliderValue = document.getElementById('recSysSlider').value;
-			var recsysRes = document.getElementById('recSysResultsContainer');
+			var recsysRes = document.getElementById('recommendationResultContainer');
 			recsysRes.innerHTML = "";
 			for (let i = 0; i < sliderValue; i++) {
-				var recSysLink_i = digi_base_url + encodeURIComponent(globalQuery + " " + recommendationResults[i]);
-				recsysRes.innerHTML += `<p><a class="rec-link" href='${recSysLink_i}' target='_blank'><span style="font-size: 75%;">${globalQuery}</span> + ${recommendationResults[i]}</a></p>`;
+				var recSysLink_i = digi_base_url + encodeURIComponent(globalQuery + " " + recSysResults[i]);
+				recsysRes.innerHTML += `<p><a class="rec-link" href='${recSysLink_i}' target='_blank'><span style="font-size: 75%;">${globalQuery}</span> + ${recSysResults[i]}</a></p>`;
 			}
 			// Add event listener to all recommendation links
 			var recLinks = document.querySelectorAll('.rec-link');

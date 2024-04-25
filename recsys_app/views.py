@@ -4,6 +4,7 @@ from recsys_app.recsys_src.gui_backend import *
 
 USR: str = "XXXXXX"
 MAX_NUM_RECOMMENDED_TOKENS: int = 20
+CURRENT_NUM_RECOMMENDED_TOKENS: int = 5
 
 def generate_random_username():
 	return f"user_{random.randint(100, 999)}"
@@ -31,6 +32,7 @@ def main_page(request):
 		'user_name': USR,
 		'welcome_text': "Welcome to User-based Recommendation System!<br>What are you looking after?",
 		'max_length_recSys': MAX_NUM_RECOMMENDED_TOKENS,
+		'curr_length_recSys': CURRENT_NUM_RECOMMENDED_TOKENS,
 	}
 	if request.method == 'POST':
 		query = request.POST.get('query', '')
@@ -40,6 +42,8 @@ def main_page(request):
 			# print(f"recSys_results: {len(recSys_results)}")
 			if recSys_results and len(recSys_results)>0:
 				context['max_length_recSys'] = min(MAX_NUM_RECOMMENDED_TOKENS, len(recSys_results))
+				context['curr_length_recSys'] = min(CURRENT_NUM_RECOMMENDED_TOKENS, len(recSys_results))
+				
 			# print(f">> RecSys POST entered qu: {query} request.POST.get('isRecSys'): {request.POST.get('isRecSys')}")
 			# context['recommendation_results'] = [f"Token_{i}" for i in range(20)]
 			context['recommendation_results'] = recSys_results

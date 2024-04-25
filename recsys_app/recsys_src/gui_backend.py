@@ -23,11 +23,12 @@ HOME: str = os.getenv('HOME') # echo $HOME
 USER: str = os.getenv('USER') # echo $USER
 Files_DIR: str = "/media/volume" if USER == "ubuntu" else HOME
 lmMethod: str="stanza"
-nSPMs: int = 399 #if USER == "ubuntu" else 50 # dynamic changing of nSPMs due to Rahti CPU memory issues!
+nSPMs: int = 2 #if USER == "ubuntu" else 50 # dynamic changing of nSPMs due to Rahti CPU memory issues!
 DATASET_DIR: str = f"Nationalbiblioteket/compressed_concatenated_SPMs" if USER == "ubuntu" else f"datasets/compressed_concatenated_SPMs"
 compressed_spm_file = os.path.join(Files_DIR, DATASET_DIR, f"concat_x{nSPMs}.tar.gz")
 spm_files_dir = os.path.join(Files_DIR, DATASET_DIR, f"concat_x{nSPMs}")
 fprefix: str = f"concatinated_{nSPMs}_SPMs"
+BASE_DIGI_URL: str = "https://digi.kansalliskirjasto.fi/search?requireAllKeywords=true&query="
 ###########################################################################################
 
 def get_num_results(URL: str="www.example.com"):
@@ -89,7 +90,7 @@ def get_num_results(URL: str="www.example.com"):
 		#print(res.keys()): ['bindingId', 'bindingTitle', 'publicationId', 'generalType', 'authorized', 'authors', 'pageNumber', 'language', 'publisher', 'issue', 'importDate', 'dateAccuracy', 'placeOfPublication', 'textHighlights', 'terms', 'score', 'url', 'thumbnailUrl', 'date']
 		SEARCH_RESULTS = res.get("rows")
 		
-		print(f"Got {len(SEARCH_RESULTS)} result(s)\t{time.time()-st_t:.3f} sec")
+		print(f"Got {len(SEARCH_RESULTS)} NLF baseline result(s)\t{time.time()-st_t:.3f} sec")
 		numb = len(SEARCH_RESULTS)
 		# print(json.dumps(SEARCH_RESULTS, indent=2, ensure_ascii=False))
 		# print("#"*120)
@@ -195,7 +196,6 @@ def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], meaningless_lemmas_l
 	# return [mat_cols[iTK] for iTK in avgrec.argsort()[-K:] if mat_cols[iTK] not in tok_query][::-1] # 
 	# raw_query.lower().split() in case we have false lemma: ex) tiedusteluorganisaatio puolustusvoimat
 	# topK_tokens_list = [mat_cols[iTK] for iTK in avgrec.argsort()[-K:] if ( mat_cols[iTK] not in tok_query and mat_cols[iTK] not in raw_query.lower().split() )][::-1] #
-	base_url: str = "https://digi.kansalliskirjasto.fi/search?requireAllKeywords=true&query="
 
 	topK_tokens_list = [
 		mat_cols[iTK] 
@@ -204,15 +204,15 @@ def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], meaningless_lemmas_l
 			mat_cols[iTK] not in tok_query
 			and mat_cols[iTK] not in meaningless_lemmas_list
 			and mat_cols[iTK] not in raw_query.lower().split()
-			and get_num_results(URL=f"{base_url}" + urllib.parse.quote_plus(raw_query + " " + mat_cols[iTK]))>0
+			and get_num_results(URL=f"{BASE_DIGI_URL}" + urllib.parse.quote_plus(raw_query + " " + mat_cols[iTK]))>0
 		)
 	][::-1]
 
 	# TODO: send it to url_scapring for checking len of results:
-	# base_url: str = "https://digi.kansalliskirjasto.fi/search?query="
+	# BASE_DIGI_URL: str = "https://digi.kansalliskirjasto.fi/search?query="
 	
-	# topK_tokens_urls = [scrap_search_page(URL=f"{base_url}" + urllib.parse.quote_plus(raw_query + " " + tk)) for tk in topK_tokens_list]
-	# topK_tokens_urls = [f"{base_url}" + urllib.parse.quote_plus(raw_query + " " + tk) for tk in topK_tokens_list]
+	# topK_tokens_urls = [scrap_search_page(URL=f"{BASE_DIGI_URL}" + urllib.parse.quote_plus(raw_query + " " + tk)) for tk in topK_tokens_list]
+	# topK_tokens_urls = [f"{BASE_DIGI_URL}" + urllib.parse.quote_plus(raw_query + " " + tk) for tk in topK_tokens_list]
 	# print(topK_tokens_urls)
 	
 	# for sq_url in topK_tokens_urls:

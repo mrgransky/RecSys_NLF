@@ -332,14 +332,21 @@ input[type="submit"]:hover {
 #recSysSlider {
 	-webkit-appearance: none;
 	appearance: none;
-	width: 30%;
-	height: 12px;
+	width: 32%;
+	height: 10px;
 	background: rgb(151, 151, 151);
 	outline: none;
 	opacity: 0.4;
 	-webkit-transition: .4s;
 	transition: opacity .4s;
-	border-radius: 8px;
+	border-radius: 9px;
+}
+
+#recSysSliderLbl {
+	font-size: 16px;
+	font-family: 'Times New Roman', Times, serif;
+	font-style: oblique;
+	background-color: #f0ec00;
 }
 
 #recSysSlider:hover {

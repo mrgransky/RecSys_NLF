@@ -37,18 +37,19 @@ def main_page(request):
 	if request.method == 'POST':
 		query = request.POST.get('query', '')
 		context["input_query"] = query
-		if request.POST.get('isRecSys') == "true":
+		raw_query_nlf_results = get_num_results(URL=f"{BASE_DIGI_URL}" + urllib.parse.quote_plus(query))
+		# print(f'we found {raw_query_nlf_results} docs in NLF')
+		if request.POST.get('isRecSys') == "true" and raw_query_nlf_results > 0:
+			# print(f">> RecSys POST entered qu: {query} request.POST.get('isRecSys'): {request.POST.get('isRecSys')}")
 			recSys_results = get_recsys_results(query_phrase=query, nTokens=100)
-			# print(f"recSys_results: {len(recSys_results)}")
 			if recSys_results and len(recSys_results)>0:
 				context['max_length_recSys'] = min(MAX_NUM_RECOMMENDED_TOKENS, len(recSys_results))
 				context['curr_length_recSys'] = min(CURRENT_NUM_RECOMMENDED_TOKENS, len(recSys_results))
-				
-			# print(f">> RecSys POST entered qu: {query} request.POST.get('isRecSys'): {request.POST.get('isRecSys')}")
 			# context['recommendation_results'] = [f"Token_{i}" for i in range(20)]
 			context['recommendation_results'] = recSys_results
 		else:
-			print(f"ERROORRR!")
+			print(f"ERROORRR! => must go to alert!!")
+			context['recommendation_results'] = None
 	return render(request, 'recsys_app/index.html', context)
 
 def help_page(request):

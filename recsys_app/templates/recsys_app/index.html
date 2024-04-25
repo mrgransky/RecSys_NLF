@@ -86,7 +86,7 @@
 				document.title = "{{ input_query }}";
 			</script>
 			<div class="slider-container">
-				<label for="recSysSlider" id="recSysSliderLbl">Number of RecSys Results:</label>
+				<label for="recSysSlider" id="recSysSliderLbl">Total Recommendation Results: ({{ max_length_recSys }})</label>
 				<!-- <input type="range" id="recSysSlider" name="recSysSlider" min="3" max="20" value="5" oninput="updateSliderValue(this.value)"> -->
 				<input type="range" id="recSysSlider" name="recSysSlider" min="3" max="{{ max_length_recSys }}" value="{{ curr_length_recSys }}" oninput="updateSliderValue(this.value)">
 				<span id="sliderValueDisplay">5</span>
@@ -146,8 +146,8 @@
 
 				libLinkContainer.classList.add('blur-background');
 			} else {
-					alert('Enter a valid search query to proceed!');
-				}
+				alert('Enter a valid query prompt to proceed!');
+			}
 		}
 		function clearNlfSearch() {
 			resetTitle();
@@ -180,7 +180,7 @@
 			if (query !== "") {
 				document.getElementById("searchForm").submit();
 			} else {
-				alert('Oops! Enter a valid search query to proceed!');
+				alert('Oops! Enter a valid query prompt to proceed!');
 				hideLoadingSpinner();
 				event.preventDefault();
 			}
@@ -216,7 +216,7 @@
 		try {
 			recSysResults = {{ recommendation_results|safe }};
 		} catch (error) {
-			alert(`Sorry! ${globalQuery} NOT found in our database! Search something else!`);
+			alert(`Sorry! ${globalQuery} NOT FOUND in database! Search something else!`);
 			recSysResults = null;
 			hideLoadingSpinner();
 			event.preventDefault();

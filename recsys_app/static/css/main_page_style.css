@@ -11,13 +11,14 @@ body {
 
 .glow {
 	font-size: 35px;
-	color: #0300c9;
+	color: #2900dd48;
 	font-weight: bold;
 	font-family: 'Poppins', sans-serif;
 	text-align: center;
 	margin-top: 25px;
 	margin-bottom: 25px;
 	animation: glow 0.9s ease-in-out infinite alternate;
+	background-color: #f7f7ff;
 }
 
 @keyframes glow {
@@ -304,12 +305,12 @@ input[type="submit"]:hover {
 	background-color: #9b9b9bc7;
 }
 
-.recommendation-container {
+.recommendationsContainer {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	/* background-color: #d4d4d480; */
+	background-color: #ffffff; /* MUST BE SET TO WHITE*/
 }
 
 .slider-container {
@@ -320,11 +321,12 @@ input[type="submit"]:hover {
 #recSysIntroContainer {
 	color: rgba(2, 131, 19, 0.692);
 	font-weight: bold;
-	font-size: 21px;
+	font-size: 20px;
+	/* background-color: #bdbdbd; */
 }
 
 #recommendationResultContainer {
-	margin-top: 12px;
+	margin-top: 10px;
 	font-size: 20px;
 	font-weight: bold;
 }
@@ -334,7 +336,7 @@ input[type="submit"]:hover {
 	appearance: none;
 	width: 32%;
 	height: 10px;
-	background: rgb(151, 151, 151);
+	background: rgb(180, 180, 180);
 	outline: none;
 	opacity: 0.4;
 	-webkit-transition: .4s;

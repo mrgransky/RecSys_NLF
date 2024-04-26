@@ -9647,3 +9647,9 @@ liten
 forening
 generalag
 kaljaas
+suunt
+talvisotie
+ansas
+tampereen
+göteborgi
+stålhandsk

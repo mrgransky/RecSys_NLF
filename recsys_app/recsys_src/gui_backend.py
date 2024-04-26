@@ -23,7 +23,7 @@ HOME: str = os.getenv('HOME') # echo $HOME
 USER: str = os.getenv('USER') # echo $USER
 Files_DIR: str = "/media/volume" if USER == "ubuntu" else HOME
 lmMethod: str="stanza"
-nSPMs: int = 399 #if USER == "ubuntu" else 50 # dynamic changing of nSPMs due to Rahti CPU memory issues!
+nSPMs: int = 2 #if USER == "ubuntu" else 50 # dynamic changing of nSPMs due to Rahti CPU memory issues!
 DATASET_DIR: str = f"Nationalbiblioteket/compressed_concatenated_SPMs" if USER == "ubuntu" else f"datasets/compressed_concatenated_SPMs"
 compressed_spm_file = os.path.join(Files_DIR, DATASET_DIR, f"concat_x{nSPMs}.tar.gz")
 spm_files_dir = os.path.join(Files_DIR, DATASET_DIR, f"concat_x{nSPMs}")
@@ -89,14 +89,12 @@ def get_num_results(URL: str="www.example.com"):
 		# a list of up to 20 results, each of which contains: 
 		#print(res.keys()): ['bindingId', 'bindingTitle', 'publicationId', 'generalType', 'authorized', 'authors', 'pageNumber', 'language', 'publisher', 'issue', 'importDate', 'dateAccuracy', 'placeOfPublication', 'textHighlights', 'terms', 'score', 'url', 'thumbnailUrl', 'date']
 		SEARCH_RESULTS = res.get("rows")
-		
-		print(f"Got {len(SEARCH_RESULTS)} NLF baseline result(s)\t{time.time()-st_t:.3f} sec")
-		numb = len(SEARCH_RESULTS)
-		# print(json.dumps(SEARCH_RESULTS, indent=2, ensure_ascii=False))
-		# print("#"*120)
-	# except Exception as e:
-	# 	print(f"<!> {e}")
-	# 	return
+
+		NLF_SEARCH_RESULTs_NUM = len(SEARCH_RESULTS)
+		print(f"Got {NLF_SEARCH_RESULTs_NUM} NLF baseline result(s)\t{time.time()-st_t:.3f} sec")
+
+		TOTAL_NUM_NLF_RESULTs = res.get("totalResults")
+		print(f"TOTAL RESULT(s) in NLF: {TOTAL_NUM_NLF_RESULTs}")
 	except (
 		requests.exceptions.Timeout,
 		requests.exceptions.ConnectionError, 
@@ -115,7 +113,8 @@ def get_num_results(URL: str="www.example.com"):
 		print(f"{type(e).__name__} line {e.__traceback__.tb_lineno} in {__file__}: {e.args}")
 		return
 
-	return numb
+	# return NLF_SEARCH_RESULTs_NUM
+	return TOTAL_NUM_NLF_RESULTs
 
 def get_lemmatized_sqp(qu_list, lm: str="stanza"):
 	# qu_list = ['some word in this format with always length 1']
@@ -195,8 +194,7 @@ def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], meaningless_lemmas_l
 	# return [mat_cols[iTK] for iTK in avgrec.argsort()[-K:]][::-1] # n
 	# return [mat_cols[iTK] for iTK in avgrec.argsort()[-K:] if mat_cols[iTK] not in tok_query][::-1] # 
 	# raw_query.lower().split() in case we have false lemma: ex) tiedusteluorganisaatio puolustusvoimat
-	# topK_tokens_list = [mat_cols[iTK] for iTK in avgrec.argsort()[-K:] if ( mat_cols[iTK] not in tok_query and mat_cols[iTK] not in raw_query.lower().split() )][::-1] #
-
+	tot_nlf_res = None
 	topK_tokens_list = [
 		mat_cols[iTK] 
 		for iTK in avgrec.argsort()[-K:] 
@@ -204,7 +202,7 @@ def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], meaningless_lemmas_l
 			mat_cols[iTK] not in tok_query
 			and mat_cols[iTK] not in meaningless_lemmas_list
 			and mat_cols[iTK] not in raw_query.lower().split()
-			and get_num_results(URL=f"{BASE_DIGI_URL}" + urllib.parse.quote_plus(raw_query + " " + mat_cols[iTK]))>0
+			and (tot_nlf_res:=get_num_results(URL=f"{BASE_DIGI_URL}" + urllib.parse.quote_plus(raw_query + " " + mat_cols[iTK])))>0
 		)
 	][::-1]
 

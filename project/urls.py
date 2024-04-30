@@ -3,7 +3,7 @@ from django.urls import include, path
 from django.contrib import admin
 
 from welcome.views import index, health
-from recsys_app.views import main_page, about_us_page, check_password, help_page
+from recsys_app.views import main_page, about_us_page, check_password, help_page, process_feedback
 
 urlpatterns = [
 	path('admin/', admin.site.urls),
@@ -16,6 +16,7 @@ urlpatterns = [
 	path('home/', main_page, name='main_page'),
 	path('about_us/', about_us_page, name='about_us'),
 	path('help/', help_page, name='help'),
+	path('process_feedback/', process_feedback, name='process_feedback'),
 ]
 
 if settings.DEBUG:

@@ -6,58 +6,44 @@
 <head>
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>Contact Information | TAU | NLF</title>
+		<title>Contact Information</title>
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 		<link rel="stylesheet" href="{% static 'css/about_page_style.css' %}">
 </head>
 
 <body>
-		<div class="navbar">
-				<a href="{% url 'main_page' %}">Home</a>
-				<a href="{% url 'about_us' %}" class="about">About Us</a>
+	<div class="navbar">
+		<a href="{% url 'main_page' %}">Home</a>
+		<a href="{% url 'about_us' %}" class="about">About Us</a>
+	</div>
+	<div class="project-contributors-container">
+		<div id="heading-container"><i class="fa fa-envelope"> Contact Information</i><hr></div>
+		<h2>Developer:</h2>
+		<div id="person-container">
+			<img src="https://research.tuni.fi/uploads/2022/02/f2cbe7c4-farid_alijani-320x401.jpg" alt="Farid Alijani">
+			<a href="mailto:farid.alijani@tuni.fi">Farid Alijani</a>		
 		</div>
-
-		<div class="people-info">
-				<div id="heading-container">
-					<i class="fa fa-envelope"> Contact Information</i>
-					<hr>
-				</div>
-
-				<h2>Developer:</h2>
-
-				<p>
-					<img src="https://research.tuni.fi/uploads/2022/02/f2cbe7c4-farid_alijani-320x401.jpg"
-						alt="Farid Alijani">
-					<a href="mailto:farid.alijani@tuni.fi">Farid Alijani</a>
-				</p>
-
-				<h2>Supervisors:</h2>
-
-				<p>
-						<img
-								src="https://content-webapi.tuni.fi/image-style/base_square_lg/proxy/public/profile_pictures/1496.jpg"
-								alt="Sanna Kumpulainen"> Associate Professor <a
-								href="https://www.tuni.fi/en/sanna-kumpulainen" target="_blank">Sanna Kumpulainen</a>
-				</p>
-
-				<p>
-						<img
-								src="https://content-webapi.tuni.fi/image-style/base_square_lg/proxy/public/profile_pictures/2498.jpg"
-								alt="Jaakko Peltonen"> Professor <a href="https://homepages.tuni.fi/jaakko.peltonen/"
-								target="_blank">Jaakko Peltonen</a>
-				</p>
+		<h2>Supervisors:</h2>
+		<div id="person-container">
+			<img src="https://content-webapi.tuni.fi/image-style/base_square_lg/proxy/public/profile_pictures/1496.jpg" alt="Sanna Kumpulainen"> 
+			Associate Professor <a href="https://www.tuni.fi/en/sanna-kumpulainen" target="_blank">Sanna Kumpulainen</a>
 		</div>
-
-		<div class="project-info">
-			<p>
-					This project is an integral component of the <a href="https://www.dariah.fi/education-and-dissemination/"
-							target="_blank">WP 5.X</a> national research infrastructure and consortium of <a
-							href="https://www.dariah.fi/" target="_blank">DARIAH-FI</a>, specifically<br> developed to address the
-					requirements of data-intensive research in the social sciences and humanities (SSH) domain in Finland.
-			</p>
-			<img src="https://www.vilpe.com/app/uploads/2020/06/tonem502.bmp" alt="made_in_suomi">
+		<div id="person-container">
+			<img src="https://content-webapi.tuni.fi/image-style/base_square_lg/proxy/public/profile_pictures/2498.jpg" alt="Jaakko Peltonen"> 
+			Professor <a href="https://homepages.tuni.fi/jaakko.peltonen/" target="_blank">Jaakko Peltonen</a>
 		</div>
-
+	</div>
+	<div class="project-info">
+		<p>
+			This project is an integral component of the 
+			<a href="https://www.dariah.fi/evidence-based-infrastructure-development/" target="_blank">WP 5.X</a> 
+			national research infrastructure and consortium of 
+			<a href="https://www.dariah.fi/" target="_blank">DARIAH-FI</a>, 
+			specifically<br> 
+			developed to address the requirements of data-intensive research in the social sciences and humanities (SSH) domain in Finland.
+		</p>
+		<img src="https://www.vilpe.com/app/uploads/2020/06/tonem502.bmp" alt="made_in_suomi">
+	</div>
 </body>
 
 </html>

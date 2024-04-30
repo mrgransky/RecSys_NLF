@@ -6,6 +6,7 @@ import glob
 import time
 import gzip
 import dill
+import random
 import numpy as np
 import pandas as pd
 # import urllib.parse
@@ -29,6 +30,7 @@ compressed_spm_file = os.path.join(Files_DIR, DATASET_DIR, f"concat_x{nSPMs}.tar
 spm_files_dir = os.path.join(Files_DIR, DATASET_DIR, f"concat_x{nSPMs}")
 fprefix: str = f"concatinated_{nSPMs}_SPMs"
 BASE_DIGI_URL: str = "https://digi.kansalliskirjasto.fi/search?requireAllKeywords=true&query="
+nlf_num_pages: List[int] = []  # Declare nlf_num_pages as a global list of integers
 ###########################################################################################
 
 def get_num_results(URL: str="www.example.com"):
@@ -191,35 +193,42 @@ def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], meaningless_lemmas_l
 		f"Query [tokenized]: {raw_query.lower().split()} | tk: {tok_query}"
 	)
 	st_t = time.time()
-	# return [mat_cols[iTK] for iTK in avgrec.argsort()[-K:]][::-1] # n
-	# return [mat_cols[iTK] for iTK in avgrec.argsort()[-K:] if mat_cols[iTK] not in tok_query][::-1] # 
-	# raw_query.lower().split() in case we have false lemma: ex) tiedusteluorganisaatio puolustusvoimat
-	tot_nlf_res = None
-	topK_tokens_list = [
-		mat_cols[iTK] 
-		for iTK in avgrec.argsort()[-K:] 
-		if ( 
+
+	# with list comprehension: returns only topK_tokens_list and not tot_nlf_res_list
+	# topK_tokens_list = [
+	# 	mat_cols[iTK]
+	# 	for iTK in avgrec.argsort()[-K:] 
+	# 	if ( 
+	# 		mat_cols[iTK] not in tok_query
+	# 		and mat_cols[iTK] not in meaningless_lemmas_list
+	# 		and mat_cols[iTK] not in raw_query.lower().split() # in case we have false lemma: ex) tiedusteluorganisaatio puolustusvoimat
+	# 		and (tot_nlf_res:=get_num_results(URL=f"{BASE_DIGI_URL}" + urllib.parse.quote_plus(raw_query + " " + mat_cols[iTK])))>0
+	# 	)
+	# ][::-1]
+
+	topK_tokens_list = []
+	tot_nlf_res_list = []
+	for iTK in avgrec.argsort()[-K:]:
+		if (
 			mat_cols[iTK] not in tok_query
 			and mat_cols[iTK] not in meaningless_lemmas_list
 			and mat_cols[iTK] not in raw_query.lower().split()
-			and (tot_nlf_res:=get_num_results(URL=f"{BASE_DIGI_URL}" + urllib.parse.quote_plus(raw_query + " " + mat_cols[iTK])))>0
-		)
-	][::-1]
+		):
+			tk_url = f"{BASE_DIGI_URL}" + urllib.parse.quote_plus(raw_query + " " + mat_cols[iTK])
+			tot_nlf_res = get_num_results(URL=tk_url)
+			if tot_nlf_res > 0:
+				topK_tokens_list.append(mat_cols[iTK])
+				tot_nlf_res_list.append(tot_nlf_res)
+	topK_tokens_list = topK_tokens_list[::-1]
+	tot_nlf_res_list = tot_nlf_res_list[::-1]
 
-	# TODO: send it to url_scapring for checking len of results:
-	# BASE_DIGI_URL: str = "https://digi.kansalliskirjasto.fi/search?query="
-	
-	# topK_tokens_urls = [scrap_search_page(URL=f"{BASE_DIGI_URL}" + urllib.parse.quote_plus(raw_query + " " + tk)) for tk in topK_tokens_list]
-	# topK_tokens_urls = [f"{BASE_DIGI_URL}" + urllib.parse.quote_plus(raw_query + " " + tk) for tk in topK_tokens_list]
-	# print(topK_tokens_urls)
-	
-	# for sq_url in topK_tokens_urls:
-	# 	# print(sq_url, type(sq_url))
-	# 	n = get_num_results(URL=sq_url)
-	# 	print(n)
-
-	print(f"Found {len(topK_tokens_list)} Recommendation results in {time.time()-st_t:.2f} sec".center(130, "-"))
-	return topK_tokens_list
+	print(
+		f"Found {len(topK_tokens_list)} Recommendation Results "
+		f"(with {len(tot_nlf_res_list)} NLF pages) "
+		f"in {time.time()-st_t:.2f} sec"
+		.center(130, "-")
+	)
+	return topK_tokens_list, tot_nlf_res_list
 
 def load_pickle(fpath:str="unknown",):
 	print(f"Checking for existence? {fpath}")
@@ -275,13 +284,14 @@ def get_recsys_results(query_phrase: str="This is a sample query phrase!", nToke
 		idf_vec=idf_vec,
 		spMtx_norm=usrNorms, # must be adjusted, accordingly!
 	)
-	avgRecSys=get_avg_rec(
+	avgRecSys = get_avg_rec(
 		spMtx=concat_spm_U_x_T,
 		cosine_sim=ccs**5,
 		idf_vec=idf_vec,
 		spMtx_norm=usrNorms,
 	)
-	topKtokens=get_topK_tokens(
+	# topK_TKs = get_topK_tokens(
+	topK_TKs, topK_TKs_nlf_num_pages = get_topK_tokens(
 		mat_cols=concat_spm_tokNames,
 		avgrec=avgRecSys,
 		raw_query=query_phrase,
@@ -289,8 +299,8 @@ def get_recsys_results(query_phrase: str="This is a sample query phrase!", nToke
 		meaningless_lemmas_list=UNQ_STW,
 		K=25,
 	)
-	# print(f">>> Found {len(topKtokens)} Recommendations...")
-	return topKtokens
+	# print(f">>> Found {len(topK_TKs)} Recommendations...")
+	return topK_TKs, topK_TKs_nlf_num_pages
 
 extract_tar(fname=compressed_spm_file)
 

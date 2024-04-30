@@ -11,32 +11,32 @@ body {
 
 .glow {
 	font-size: 35px;
-	color: #2900dd48;
+	color: #2d00f8b0;
 	font-weight: bold;
 	font-family: 'Poppins', sans-serif;
 	text-align: center;
-	margin-top: 25px;
-	margin-bottom: 25px;
-	animation: glow 0.9s ease-in-out infinite alternate;
-	background-color: #f7f7ff;
+	margin-top: 20px;
+	margin-bottom: 20px;
+	animation: glow 0.75s ease-in-out infinite alternate;
+	/* background-color: #f7f7ff; */
 }
 
 @keyframes glow {
 	from {
 		text-shadow: 
-			0 0 10px #2c29c2, 
-			0 0 20px #e2fd48, 
-			0 0 40px #e6fa74, 
+			0 0 10px #340bebd7, 
+			0 0 20px #ebff78, 
+			0 0 40px #edf5c8, 
 			0 0 80px #f3ffaf;
 	}
 	
 	to {
 		text-shadow: 
-			0 0 10px rgb(84, 134, 241), 
-			0 0 30px #ffa9d4, 
-			0 0 50px #ffadd6, 
-			0 0 50px #fdbddd,
-			0 0 90px #f7bad9;
+			0 0 10px rgb(0, 81, 255), 
+			0 0 30px #81adf0, 
+			0 0 50px #c699f0, 
+			0 0 50px #dbbacb,
+			0 0 90px #e4d2db;
 	}
 }
 
@@ -126,16 +126,6 @@ img {
 	filter: grayscale(0.6);
 	z-index: -1;
 }
-/* ######## Only if you are looking for grayscale bakgound image ########*/
-
-/* .search-form{
-	justify-content: center;
-	background-image: url("https://i0.wp.com/www.aptitude-test.com/blog/wp-content/uploads/2020/11/typing.jpg");
-	background-size: 32% 100%;
-	background-repeat: no-repeat;
-	background-position: center top 15px;
-	height: 380px;
-} */
 
 .search-input {
 	position: relative;
@@ -240,7 +230,7 @@ img {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	gap: 15px;
+	gap: 25px;
 	margin: 25px;
 }
 
@@ -327,8 +317,8 @@ input[type="submit"]:hover {
 
 #recommendationResultContainer {
 	margin-top: 10px;
-	font-size: 20px;
-	font-weight: bold;
+	font-size: 10px;
+	/* font-weight: bold; */
 }
 
 #recSysSlider {
@@ -415,4 +405,88 @@ input[type="submit"]:hover {
 @keyframes spin {
 	0% { transform: rotate(0deg); }
 	100% { transform: rotate(360deg); }
+}
+
+/* Style for the table */
+#recommendationTable {
+	width: 40%; /* Full width of the container */
+	border-collapse: collapse; /* Collapse borders between cells */
+	margin-top: 20px; /* Top margin for spacing */
+	font-family: "Times New Roman", Times, serif;
+}
+
+/* Style for table headers */
+#recommendationTable th {
+	background-color: #333; /* Dark gray background for headers */
+	color: white; /* White text color for headers */
+	padding: 10px; /* Padding for headers */
+	text-align: center; /* Center-align text */
+	font-size: 18px;
+}
+
+/* Style for table rows */
+#recommendationTable tr {
+	font-size: 25px;
+	background-color: #f5f1f1d0; /* Light gray background for rows */
+}
+
+/* Style for table cells */
+#recommendationTable td {
+	padding: 15px; /* Padding for cells */
+	border: 1px solid white; /* White border around cells */
+}
+
+/* Alternate row color */
+#recommendationTable tr:nth-child(even) {
+	background-color: #a3a3a3; /* Darker gray for even rows */
+}
+
+/* Feedback label styles */
+.feedback-label {
+	font-weight: bold; /* Bold font for labels */
+	text-align: center; /* Center-align text */
+	font-weight: bolder;
+	font-size: 20px;
+}
+
+/* Style for table cells */
+#recommendationTable td {
+	padding: 12px; /* Padding for cells */
+	border: 1px solid #ccc; /* Light gray border around cells */
+	text-align: center; /* Center-align text */
+}
+
+/* Style for recommendation link */
+.rec-link {
+	display: inline-block; /* Display as inline-block */
+	text-decoration: none; /* Remove underline from links */
+	vertical-align: middle; /* Align vertically with circular box */
+}
+
+/* Ensure table row position is relative */
+tbody tr {
+	position: relative;
+}
+
+/* Style for circular box */
+.circular-box {
+	display: inline-block;
+	width: 50px; /* Fixed width for the circular box */
+	height: 30px; /* Fixed height for the circular box */
+	border-radius: 10%; /* Ensures circular shape */
+	background-color: #021064;
+	color: #fff;
+	font-size: 16px;
+	line-height: 30px; /* Vertical centering text */
+	text-align: center; /* Center align text horizontally */
+	position: absolute;
+	top: 50%; /* Align to the vertical center of the table row */
+	transform: translateY(-50%); /* Adjust for vertical centering */
+	right: 10px; /* Distance from the right edge of the first column */
+}
+
+/* Style for the first column */
+td:first-child {
+	position: relative; /* Ensure relative positioning */
+	padding-right: 50px; /* Add space to accommodate circular box */
 }

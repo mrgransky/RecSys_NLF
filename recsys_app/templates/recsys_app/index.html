@@ -22,9 +22,9 @@
 		<div class="imageContainer">
 			<!-- <img src="https://www.topuniversities.com/sites/default/files/profiles/logos/tampere-university_5bbf14847d023f5bc849ec9a_large.jpg" alt="Left Image"> -->
 			<img src="https://dpt3vly6oaqnt.cloudfront.net/media/universities/university/MDCs3L29TEOvIDJYiWSqMg.jpg" alt="Left Image">
-			<img src="https://netpreserve.org/resources/logo_KK.fi_-150x150.png" alt="Right Image">	
+			<img src="https://netpreserve.org/resources/logo_KK.fi_-150x150.png" alt="Right Image">
 		</div>
-	
+
 		<div class="search-container">
 			<h2>Hi there, <i>{{ user_name|safe }}</i> &#128521;</h2>
 			<h3>{{ welcome_text|safe }}</h3>
@@ -76,10 +76,11 @@
 						<p id="loadingText" class="spinner-text">Please Wait (~2.0 min)</p>
 					</div>
 				</div>
-				
+
 			</form>
 		</div>
 
+		<!--
 		<div class="recommendationsContainer">
 			{% if recommendation_results %}
 				<script>document.title = "{{ input_query }}";</script>
@@ -96,6 +97,68 @@
 				<div id="recommendationResultContainer"></div>
 			{% endif %}
 		</div>
+		-->
+
+		<div class="recommendationsContainer">
+			{% if recommendation_results %}
+				<script>document.title = "{{ input_query }}";</script>
+				<div id="recSysIntroContainer">
+					<p>Since you Searched</p>
+					<h1 class="glow">{{ input_query }}</h1>
+					<p>You might be also interested in</p>
+				</div>
+				<table id="recommendationTable">
+					<thead>
+						<tr>
+							<th>Total Recommendation Result(s): {{ max_length_recSys }}</th>
+							<th colspan="3">User Feedback</th>
+						</tr>
+						<!-- Additional row for feedback labels -->
+						<tr>
+							<td>
+								<!-- Empty cell for Recommendation column -->
+							</td>
+							<td>
+									<div class="feedback-label">Agree</div>
+							</td>
+							<td>
+									<div class="feedback-label">Unsure</div>
+							</td>
+							<td>
+									<div class="feedback-label">Disagree</div>
+							</td>
+					 	</tr>
+					</thead>
+					<tbody id="recommendationResultContainer">
+						{% for result_i in recommendation_results %}
+							{% with nlf_result=recommendation_results_nlf_found_pages|slice:forloop.counter|last %}
+								<tr>
+									<td>
+											<a class="rec-link" href="{{ digi_base_url }}{{ input_query|urlencode }}+{{ result_i|urlencode }}" target="_blank">
+													<span style="font-size: 65%;">{{ input_query }}</span> + {{ result_i }}
+											</a>
+											<div class="circular-box">{{ nlf_result }}</div>
+									</td>
+									<td class="feedback-option">
+											<input type="radio" name="feedback_{{ forloop.counter }}" value="Agree">
+									</td>
+									<td class="feedback-option">
+											<input type="radio" name="feedback_{{ forloop.counter }}" value="Unsure">
+									</td>
+									<td class="feedback-option">
+											<input type="radio" name="feedback_{{ forloop.counter }}" value="Disagree">
+									</td>
+								</tr>
+							{% endwith %}
+						{% endfor %}
+					</tbody>
+				</table>
+				<div class="button-container">
+						<input type="submit" value="Submit Feedback" onclick="submitFeedback()">
+				</div>
+			{% endif %}
+		</div>
+
 	</div>
 
 	<script>
@@ -105,7 +168,7 @@
 		let recSysResults;
 		let myWindow;
 	</script>
-	
+
 	<script>
 		function resetTitle() {
 			document.title = "User-based RecSys";
@@ -125,7 +188,7 @@
 
 				// Clear any previous content
 				libLinkContainer.innerHTML = "";
-				
+
 				// Append the link to the container
 				libLinkContainer.appendChild(link);
 
@@ -174,17 +237,25 @@
 			resetTitle();
 			document.getElementsByName("query")[0].value = "";
 			document.getElementsByName("query")[0].placeholder = "Hakusana | Sökord | Query prompt";
-			document.getElementById("recSysIntroContainer").remove();
-			document.getElementById("recommendationResultContainer").remove();
-			document.getElementById("recSysSlider").remove();
-			document.getElementById("sliderValueDisplay").remove();
-			document.getElementById("recSysSliderLbl").remove();
-	
+
+			// document.getElementById("recSysIntroContainer").remove();
+			// document.getElementById("recommendationResultContainer").remove();
+			// document.getElementById("recSysSlider").remove();
+			// document.getElementById("sliderValueDisplay").remove();
+			// document.getElementById("recSysSliderLbl").remove();
+			// document.getElementById("recommendationTable").remove();
+
+			// Remove the recommendationsContainer
+			var recommendationsContainer = document.querySelector('.recommendationsContainer');
+			if (recommendationsContainer) {
+				recommendationsContainer.remove();
+			}
+
 			// Close the opened window if it exists and is not closed
 			if (myWindow && !myWindow.closed) {
 				myWindow.close();
 			}
-	
+
 			// Translate the container back to its original position
 			var container = document.querySelector('.container');
 			container.style.transform = 'translateX(0)';
@@ -210,7 +281,7 @@
 		document.addEventListener("DOMContentLoaded", function() {
 			updateResultsBasedOnSliderValue();
 		});
-		
+
 		function updateResultsBasedOnSliderValue() {
 			var sliderValue = document.getElementById('recSysSlider').value;
 			var recsysRes = document.getElementById('recommendationResultContainer');
@@ -224,7 +295,7 @@
 			recLinks.forEach(function(link) {
 				link.addEventListener('click', function(event) {
 						event.preventDefault(); // Prevent default link behavior
-						
+
 						// Smoothly shift the page layout to the left
 						var container = document.querySelector('.container');
 						container.style.transform = 'translateX(-30%)';
@@ -262,7 +333,7 @@
 						// });
 
 						myWindow = window.open(url, "", `width=${width}, height=${height}, left=${left}, top=0`);
-						myWindow.focus();						
+						myWindow.focus();
 						console.log("myWindow name, url:", myWindow.name, myWindow.location.href)
 
 					});
@@ -302,7 +373,43 @@
 			});
 		});
 	</script>
-	
+
+	<script>
+		function submitFeedback() {
+			const feedbackData = [];
+			const tableRows = document.querySelectorAll("#recommendationResultContainer tr");
+
+			tableRows.forEach(row => {
+				console.log(row)
+				const title = row.querySelector(".rec-link").textContent; // regex in py to cleanup
+				const feedback = row.querySelector('input[name^="feedback_"]:checked');
+				const link = row.querySelector(".rec-link").href;
+				if (feedback) {
+					feedbackData.push({
+						userQueryPrompt: globalQuery,
+						recsysResultText: title,
+						recsysResultLink: link,
+						userFeedback: feedback.value
+					});
+				}
+			});
+
+			// Send feedbackData to the backend using AJAX
+			const xhr = new XMLHttpRequest();
+			const url = "{% url 'process_feedback' %}";  // URL to your Django view
+			xhr.open("POST", url);
+			xhr.setRequestHeader("Content-Type", "application/json");
+			xhr.onload = function() {
+				if (xhr.status === 200) {
+					alert("Feedback submitted successfully! Continue Searching...");
+				} else {
+					alert("Failed to submit feedback. Please try again.");
+				}
+			};
+			xhr.send(JSON.stringify(feedbackData));
+		}
+	</script>
+
 </body>
 
 </html>

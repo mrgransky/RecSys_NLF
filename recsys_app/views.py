@@ -137,7 +137,8 @@ def main_page(request):
 				context['curr_length_recSys'] = min(CURRENT_NUM_RECOMMENDED_TOKENS, len(recSys_results))
 				context['recommendation_results_nlf_found_pages'] = recSys_results_nlf_num_pages[:MAX_NUM_RECOMMENDED_TOKENS]
 			# context['recommendation_results'] = [f"Token_{i}" for i in range(20)]
-			print(recSys_results, recSys_results_nlf_num_pages)
+			print(recSys_results)
+			print(recSys_results_nlf_num_pages)
 			context['recommendation_results'] = recSys_results[:MAX_NUM_RECOMMENDED_TOKENS]
 		else:
 			print(f"ERROORRR! => must go to alert!!")

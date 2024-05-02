@@ -407,11 +407,10 @@ input[type="submit"]:hover {
 	100% { transform: rotate(360deg); }
 }
 
-/* Style for the table */
 #recommendationTable {
-	width: 40%; /* Full width of the container */
+	width: 42%; /* Full width of the container */
 	border-collapse: collapse; /* Collapse borders between cells */
-	margin-top: 20px; /* Top margin for spacing */
+	margin-top: 15px; /* Top margin for spacing */
 	font-family: "Times New Roman", Times, serif;
 }
 
@@ -421,32 +420,17 @@ input[type="submit"]:hover {
 	color: white; /* White text color for headers */
 	padding: 10px; /* Padding for headers */
 	text-align: center; /* Center-align text */
-	font-size: 18px;
+	font-size: 21px;
 }
 
 /* Style for table rows */
 #recommendationTable tr {
-	font-size: 25px;
+	font-size: 22px;
 	background-color: #f5f1f1d0; /* Light gray background for rows */
 }
 
-/* Style for table cells */
-#recommendationTable td {
-	padding: 15px; /* Padding for cells */
-	border: 1px solid white; /* White border around cells */
-}
-
-/* Alternate row color */
 #recommendationTable tr:nth-child(even) {
-	background-color: #a3a3a3; /* Darker gray for even rows */
-}
-
-/* Feedback label styles */
-.feedback-label {
-	font-weight: bold; /* Bold font for labels */
-	text-align: center; /* Center-align text */
-	font-weight: bolder;
-	font-size: 20px;
+	background-color: #a3a3a3; /* Alternate row color Darker gray for even rows */
 }
 
 /* Style for table cells */
@@ -456,11 +440,16 @@ input[type="submit"]:hover {
 	text-align: center; /* Center-align text */
 }
 
-/* Style for recommendation link */
+.feedback-option, .feedback-label {
+	width: 100px; /* Set a fixed width for both columns */
+	text-align: center; /* Center-align the content */
+	font-weight: bold; /* Make the text bold */
+}
+
 .rec-link {
 	display: inline-block; /* Display as inline-block */
-	text-decoration: none; /* Remove underline from links */
 	vertical-align: middle; /* Align vertically with circular box */
+	text-align: left; /* Align text to the left within the cell */
 }
 
 /* Ensure table row position is relative */
@@ -490,4 +479,5 @@ tbody tr {
 td:first-child {
 	position: relative; /* Ensure relative positioning */
 	padding-right: 50px; /* Add space to accommodate circular box */
+	text-align: left; /* Align text in the first column to the left */
 }

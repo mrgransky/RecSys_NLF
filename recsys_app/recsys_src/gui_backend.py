@@ -34,7 +34,7 @@ nlf_num_pages: List[int] = []  # Declare nlf_num_pages as a global list of integ
 ###########################################################################################
 
 def get_num_results(URL: str="www.example.com"):
-	print(f"{URL:<200}")
+	print(f"{URL:<150}", end=" ")
 	st_t = time.time()
 
 	parsed_url = urllib.parse.urlparse(URL)
@@ -88,34 +88,14 @@ def get_num_results(URL: str="www.example.com"):
 			headers=headers,
 		)
 		res = r.json()
-		# a list of up to 20 results, each of which contains: 
-		#print(res.keys()): ['bindingId', 'bindingTitle', 'publicationId', 'generalType', 'authorized', 'authors', 'pageNumber', 'language', 'publisher', 'issue', 'importDate', 'dateAccuracy', 'placeOfPublication', 'textHighlights', 'terms', 'score', 'url', 'thumbnailUrl', 'date']
-		SEARCH_RESULTS = res.get("rows")
-
-		NLF_SEARCH_RESULTs_NUM = len(SEARCH_RESULTS)
-		print(f"Got {NLF_SEARCH_RESULTs_NUM} NLF baseline result(s)\t{time.time()-st_t:.3f} sec")
-
+		# SEARCH_RESULTS = res.get("rows")
+		# NLF_SEARCH_RESULTs_NUM = len(SEARCH_RESULTS)
+		# print(f"{NLF_SEARCH_RESULTs_NUM} NLF baseline result(s) (in one page)\t{time.time()-st_t:.3f} sec")
 		TOTAL_NUM_NLF_RESULTs = res.get("totalResults")
-		print(f"TOTAL RESULT(s) in NLF: {TOTAL_NUM_NLF_RESULTs}")
-	except (
-		requests.exceptions.Timeout,
-		requests.exceptions.ConnectionError, 
-		requests.exceptions.RequestException, 
-		requests.exceptions.TooManyRedirects,
-		requests.exceptions.InvalidSchema,
-		ValueError, 
-		TypeError, 
-		IndexError,
-		EOFError, 
-		RuntimeError,
-		json.JSONDecodeError,
-		json.decoder.JSONDecodeError,
-		Exception, 
-	) as e:
-		print(f"{type(e).__name__} line {e.__traceback__.tb_lineno} in {__file__}: {e.args}")
+		print(f"NLF tot_result(s): {TOTAL_NUM_NLF_RESULTs:<7}Elapsed_t: {time.time()-st_t:.3f} s")
+	except Exception as e:
+		print(f"<!> Error: {e}")
 		return
-
-	# return NLF_SEARCH_RESULTs_NUM
 	return TOTAL_NUM_NLF_RESULTs
 
 def get_lemmatized_sqp(qu_list, lm: str="stanza"):
@@ -297,7 +277,7 @@ def get_recsys_results(query_phrase: str="This is a sample query phrase!", nToke
 		raw_query=query_phrase,
 		tok_query=tokenized_query_phrase,
 		meaningless_lemmas_list=UNQ_STW,
-		K=25,
+		K=45,
 	)
 	# print(f">>> Found {len(topK_TKs)} Recommendations...")
 	return topK_TKs, topK_TKs_nlf_num_pages

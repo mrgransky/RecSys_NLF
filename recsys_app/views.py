@@ -4,7 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from recsys_app.recsys_src.gui_backend import *
 
 USR: str = "XXXXXX"
-MAX_NUM_RECOMMENDED_TOKENS: int = 20
+MAX_NUM_RECOMMENDED_TOKENS: int = 30
 CURRENT_NUM_RECOMMENDED_TOKENS: int = 5
 DIGI_BASE_URL: str = "https://digi.kansalliskirjasto.fi/search?requireAllKeywords=true&query="
 # recSys_results_nlf_num_pages: List[int] = [10, 11, 42, 55, 88, 155, 250, 922, 2, 426]
@@ -127,18 +127,16 @@ def main_page(request):
 		query = request.POST.get('query', '')
 		context["input_query"] = query
 		raw_query_nlf_results = get_num_results(URL=f"{BASE_DIGI_URL}" + urllib.parse.quote_plus(query))
-		# print(f'we found {raw_query_nlf_results} docs in NLF')
 		if request.POST.get('isRecSys') == "true" and raw_query_nlf_results > 0:
 			# print(f">> RecSys POST entered qu: {query} request.POST.get('isRecSys'): {request.POST.get('isRecSys')}")
 			recSys_results, recSys_results_nlf_num_pages = get_recsys_results(query_phrase=query, nTokens=100)
-			
 			if recSys_results and len(recSys_results)>0:
 				context['max_length_recSys'] = min(MAX_NUM_RECOMMENDED_TOKENS, len(recSys_results))
 				context['curr_length_recSys'] = min(CURRENT_NUM_RECOMMENDED_TOKENS, len(recSys_results))
 				context['recommendation_results_nlf_found_pages'] = recSys_results_nlf_num_pages[:MAX_NUM_RECOMMENDED_TOKENS]
 			# context['recommendation_results'] = [f"Token_{i}" for i in range(20)]
-			print(recSys_results)
-			print(recSys_results_nlf_num_pages)
+			print(len(recSys_results), recSys_results)
+			print(len(recSys_results_nlf_num_pages), recSys_results_nlf_num_pages)
 			context['recommendation_results'] = recSys_results[:MAX_NUM_RECOMMENDED_TOKENS]
 		else:
 			print(f"ERROORRR! => must go to alert!!")

@@ -126,7 +126,7 @@ def main_page(request):
 	if request.method == 'POST':
 		query = request.POST.get('query', '')
 		context["input_query"] = query
-		raw_query_nlf_results = get_num_results(URL=f"{BASE_DIGI_URL}" + urllib.parse.quote_plus(query))
+		raw_query_nlf_results = get_NLF_pages(URL=f"{BASE_DIGI_URL}" + urllib.parse.quote_plus(query))
 		if request.POST.get('isRecSys') == "true" and raw_query_nlf_results > 0:
 			# print(f">> RecSys POST entered qu: {query} request.POST.get('isRecSys'): {request.POST.get('isRecSys')}")
 			recSys_results, recSys_results_nlf_num_pages = get_recsys_results(query_phrase=query, nTokens=100)

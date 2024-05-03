@@ -142,6 +142,7 @@ img {
 	border: none;
 	background-color: #e1e2e2;
 	margin-top: 18px;
+	caret-color: red;
 }
 
 .search-input-field:focus {

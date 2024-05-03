@@ -12,6 +12,8 @@ import pandas as pd
 # import urllib.parse
 import urllib
 import requests
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 from typing import List, Set, Dict, Tuple
 from recsys_app.recsys_src.tokenizer_utils import *
 lemmatizer_methods = {
@@ -19,6 +21,11 @@ lemmatizer_methods = {
 	"trankit": trankit_lemmatizer,
 	"stanza": stanza_lemmatizer,
 }
+
+session = requests.Session()
+retries = Retry(total=5, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504])
+session.mount('https://', HTTPAdapter(max_retries=retries))
+
 ###########################################################################################
 HOME: str = os.getenv('HOME') # echo $HOME
 USER: str = os.getenv('USER') # echo $USER
@@ -33,46 +40,40 @@ BASE_DIGI_URL: str = "https://digi.kansalliskirjasto.fi/search?requireAllKeyword
 nlf_num_pages: List[int] = []  # Declare nlf_num_pages as a global list of integers
 ###########################################################################################
 
-def get_num_results(URL: str="www.example.com"):
+def get_NLF_pages(URL: str="www.example.com"):
 	print(f"{URL:<150}", end=" ")
 	st_t = time.time()
-
 	parsed_url = urllib.parse.urlparse(URL)
-	# print(parsed_url)
 	parameters = urllib.parse.parse_qs( parsed_url.query, keep_blank_values=True)
-	# print(parameters)
-	# print(f"<>"*50)
-	offset_pg=( int( re.search(r'page=(\d+)', URL).group(1) )-1)*20 if re.search(r'page=(\d+)', URL) else 0
-	search_pg_api = f"{parsed_url.scheme}://{parsed_url.netloc}/rest/binding-search/search/binding?offset={offset_pg}&count=20"
-	# print(offset_pg, search_pg_api)
+	offset_pg = ( int( re.search(r'page=(\d+)', URL).group(1) )-1)*20 if re.search(r'page=(\d+)', URL) else 0
+	search_page_request_url = f"{parsed_url.scheme}://{parsed_url.netloc}/rest/binding-search/search/binding?offset={offset_pg}&count=20"
 	payload = {
-		"authors": parameters.get('author') if parameters.get('author') else [],
-		"collections": parameters.get('collection') if parameters.get('collection') else [],
-		"districts": [], # TODO: must be investigated!!
-		"endDate": parameters.get('endDate')[0] if parameters.get('endDate') else None,
-		"exactCollectionMaterialType": "false", # TODO: must be investigated!!
-		"formats": parameters.get('formats') if parameters.get('formats') else [],
-		"fuzzy": parameters.get('fuzzy')[0] if parameters.get('fuzzy') else "false",
-		"hasIllustrations": parameters.get('hasIllustrations')[0] if parameters.get('hasIllustrations') else "false",
-		"importStartDate": parameters.get('importStartDate')[0] if parameters.get('importStartDate') else None,
-		"importTime": parameters.get('importTime')[0] if parameters.get('importStartDate') else "ANY",
-		"includeUnauthorizedResults": parameters.get('showUnauthorizedResults')[0] if parameters.get('showUnauthorizedResults') else "false",
-		"languages": parameters.get('lang') if parameters.get('lang') else [],
-		"orderBy": parameters.get('orderBy')[0] if parameters.get('orderBy') else "IMPORT_DATE",
-		"pages": parameters.get('pages')[0]  if parameters.get('pages') else "",
-		"publicationPlaces": parameters.get('publicationPlace') if parameters.get('publicationPlace') else [],
-		"publications": parameters.get('title') if parameters.get('title') else [],
-		"publishers": parameters.get('publisher') if parameters.get('publisher') else [],
+		"authors": [],
+		"collections": [],
+		"districts": [],
+		"endDate": None,
+		"exactCollectionMaterialType": "false",
+		"formats": [],
+		"fuzzy": "false",
+		"hasIllustrations": "false",
+		"importStartDate": None,
+		"importTime": "ANY",
+		"includeUnauthorizedResults": "false",
+		"languages": [],
+		"orderBy": "RELEVANCE",
+		"pages": "",
+		"publicationPlaces": [],
+		"publications": [],
+		"publishers": [],
 		"query": parameters.get('query')[0] if parameters.get('query') else "",
-		"queryTargetsMetadata": parameters.get('qMeta')[0] if parameters.get('qMeta') else "false",
-		"queryTargetsOcrText": parameters.get('qOcr')[0] if parameters.get('qOcr') else "true",
+		"queryTargetsMetadata": "false",
+		"queryTargetsOcrText": "true",
 		"requireAllKeywords": parameters.get('requireAllKeywords')[0]  if parameters.get('requireAllKeywords') else "false",
-		"searchForBindings": parameters.get('searchForBindings')[0]  if parameters.get('searchForBindings') else "false",
-		"showLastPage": parameters.get('showLastPage')[0]  if parameters.get('showLastPage') else "false",
-		"startDate": parameters.get('startDate')[0] if parameters.get('startDate') else None,
-		"tags": parameters.get('tag') if parameters.get('tag') else [],
+		"searchForBindings": "false",
+		"showLastPage": "false",
+		"startDate": None,
+		"tags": [],	
 	}
-	
 	headers = {
 		'Content-type': 'application/json',
 		'Accept': 'application/json; text/plain; */*', 
@@ -80,20 +81,20 @@ def get_num_results(URL: str="www.example.com"):
 		'Connection': 'keep-alive',
 		'Pragma': 'no-cache',
 	}
-
 	try:
-		r = requests.post(
-			url=search_pg_api, 
+		r = session.post(
+			url=search_page_request_url, 
 			json=payload, 
 			headers=headers,
 		)
+		r.raise_for_status()  # Raise HTTPError for bad status codes
 		res = r.json()
 		# SEARCH_RESULTS = res.get("rows")
-		# NLF_SEARCH_RESULTs_NUM = len(SEARCH_RESULTS)
-		# print(f"{NLF_SEARCH_RESULTs_NUM} NLF baseline result(s) (in one page)\t{time.time()-st_t:.3f} sec")
+		# print(f"{len(SEARCH_RESULTS)} NLF baseline result(s) (in one page)\t{time.time()-st_t:.3f} sec")
 		TOTAL_NUM_NLF_RESULTs = res.get("totalResults")
 		print(f"NLF tot_result(s): {TOTAL_NUM_NLF_RESULTs:<7}Elapsed_t: {time.time()-st_t:.3f} s")
-	except Exception as e:
+	# except Exception as e:
+	except requests.exceptions.RequestException as e:
 		print(f"<!> Error: {e}")
 		return
 	return TOTAL_NUM_NLF_RESULTs
@@ -182,7 +183,7 @@ def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], meaningless_lemmas_l
 	# 		mat_cols[iTK] not in tok_query
 	# 		and mat_cols[iTK] not in meaningless_lemmas_list
 	# 		and mat_cols[iTK] not in raw_query.lower().split() # in case we have false lemma: ex) tiedusteluorganisaatio puolustusvoimat
-	# 		and (tot_nlf_res:=get_num_results(URL=f"{BASE_DIGI_URL}" + urllib.parse.quote_plus(raw_query + " " + mat_cols[iTK])))>0
+	# 		and (tot_nlf_res:=get_NLF_pages(URL=f"{BASE_DIGI_URL}" + urllib.parse.quote_plus(raw_query + " " + mat_cols[iTK])))>0
 	# 	)
 	# ][::-1]
 
@@ -195,7 +196,7 @@ def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], meaningless_lemmas_l
 			and mat_cols[iTK] not in raw_query.lower().split()
 		):
 			tk_url = f"{BASE_DIGI_URL}" + urllib.parse.quote_plus(raw_query + " " + mat_cols[iTK])
-			tot_nlf_res = get_num_results(URL=tk_url)
+			tot_nlf_res = get_NLF_pages(URL=tk_url)
 			if tot_nlf_res > 0:
 				topK_tokens_list.append(mat_cols[iTK])
 				tot_nlf_res_list.append(tot_nlf_res)

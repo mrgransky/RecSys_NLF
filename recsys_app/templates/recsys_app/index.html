@@ -99,6 +99,7 @@
 		</div>
 		-->
 
+		<!-- 
 		<div class="recommendationsContainer">
 			{% if recommendation_results %}
 				<script>document.title = "{{ input_query }}";</script>
@@ -110,23 +111,19 @@
 				<table id="recommendationTable">
 					<thead>
 						<tr>
-							<!-- <th>Total Recommendation Result(s): {{ max_length_recSys }}</th> -->
 							<th>Total Recommendation Result(s): <span style="background-color: rgb(236, 236, 5);color: black; font-style: italic;">{{ max_length_recSys }}</span></th>
 							<th colspan="3">User Feedback</th>
 						</tr>
-						<!-- Additional row for feedback labels -->
 						<tr>
+							<td></td>
 							<td>
-								<!-- Empty cell for Recommendation column -->
+								<div class="feedback-label">Agree</div>
 							</td>
 							<td>
-									<div class="feedback-label">Agree</div>
+								<div class="feedback-label">Unsure</div>
 							</td>
 							<td>
-									<div class="feedback-label">Unsure</div>
-							</td>
-							<td>
-									<div class="feedback-label">Disagree</div>
+								<div class="feedback-label">Disagree</div>
 							</td>
 					 	</tr>
 					</thead>
@@ -135,10 +132,10 @@
 							{% with nlf_result=recommendation_results_nlf_found_pages|slice:forloop.counter|last %}
 								<tr>
 									<td>
-											<a class="rec-link" href="{{ digi_base_url }}{{ input_query|urlencode }}+{{ result_i|urlencode }}" target="_blank">
-													<span style="font-size: 70%;">{{ input_query }}</span> + {{ result_i }}
-											</a>
-											<div class="circular-box">{{ nlf_result }}</div>
+										<a class="rec-link" href="{{ digi_base_url }}{{ input_query|urlencode }}+{{ result_i|urlencode }}&orderBy=RELEVANCE" target="_blank">
+												<span style="font-size: 70%;">{{ input_query }}</span> + {{ result_i }}
+										</a>
+										<div class="circular-box">{{ nlf_result }}</div>
 									</td>
 									<td class="feedback-option">
 											<input type="radio" name="feedback_{{ forloop.counter }}" value="Agree">
@@ -147,7 +144,7 @@
 											<input type="radio" name="feedback_{{ forloop.counter }}" value="Unsure">
 									</td>
 									<td class="feedback-option">
-											<input type="radio" name="feedback_{{ forloop.counter }}" value="Disagree">
+										<input type="radio" name="feedback_{{ forloop.counter }}" value="Disagree">
 									</td>
 								</tr>
 							{% endwith %}
@@ -155,8 +152,66 @@
 					</tbody>
 				</table>
 				<div class="button-container">
-						<input type="submit" value="Submit Feedback" onclick="submitFeedback()">
+					<input type="submit" value="Submit Feedback" onclick="submitFeedback()">
 				</div>
+			{% endif %}
+		</div> -->
+
+		<div class="recommendationsContainer">
+			{% if recommendation_results %}
+				<script>document.title = "{{ input_query }}";</script>
+				<div id="recSysIntroContainer">
+					<p>Since you Searched</p>
+					<h1 class="glow">{{ input_query }}</h1>
+					<p>You might be also interested in</p>
+				</div>
+				<table id="recommendationTable">
+					<thead>
+						<tr>
+							<th>Total Recommendation Result(s): <span style="background-color: rgb(236, 236, 5);color: black; font-style: italic;">{{ max_length_recSys }}</span></th>
+							<!-- <th colspan="3">User Feedback</th> -->
+						</tr>
+							<!-- Additional row for feedback labels -->
+						<!-- <tr>
+							<td></td>
+							<td>
+								<div class="feedback-label">Agree</div>
+							</td>
+							<td>
+								<div class="feedback-label">Unsure</div>
+							</td>
+							<td>
+								<div class="feedback-label">Disagree</div>
+							</td>
+					 	</tr> -->
+					</thead>
+					<tbody id="recommendationResultContainer">
+						{% for result_i in recommendation_results %}
+							{% with nlf_result=recommendation_results_nlf_found_pages|slice:forloop.counter|last %}
+								<tr>
+									<td>
+										<a class="rec-link" href="{{ digi_base_url }}{{ input_query|urlencode }}+{{ result_i|urlencode }}&orderBy=RELEVANCE" target="_blank">
+												<span style="font-size: 70%;">{{ input_query }}</span> + {{ result_i }}
+										</a>
+										<div class="circular-box">{{ nlf_result }}</div>
+									</td>
+									<!-- <td class="feedback-option">
+											<input type="radio" name="feedback_{{ forloop.counter }}" value="Agree">
+									</td>
+									<td class="feedback-option">
+											<input type="radio" name="feedback_{{ forloop.counter }}" value="Unsure">
+									</td>
+									<td class="feedback-option">
+										<input type="radio" name="feedback_{{ forloop.counter }}" value="Disagree">
+									</td> -->
+								</tr>
+							{% endwith %}
+						{% endfor %}
+					</tbody>
+				</table>
+				<!-- <div class="button-container">
+					<input type="submit" value="Submit Feedback" onclick="submitFeedback()">
+				</div> -->
 			{% endif %}
 		</div>
 

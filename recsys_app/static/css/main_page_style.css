@@ -409,7 +409,7 @@ input[type="submit"]:hover {
 }
 
 #recommendationTable {
-	width: 42%; /* Full width of the container */
+	width: 50%; /* Full width of the container */
 	border-collapse: collapse; /* Collapse borders between cells */
 	margin-top: 15px; /* Top margin for spacing */
 	font-family: "Times New Roman", Times, serif;
@@ -426,12 +426,13 @@ input[type="submit"]:hover {
 
 /* Style for table rows */
 #recommendationTable tr {
-	font-size: 22px;
+	font-size: 21px;
 	background-color: #f5f1f1d0; /* Light gray background for rows */
+	font-style: normal;
 }
 
 #recommendationTable tr:nth-child(even) {
-	background-color: #a3a3a3; /* Alternate row color Darker gray for even rows */
+	background-color: #b6b6b6e7; /* Alternate row color Darker gray for even rows */
 }
 
 /* Style for table cells */
@@ -461,7 +462,7 @@ tbody tr {
 /* Style for circular box */
 .circular-box {
 	display: inline-block;
-	width: 50px; /* Fixed width for the circular box */
+	width: 60px; /* Fixed width for the circular box */
 	height: 30px; /* Fixed height for the circular box */
 	border-radius: 10%; /* Ensures circular shape */
 	background-color: #021064;

@@ -1,6 +1,6 @@
 import os
 import re
-from functools import cache
+from functools import cache, lru_cache
 import contextlib
 import logging
 import time
@@ -115,6 +115,7 @@ def clean_(docs: str="This is a <NORMAL> string!!"):
 		re.sub(r'\b\w{,2}\b', ' ', docs)#.strip() 
 	).strip()
 	##########################################################################################
+	# TODO: library checking?!!!! Enchant? only for Pouta!
 	docs = docs.lower()
 	##########################################################################################
 	print(f'Cleaned Input [elasped_t: {time.time()-t0:.5f} s]:\n{docs}')
@@ -126,13 +127,10 @@ def clean_(docs: str="This is a <NORMAL> string!!"):
 @cache
 def stanza_lemmatizer(docs: str="This is a <NORMAL> sentence in document."):
 	try:
-		print(f'Stanza[{stanza.__version__}] Raw Input:\n{docs}\n')
-		docs = docs.title()
-		# print(f"{f'nW: { len( docs.split() ) }':<10}{str(docs.split()[:7]):<150}", end="")
+		print(f'Stanza[{stanza.__version__}] Raw Input: {docs}')
 		st_t = time.time()
 		all_ = smp(docs)
-		lemmas_list = [ 
-			# re.sub(r'["#_\-]', '', wlm.lower())
+		lemmas_list = [
 			re.sub(r'[";&#<>_\-\+\^\.\$\[\]]', '', wlm.lower())
 			for _, vsnt in enumerate(all_.sentences) 
 			for _, vw in enumerate(vsnt.words) 

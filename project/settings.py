@@ -1,9 +1,17 @@
 import os
+# BASE_DIR = Path(__file__).resolve().parent.parent
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) # /home/farid/WS_Farid/RecSys_NLF
 SECRET_KEY = os.getenv(
 		'DJANGO_SECRET_KEY',
 		'9e4@&tw46$l31)zrqe3wi+-slqm(ruvz&se0^%9#6(_w3ui!c0'
 )
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
 
 # DEBUG = False # if css style layout changes occure
 DEBUG = True # causes "Broken pipe from ('94.72.62.225', 53959)" error!
@@ -15,6 +23,7 @@ ALLOWED_HOSTS = ['*']
 # ALLOWED_HOSTS = ['128.214.254.157', '10.130.15.24', '127.0.0.1', 'localhost',]  # Add the IP address of your VM # $lsof -i :8000
 
 INSTALLED_APPS = [
+	'channels',
 	'django.contrib.admin',
 	'django.contrib.auth',
 	'django.contrib.contenttypes',
@@ -57,7 +66,16 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'project.wsgi.application'
-
+ASGI_APPLICATION = 'project.asgi.application'
+# Add Channels layers configuration if using Redis or other layer
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels_redis.core.RedisChannelLayer",
+#         "CONFIG": {
+#             "hosts": [("127.0.0.1", 6379)],
+#         },
+#     },
+# }
 from . import database
 DATABASES = {
 	'default': database.config()

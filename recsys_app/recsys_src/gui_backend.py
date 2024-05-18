@@ -15,6 +15,7 @@ import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 from typing import List, Set, Dict, Tuple
+from celery import shared_task
 from recsys_app.recsys_src.tokenizer_utils import *
 lemmatizer_methods = {
 	"nltk": nltk_lemmatizer,
@@ -31,7 +32,7 @@ HOME: str = os.getenv('HOME') # echo $HOME
 USER: str = os.getenv('USER') # echo $USER
 Files_DIR: str = "/media/volume" if USER == "ubuntu" else HOME
 lmMethod: str="stanza"
-nSPMs: int = 732 #if USER == "ubuntu" else 50 # dynamic changing of nSPMs due to Rahti CPU memory issues!
+nSPMs: int = 2 #if USER == "ubuntu" else 50 # dynamic changing of nSPMs due to Rahti CPU memory issues!
 DATASET_DIR: str = f"Nationalbiblioteket/compressed_concatenated_SPMs" if USER == "ubuntu" else f"datasets/compressed_concatenated_SPMs"
 compressed_spm_file = os.path.join(Files_DIR, DATASET_DIR, f"concat_x{nSPMs}.tar.gz")
 spm_files_dir = os.path.join(Files_DIR, DATASET_DIR, f"concat_x{nSPMs}")
@@ -287,6 +288,7 @@ def get_recsys_results(query_phrase: str="This is a sample query phrase!", nToke
 	print(f"Search Query Prompt: {query_phrase} [lemma(s)]: {tokenized_query_phrase}")
 	if not tokenized_query_phrase:
 		return None, 0
+
 	query_vector=get_query_vec(
 		mat=concat_spm_U_x_T,
 		mat_row=concat_spm_usrNames,
@@ -299,7 +301,6 @@ def get_recsys_results(query_phrase: str="This is a sample query phrase!", nToke
 		f"@ idx(s): {np.where(query_vector.flatten()!=0)[0]}\n"
 		f"{[f'idx[{qidx}]: {concat_spm_tokNames[qidx]}' for _, qidx in enumerate(np.where(query_vector.flatten()!=0)[0])]}"
 	)
-	# if np.count_nonzero(query_vector) == 0:
 	if not np.any(query_vector):
 		print(f"Sorry! >> {query_phrase} << Not Found in our database! Search something else...")
 		return None, 0
@@ -321,15 +322,25 @@ def get_recsys_results(query_phrase: str="This is a sample query phrase!", nToke
 		raw_query=query_phrase,
 		tok_query=tokenized_query_phrase,
 		meaningless_lemmas_list=UNQ_STW,
-		K=45,
+		K=nTokens,
 	)
 	return topK_TKs, topK_TKs_nlf_num_pages
 
 extract_tar(fname=compressed_spm_file)
 
 print(f"USER: >>{USER}<< using {nSPMs} nSPMs")
-concat_spm_U_x_T=load_pickle(fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'_shrinked_spMtx_USERs_vs_TOKENs_*_nUSRs_x_*_nTOKs.gz')[0])
-concat_spm_usrNames=load_pickle(fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'_shrinked_spMtx_rows_*_nUSRs.gz')[0])
-concat_spm_tokNames=load_pickle(fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'_shrinked_spMtx_cols_*_nTOKs.gz')[0])
-idf_vec=load_pickle(fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'_shrinked_idf_vec_1_x_*_nTOKs.gz')[0])
-usrNorms=load_pickle(fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'_shrinked_users_norm_1_x_*_nUSRs.gz')[0])
+concat_spm_U_x_T = load_pickle(
+	fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'_shrinked_spMtx_USERs_vs_TOKENs_*_nUSRs_x_*_nTOKs.gz')[0]
+)
+concat_spm_usrNames = load_pickle(
+	fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'_shrinked_spMtx_rows_*_nUSRs.gz')[0]
+)
+concat_spm_tokNames = load_pickle(
+	fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'_shrinked_spMtx_cols_*_nTOKs.gz')[0]
+)
+idf_vec = load_pickle(
+	fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'_shrinked_idf_vec_1_x_*_nTOKs.gz')[0]
+)
+usrNorms=load_pickle(
+	fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'_shrinked_users_norm_1_x_*_nUSRs.gz')[0]
+)

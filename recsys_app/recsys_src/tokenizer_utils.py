@@ -82,7 +82,8 @@ with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
 	with open('recsys_app/recsys_src/meaningless_lemmas.txt', 'r') as file_:
 		my_custom_stopwords=[line.strip() for line in file_]
 	STOPWORDS.extend(my_custom_stopwords)
-	UNQ_STW = list(set(STOPWORDS))
+	# UNQ_STW = list(set(STOPWORDS))
+	UNQ_STW = set(STOPWORDS)
 
 # logging.getLogger("stanza").setLevel(logging.WARNING) # disable stanza log messages with severity levels of WARNING and higher (ERROR, CRITICAL)
 

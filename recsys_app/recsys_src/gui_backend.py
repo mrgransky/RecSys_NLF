@@ -157,7 +157,7 @@ def get_customized_cosine_similarity(spMtx, query_vec, idf_vec, spMtx_norm, expo
 		usrInterest=(usrInterest*(1/usrInterestNorm[ui]))#**0.1 # faster?!        
 		usrInterest=(usrInterest**exponent)
 		cs[ui]=np.sum(usrInterest*quInterest_nonZeros)
-	print(f"Elapsed_t: {time.time()-st_t:.1f} s {type(cs)} {cs.dtype} {cs.shape}".center(130, " "))
+	print(f"Elapsed_t: {time.time()-st_t:.2f} s {type(cs)} {cs.dtype} {cs.shape}".center(130, " "))
 	return cs # (nUsers,)
 
 def get_avg_rec(spMtx, cosine_sim, idf_vec, spMtx_norm):
@@ -286,8 +286,7 @@ def get_recsys_results(query_phrase: str="This is a sample query phrase!", nToke
 	tokenized_query_phrase = get_lemmatized_sqp(qu_phrase=query_phrase, lm=lmMethod)
 	print(f"Search Query Prompt: {query_phrase} [lemma(s)]: {tokenized_query_phrase}")
 	if not tokenized_query_phrase:
-		print(f"tokenized_query_phrase none=> return!!!!")
-		return 
+		return None, 0
 	query_vector=get_query_vec(
 		mat=concat_spm_U_x_T,
 		mat_row=concat_spm_usrNames,
@@ -300,7 +299,8 @@ def get_recsys_results(query_phrase: str="This is a sample query phrase!", nToke
 		f"@ idx(s): {np.where(query_vector.flatten()!=0)[0]}\n"
 		f"{[f'idx[{qidx}]: {concat_spm_tokNames[qidx]}' for _, qidx in enumerate(np.where(query_vector.flatten()!=0)[0])]}"
 	)
-	if np.count_nonzero(query_vector) == 0:
+	# if np.count_nonzero(query_vector) == 0:
+	if not np.any(query_vector):
 		print(f"Sorry! >> {query_phrase} << Not Found in our database! Search something else...")
 		return None, 0
 	ccs=get_customized_cosine_similarity(
@@ -315,7 +315,6 @@ def get_recsys_results(query_phrase: str="This is a sample query phrase!", nToke
 		idf_vec=idf_vec,
 		spMtx_norm=usrNorms,
 	)
-	# topK_TKs = get_topK_tokens(
 	topK_TKs, topK_TKs_nlf_num_pages = get_topK_tokens(
 		mat_cols=concat_spm_tokNames,
 		avgrec=avgRecSys,
@@ -324,7 +323,6 @@ def get_recsys_results(query_phrase: str="This is a sample query phrase!", nToke
 		meaningless_lemmas_list=UNQ_STW,
 		K=45,
 	)
-	# print(f">>> Found {len(topK_TKs)} Recommendations...")
 	return topK_TKs, topK_TKs_nlf_num_pages
 
 extract_tar(fname=compressed_spm_file)

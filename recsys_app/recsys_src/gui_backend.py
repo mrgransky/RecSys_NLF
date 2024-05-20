@@ -32,7 +32,7 @@ HOME: str = os.getenv('HOME') # echo $HOME
 USER: str = os.getenv('USER') # echo $USER
 Files_DIR: str = "/media/volume" if USER == "ubuntu" else HOME
 lmMethod: str="stanza"
-nSPMs: int = 732 #if USER == "ubuntu" else 50 # dynamic changing of nSPMs due to Rahti CPU memory issues!
+nSPMs: int = 372 #if USER == "ubuntu" else 50 # dynamic changing of nSPMs due to Rahti CPU memory issues!
 DATASET_DIR: str = f"Nationalbiblioteket/compressed_concatenated_SPMs" if USER == "ubuntu" else f"datasets/compressed_concatenated_SPMs"
 compressed_spm_file = os.path.join(Files_DIR, DATASET_DIR, f"concat_x{nSPMs}.tar.gz")
 spm_files_dir = os.path.join(Files_DIR, DATASET_DIR, f"concat_x{nSPMs}")
@@ -143,26 +143,55 @@ def get_customized_cosine_similarity(spMtx, query_vec, idf_vec, spMtx_norm, expo
 
 	# 	cs[ui]=np.sum(usrInterest*quInterest_nonZeros)
 	# 	# cs[ui]*=temp_cs_multiplier # added Nov 10th
-	nUsers, _ = spMtx.shape
-	idf_squeezed = idf_vec.ravel() # faster than np.squeeze(np.asarray(idf_vec))
-	query_vec_squeezed = query_vec.ravel()
-	quInterest = query_vec_squeezed * idf_squeezed #(nTokens,)x(nTokens,)
-	quInterestNorm = np.linalg.norm(quInterest)
-	idx_nonzeros = np.nonzero(quInterest)#[1]
-	cs=np.zeros(nUsers, dtype=np.float32) # (nUsers,)
-	quInterest_nonZeros=quInterest[idx_nonzeros] * (1/quInterestNorm)
-	usrInterestNorm=spMtx_norm+np.float32(1e-18)    
-	#for ui,_ in enumerate(spMtx): # slightly faster
-	for ui in np.arange(nUsers, dtype=np.int32): # ip1, ip2, ..., ipN
-		usrInterest = spMtx[ui, idx_nonzeros].toarray().ravel() * idf_squeezed[idx_nonzeros]
-		usrInterest=(usrInterest*(1/usrInterestNorm[ui]))#**0.1 # faster?!        
-		usrInterest=(usrInterest**exponent)
-		cs[ui]=np.sum(usrInterest*quInterest_nonZeros)
-	print(f"Elapsed_t: {time.time()-st_t:.2f} s {type(cs)} {cs.dtype} {cs.shape}".center(130, " "))
-	return cs # (nUsers,)
+	####################################################################################################
+	# nUsers, _ = spMtx.shape
+	# idf_squeezed = idf_vec.ravel() # faster than np.squeeze(np.asarray(idf_vec))
+	# query_vec_squeezed = query_vec.ravel()
+	# quInterest = query_vec_squeezed * idf_squeezed #(nTokens,)x(nTokens,)
+	# quInterestNorm = np.linalg.norm(quInterest)
+	# idx_nonzeros = np.nonzero(quInterest)#[1]
+	# cs=np.zeros(nUsers, dtype=np.float32) # (nUsers,)
+	# quInterest_nonZeros=quInterest[idx_nonzeros] * (1/quInterestNorm)
+	# usrInterestNorm=spMtx_norm+np.float32(1e-18)    
+	# for ui in np.arange(nUsers, dtype=np.int32): # ip1, ip2, ..., ipN
+	# 	usrInterest = spMtx[ui, idx_nonzeros].toarray().ravel() * idf_squeezed[idx_nonzeros]
+	# 	usrInterest=(usrInterest*(1/usrInterestNorm[ui]))#**0.1 # faster?!        
+	# 	usrInterest=(usrInterest**exponent)
+	# 	cs[ui]=np.sum(usrInterest*quInterest_nonZeros)
+	# return cs # (nUsers,)
+	####################################################################################################
 
-def get_avg_rec(spMtx, cosine_sim, idf_vec, spMtx_norm):
+	################################### Vectorized Implementation ##########################################
+	# Convert idf_vec and query_vec to 1D arrays
+	idf_squeezed = idf_vec.ravel()
+	query_vec_squeezed = query_vec.ravel()
+	# Compute query interest with IDF
+	quInterest = query_vec_squeezed * idf_squeezed
+	quInterestNorm = np.linalg.norm(quInterest)
+	# Get the indices of non-zero elements in quInterest
+	idx_nonzeros = np.nonzero(quInterest)[0]
+	# Normalize quInterest vector
+	quInterest_nonZeros = quInterest[idx_nonzeros] / quInterestNorm
+	# Normalize user interest norms
+	usrInterestNorm = spMtx_norm + np.float32(1e-18)
+	# Extract only the necessary columns from the sparse matrix
+	spMtx_nonZeros = spMtx[:, idx_nonzeros].tocsc()  # Converting to CSC for faster column slicing
+	# Calculate user interest by element-wise multiplication with IDF
+	spMtx_nonZeros = spMtx_nonZeros.multiply(idf_squeezed[idx_nonzeros])
+	# Normalize user interests
+	spMtx_nonZeros = spMtx_nonZeros.multiply(1 / usrInterestNorm[:, None])
+	# Apply exponent if necessary
+	if exponent != 1.0:
+		spMtx_nonZeros.data **= exponent
+	# Compute the cosine similarity scores
+	cs = spMtx_nonZeros.dot(quInterest_nonZeros)
+	print(f"Elapsed_t: {time.time()-st_t:.2f} s {type(cs)} {cs.dtype} {cs.shape}".center(130, " "))
+	return np.array(cs).flatten()  # Ensure the result is a flat array
+	################################### Vectorized Implementation ##########################################
+
+def get_customized_recsys_avg_vec(spMtx, cosine_sim, idf_vec, spMtx_norm):
 	print(f"avgRecSys (1 x nTKs={spMtx.shape[1]})".center(130, "-"))
+	st_t = time.time()
 
 	####################################################################################################################################
 	# using Only USERs with nonZero Cosine Similarity: (less efficient)
@@ -189,8 +218,29 @@ def get_avg_rec(spMtx, cosine_sim, idf_vec, spMtx_norm):
 	# return avg_rec #(nTokens,) #(nTokens_shrinked,) # smaller matrix
 	####################################################################################################################################
 	
-	# Optimized and efficient implementation using CSR [14.05.2024]:
-	st_t = time.time()
+	# # Optimized and efficient implementation using CSR [14.05.2024]:
+	# nUsers, nTokens= spMtx.shape
+	# avg_rec=np.zeros(nTokens, dtype=np.float32) #(nTokens,)
+	# idf_squeezed = idf_vec.ravel() # faster than np.squeeze(np.asarray(idf_vec))
+	# non_zero_cosines = np.nonzero(cosine_sim)[0]
+	# userInterestNorm=spMtx_norm + np.float32(1e-18)# avoid zero division
+	# print(
+	# 	f"spMtx {type(spMtx)} {spMtx.shape} {spMtx.dtype}\n"
+	# 	f"spMtxNorm: {type(spMtx_norm)} {spMtx_norm.shape} {spMtx_norm.dtype}\n"
+	# 	f"CS {type(cosine_sim)} {cosine_sim.shape} {cosine_sim.dtype} NonZero(s): {non_zero_cosines.shape[0]}\n"
+	# 	f"IDF {type(idf_vec)} {idf_vec.shape} {idf_vec.dtype}"
+	# )
+	# spMtx_csr = spMtx.tocsr() # Convert to CSR for efficient row operations
+	# for nonzero_idx_CCS in non_zero_cosines: # only for those users with NON-Zero Cosine Similarity
+	# 	userInterest = spMtx_csr[nonzero_idx_CCS].multiply(idf_squeezed) #(nTokens,)x(nTokens,)        
+	# 	userInterest.data /= userInterestNorm[nonzero_idx_CCS] #(nTokens,)
+	# 	update_vec = cosine_sim[nonzero_idx_CCS]*userInterest.data #(nTokens,)
+	# 	avg_rec[userInterest.nonzero()[1]] += update_vec # (nTokens,) + (len(idx_nonzeros),)
+	# avg_rec /= np.sum(cosine_sim) # (nTokens,)
+	# print(f"Elapsed_t: {time.time()-st_t:.2f} s {type(avg_rec)} {avg_rec.dtype} {avg_rec.shape}".center(130, " "))	
+	# return avg_rec #(nTokens,) #(nTokens_shrinked,) # smaller matrix	
+
+	#
 	nUsers, nTokens= spMtx.shape
 	avg_rec=np.zeros(nTokens, dtype=np.float32) #(nTokens,)
 	idf_squeezed = idf_vec.ravel() # faster than np.squeeze(np.asarray(idf_vec))
@@ -202,7 +252,7 @@ def get_avg_rec(spMtx, cosine_sim, idf_vec, spMtx_norm):
 		f"CS {type(cosine_sim)} {cosine_sim.shape} {cosine_sim.dtype} NonZero(s): {non_zero_cosines.shape[0]}\n"
 		f"IDF {type(idf_vec)} {idf_vec.shape} {idf_vec.dtype}"
 	)
-	spMtx_csr = spMtx.tocsr() # Convert to CSR for efficient row operations
+	spMtx_csr = spMtx#.tocsr() # Convert to CSR for efficient row operations
 	for nonzero_idx_CCS in non_zero_cosines: # only for those users with NON-Zero Cosine Similarity
 		userInterest = spMtx_csr[nonzero_idx_CCS].multiply(idf_squeezed) #(nTokens,)x(nTokens,)        
 		userInterest.data /= userInterestNorm[nonzero_idx_CCS] #(nTokens,)
@@ -210,7 +260,7 @@ def get_avg_rec(spMtx, cosine_sim, idf_vec, spMtx_norm):
 		avg_rec[userInterest.nonzero()[1]] += update_vec # (nTokens,) + (len(idx_nonzeros),)
 	avg_rec /= np.sum(cosine_sim) # (nTokens,)
 	print(f"Elapsed_t: {time.time()-st_t:.2f} s {type(avg_rec)} {avg_rec.dtype} {avg_rec.shape}".center(130, " "))	
-	return avg_rec #(nTokens,) #(nTokens_shrinked,) # smaller matrix	
+	return avg_rec #(nTokens,) #(nTokens_shrinked,) # smaller matrix
 
 def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], meaningless_lemmas_list: List[str], raw_query: str="Raw Query Phrase!", K: int=50):
 	print(
@@ -310,7 +360,7 @@ def get_recsys_results(query_phrase: str="This is a sample query phrase!", nToke
 		idf_vec=idf_vec,
 		spMtx_norm=usrNorms, # must be adjusted, accordingly!
 	)
-	avgRecSys = get_avg_rec(
+	avgRecSys = get_customized_recsys_avg_vec(
 		spMtx=concat_spm_U_x_T,
 		cosine_sim=ccs**5,
 		idf_vec=idf_vec,

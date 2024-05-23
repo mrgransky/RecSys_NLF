@@ -13,8 +13,8 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC'
 
-# DEBUG = False # if css style layout changes occure
-DEBUG = True # causes "Broken pipe from ('94.72.62.225', 53959)" error!
+DEBUG = False # if css style layout changes occure
+# DEBUG = True # causes "Broken pipe from ('94.72.62.225', 53959)" error!
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
 SECURE_SSL_REDIRECT = False

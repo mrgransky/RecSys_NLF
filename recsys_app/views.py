@@ -4,7 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from recsys_app.recsys_src.gui_backend import *
 
 USER_NAME: str = "XXXXXX"
-MAX_NUM_RECOMMENDED_TOKENS: int = 20
+MAX_NUM_RECOMMENDED_TOKENS: int = 30
 CURRENT_NUM_RECOMMENDED_TOKENS: int = 5
 DIGI_BASE_URL: str = "https://digi.kansalliskirjasto.fi/search?requireAllKeywords=true&query="
 
@@ -126,7 +126,7 @@ def main_page(request):
 		RAW_INPUT_QUERY = request.POST.get('query', '').lower()
 		context["input_query"] = RAW_INPUT_QUERY
 		raw_query_nlf_results = get_NLF_pages(URL=f"{BASE_DIGI_URL}" + urllib.parse.quote_plus(RAW_INPUT_QUERY))
-		if raw_query_nlf_results > 0 and clean_(docs=RAW_INPUT_QUERY):			
+		if raw_query_nlf_results and raw_query_nlf_results > 0 and clean_(docs=RAW_INPUT_QUERY):			
 			recSys_results, recSys_results_nlf_num_pages = get_recsys_results(
 				query_phrase=RAW_INPUT_QUERY, 
 				nTokens=MAX_NUM_RECOMMENDED_TOKENS+7,

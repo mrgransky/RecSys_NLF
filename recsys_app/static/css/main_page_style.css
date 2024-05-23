@@ -412,27 +412,25 @@ input[type="submit"]:hover {
 	width: 50%; /* Full width of the container */
 	border-collapse: collapse; /* Collapse borders between cells */
 	margin-top: 15px; /* Top margin for spacing */
-	font-family: "Times New Roman", Times, serif;
+	font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
 }
 
 /* Style for table headers */
 #recommendationTable th {
-	background-color: #333; /* Dark gray background for headers */
+	background-color: #222222; /* Dark gray background for headers */
 	color: white; /* White text color for headers */
 	padding: 10px; /* Padding for headers */
 	text-align: center; /* Center-align text */
-	font-size: 21px;
 }
 
 /* Style for table rows */
 #recommendationTable tr {
-	font-size: 21px;
+	font-size: 23px;
 	background-color: #f5f1f1d0; /* Light gray background for rows */
-	font-style: normal;
 }
 
 #recommendationTable tr:nth-child(even) {
-	background-color: #b6b6b6e7; /* Alternate row color Darker gray for even rows */
+	background-color: #afafafe7; /* Alternate row color Darker gray for even rows */
 }
 
 /* Style for table cells */

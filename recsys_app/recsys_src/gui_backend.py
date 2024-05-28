@@ -9,8 +9,9 @@ import dill
 import random
 import numpy as np
 import pandas as pd
-# import urllib.parse
 import urllib
+import aiohttp
+import asyncio
 import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
@@ -37,52 +38,53 @@ DATASET_DIR: str = f"Nationalbiblioteket/compressed_concatenated_SPMs" if USER =
 compressed_spm_file = os.path.join(Files_DIR, DATASET_DIR, f"concat_x{nSPMs}.tar.gz")
 spm_files_dir = os.path.join(Files_DIR, DATASET_DIR, f"concat_x{nSPMs}")
 fprefix: str = f"concatinated_{nSPMs}_SPMs"
-BASE_DIGI_URL: str = "https://digi.kansalliskirjasto.fi/search?requireAllKeywords=true&query="
-nlf_num_pages: List[int] = []  # Declare nlf_num_pages as a global list of integers
+SEARCH_QUERY_DIGI_URL: str = "https://digi.kansalliskirjasto.fi/search?requireAllKeywords=true&query="
+DIGI_HOME_PAGE_URL : str = "https://digi.kansalliskirjasto.fi"
+headers = {
+	'Content-type': 'application/json',
+	'Accept': 'application/json; text/plain; */*', 
+	'Cache-Control': 'no-cache',
+	'Connection': 'keep-alive',
+	'Pragma': 'no-cache',
+}
+payload = {
+	"authors": [],
+	"collections": [],
+	"districts": [],
+	"endDate": None,
+	"exactCollectionMaterialType": "false",
+	"formats": [],
+	"fuzzy": "false",
+	"hasIllustrations": "false",
+	"importStartDate": None,
+	"importTime": "ANY",
+	"includeUnauthorizedResults": "false",
+	"languages": [],
+	"orderBy": "RELEVANCE",
+	"pages": "",
+	"publicationPlaces": [],
+	"publications": [],
+	"publishers": [],
+	"queryTargetsMetadata": "false",
+	"queryTargetsOcrText": "true",
+	"searchForBindings": "false",
+	"showLastPage": "false",
+	"startDate": None,
+	"tags": [],	
+}
 #######################################################################################################################
 
 @cache
-def get_NLF_pages(URL: str="www.example.com"):
-	print(f"{URL:<150}", end=" ")
+def get_nlf_pages(INPUT_QUERY: str="global warming"):
 	st_t = time.time()
+	URL = f"{SEARCH_QUERY_DIGI_URL}" + urllib.parse.quote_plus(INPUT_QUERY)
+	print(f"{URL:<150}", end=" ")
 	parsed_url = urllib.parse.urlparse(URL)
 	parameters = urllib.parse.parse_qs( parsed_url.query, keep_blank_values=True)
 	offset_pg = ( int( re.search(r'page=(\d+)', URL).group(1) )-1)*20 if re.search(r'page=(\d+)', URL) else 0
-	search_page_request_url = f"{parsed_url.scheme}://{parsed_url.netloc}/rest/binding-search/search/binding?offset={offset_pg}&count=20"
-	payload = {
-		"authors": [],
-		"collections": [],
-		"districts": [],
-		"endDate": None,
-		"exactCollectionMaterialType": "false",
-		"formats": [],
-		"fuzzy": "false",
-		"hasIllustrations": "false",
-		"importStartDate": None,
-		"importTime": "ANY",
-		"includeUnauthorizedResults": "false",
-		"languages": [],
-		"orderBy": "RELEVANCE",
-		"pages": "",
-		"publicationPlaces": [],
-		"publications": [],
-		"publishers": [],
-		"query": parameters.get('query')[0] if parameters.get('query') else "",
-		"queryTargetsMetadata": "false",
-		"queryTargetsOcrText": "true",
-		"requireAllKeywords": parameters.get('requireAllKeywords')[0]  if parameters.get('requireAllKeywords') else "false",
-		"searchForBindings": "false",
-		"showLastPage": "false",
-		"startDate": None,
-		"tags": [],	
-	}
-	headers = {
-		'Content-type': 'application/json',
-		'Accept': 'application/json; text/plain; */*', 
-		'Cache-Control': 'no-cache',
-		'Connection': 'keep-alive',
-		'Pragma': 'no-cache',
-	}
+	search_page_request_url = f"{DIGI_HOME_PAGE_URL}/rest/binding-search/search/binding?offset={offset_pg}&count=20"
+	payload["query"] = parameters.get('query')[0] if parameters.get('query') else ""
+	payload["requireAllKeywords"] = parameters.get('requireAllKeywords')[0] if parameters.get('requireAllKeywords') else "false"
 	try:
 		r = session.post(
 			url=search_page_request_url, 
@@ -91,11 +93,8 @@ def get_NLF_pages(URL: str="www.example.com"):
 		)
 		r.raise_for_status()  # Raise HTTPError for bad status codes
 		res = r.json()
-		# SEARCH_RESULTS = res.get("rows")
-		# print(f"{len(SEARCH_RESULTS)} NLF baseline result(s) (in one page)\t{time.time()-st_t:.3f} sec")
 		TOTAL_NUM_NLF_RESULTs = res.get("totalResults")
 		print(f"Found NLF tot_page(s): {TOTAL_NUM_NLF_RESULTs:<10} in {time.time()-st_t:.1f} sec")
-	# except Exception as e:
 	except requests.exceptions.RequestException as e:
 		print(f"<!> Error: {e}")
 		return
@@ -262,6 +261,44 @@ def get_customized_recsys_avg_vec(spMtx, cosine_sim, idf_vec, spMtx_norm):
 	print(f"Elapsed_t: {time.time()-st_t:.2f} s {type(avg_rec)} {avg_rec.dtype} {avg_rec.shape}".center(130, " "))	
 	return avg_rec #(nTokens,) #(nTokens_shrinked,) # smaller matrix
 
+async def get_recommendation_num_NLF_pages_async(session, INPUT_QUERY: str="global warming", REC_TK: str="pollution"):
+	URL = f"{SEARCH_QUERY_DIGI_URL}" + urllib.parse.quote_plus(INPUT_QUERY + " " + REC_TK)
+	# print(f"{URL:<150}", end=" ")
+	parsed_url = urllib.parse.urlparse(URL)
+	parameters = urllib.parse.parse_qs(parsed_url.query, keep_blank_values=True)
+	offset_pg = (int(re.search(r'page=(\d+)', URL).group(1)) - 1) * 20 if re.search(r'page=(\d+)', URL) else 0
+	search_page_request_url = f"{DIGI_HOME_PAGE_URL}/rest/binding-search/search/binding?offset={offset_pg}&count=20"
+	payload["query"] = parameters.get('query')[0] if parameters.get('query') else ""
+	payload["requireAllKeywords"] = parameters.get('requireAllKeywords')[0] if parameters.get('requireAllKeywords') else "false"
+	try:
+		async with session.post(
+			url=search_page_request_url,
+			json=payload,
+			headers=headers,
+		) as response:
+				response.raise_for_status()
+				res = await response.json()
+				TOTAL_NUM_NLF_RESULTs = res.get("totalResults")
+				# print(f"Found NLF tot_page(s): {TOTAL_NUM_NLF_RESULTs:<10} in {time.time() - st_t:.1f} sec")
+				return TOTAL_NUM_NLF_RESULTs
+	except aiohttp.ClientError as e:
+		print(f"<!> Error: {e}")
+		return None
+
+async def get_num_NLF_pages_asynchronous_run(qu: str="global warming", TOKENs_list: List[str]=["tk1", "tk2"]):
+	async with aiohttp.ClientSession() as session:
+		tasks = [
+			NUMBER_OF_PAGES
+			for tk in TOKENs_list
+			if (
+				(NUMBER_OF_PAGES:=get_recommendation_num_NLF_pages_async(session, INPUT_QUERY=qu, REC_TK=tk))
+			)
+		]
+		num_NLF_pages = await asyncio.gather(*tasks)
+		# # Filter out None and 0 values
+		# num_NLF_pages = [pages for pages in num_NLF_pages if pages not in [None, 0]]
+		return num_NLF_pages
+
 def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], meaningless_lemmas_list: List[str], raw_query: str="Raw Query Phrase!", K: int=50):
 	print(
 		f"topK={K} token(s)\n"
@@ -269,34 +306,31 @@ def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], meaningless_lemmas_l
 		f"Query [tokenized]: {raw_query.lower().split()} | tk: {tok_query}"
 	)
 	st_t = time.time()
-
-	# with list comprehension: returns only topK_tokens_list and not tot_nlf_res_list
-	# topK_tokens_list = [
-	# 	mat_cols[iTK]
-	# 	for iTK in avgrec.argsort()[-K:] 
-	# 	if ( 
-	# 		mat_cols[iTK] not in tok_query
-	# 		and mat_cols[iTK] not in meaningless_lemmas_list
-	# 		and mat_cols[iTK] not in raw_query.lower().split() # in case we have false lemma: ex) tiedusteluorganisaatio puolustusvoimat
-	# 		and (tot_nlf_res:=get_NLF_pages(URL=f"{BASE_DIGI_URL}" + urllib.parse.quote_plus(raw_query + " " + mat_cols[iTK])))>0
-	# 	)
-	# ][::-1]
-
 	topK_tokens_list = []
-	tot_nlf_res_list = []
+	# tot_nlf_res_list = []
 	for iTK in avgrec.argsort()[-K:]:
+		recommended_token = mat_cols[iTK]
 		if (
-			mat_cols[iTK] not in tok_query
-			and mat_cols[iTK] not in meaningless_lemmas_list
-			and mat_cols[iTK] not in raw_query.lower().split()
+			recommended_token not in tok_query
+			and recommended_token not in meaningless_lemmas_list
+			and recommended_token not in raw_query.lower().split()
 		):
-			tk_url = f"{BASE_DIGI_URL}" + urllib.parse.quote_plus(raw_query + " " + mat_cols[iTK])
-			tot_nlf_res = get_NLF_pages(URL=tk_url)
-			if tot_nlf_res > 0:
-				topK_tokens_list.append(mat_cols[iTK])
-				tot_nlf_res_list.append(tot_nlf_res)
-	topK_tokens_list = topK_tokens_list[::-1]
+			# tot_nlf_res = get_num_NLF_pages(INPUT_QUERY=raw_query, REC_TK=recommended_token)
+			# if tot_nlf_res > 0:
+			# 	tot_nlf_res_list.append(tot_nlf_res)
+				# tot_nlf_res_list = [random.randint(1, 9000) for i, v in enumerate(topK_tokens_list)]
+				topK_tokens_list.append(recommended_token)
+	tot_nlf_res_list = asyncio.run(get_num_NLF_pages_asynchronous_run(qu=raw_query, TOKENs_list=topK_tokens_list))
+
+	# remove zeros:
+	tot_nlf_res_list_tmp = tot_nlf_res_list
+	topK_tokens_list_tmp = topK_tokens_list
+	tot_nlf_res_list = [num for num, word in zip(tot_nlf_res_list_tmp, topK_tokens_list_tmp) if num != 0]
+	topK_tokens_list = [word for num, word in zip(tot_nlf_res_list_tmp, topK_tokens_list_tmp) if num != 0]
+
+	# sort descending:
 	tot_nlf_res_list = tot_nlf_res_list[::-1]
+	topK_tokens_list = topK_tokens_list[::-1]
 
 	print(
 		f"Found {len(topK_tokens_list)} Recommendation Results "

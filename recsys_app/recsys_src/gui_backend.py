@@ -301,7 +301,7 @@ async def get_num_NLF_pages_asynchronous_run(qu: str="global warming", TOKENs_li
 
 def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], meaningless_lemmas_list: List[str], raw_query: str="Raw Query Phrase!", K: int=50):
 	print(
-		f"topK={K} token(s)\n"
+		f"Looking for < topK={K} > token(s)...\n"
 		f"Query [raw]: {raw_query}\n"
 		f"Query [tokenized]: {raw_query.lower().split()} | tk: {tok_query}"
 	)
@@ -325,8 +325,8 @@ def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], meaningless_lemmas_l
 	# remove zeros:
 	tot_nlf_res_list_tmp = tot_nlf_res_list
 	topK_tokens_list_tmp = topK_tokens_list
-	tot_nlf_res_list = [num for num, word in zip(tot_nlf_res_list_tmp, topK_tokens_list_tmp) if num != 0]
-	topK_tokens_list = [word for num, word in zip(tot_nlf_res_list_tmp, topK_tokens_list_tmp) if num != 0]
+	tot_nlf_res_list = [num for num, word in zip(tot_nlf_res_list_tmp, topK_tokens_list_tmp) if (num or num != 0) ]
+	topK_tokens_list = [word for num, word in zip(tot_nlf_res_list_tmp, topK_tokens_list_tmp) if (num or num != 0) ]
 
 	# sort descending:
 	tot_nlf_res_list = tot_nlf_res_list[::-1]

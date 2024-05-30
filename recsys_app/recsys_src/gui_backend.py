@@ -325,8 +325,8 @@ def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], meaningless_lemmas_l
 	# remove zeros:
 	tot_nlf_res_list_tmp = tot_nlf_res_list
 	topK_tokens_list_tmp = topK_tokens_list
-	tot_nlf_res_list = [num for num, word in zip(tot_nlf_res_list_tmp, topK_tokens_list_tmp) if (num or num != 0) ]
-	topK_tokens_list = [word for num, word in zip(tot_nlf_res_list_tmp, topK_tokens_list_tmp) if (num or num != 0) ]
+	tot_nlf_res_list = [num for num, word in zip(tot_nlf_res_list_tmp, topK_tokens_list_tmp) if (num and num != 0) ]
+	topK_tokens_list = [word for num, word in zip(tot_nlf_res_list_tmp, topK_tokens_list_tmp) if (num and num != 0) ]
 
 	# sort descending:
 	tot_nlf_res_list = tot_nlf_res_list[::-1]

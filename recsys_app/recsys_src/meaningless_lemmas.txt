@@ -3547,7 +3547,7 @@ aabrontr
 aacautcjaifi
 aabriiup
 aabolo
-"passé"
+passé
 abrp
 aabrp
 aabjömi
@@ -4765,7 +4765,6 @@ adokf
 adolp
 adolpf
 adolpb
-adolph
 adolphc
 adolrh
 adow
@@ -8716,7 +8715,6 @@ aaunftlsleänntyteanmnea
 aavctykki
 abbfrke
 abbls
-abcbok
 abcdari
 abcdefeti
 abccdefgghhijjklmnoprsstuuvs
@@ -9731,7 +9729,6 @@ marxismin
 marxismia
 marian
 naisten
-kvinnor
 miljardia
 daille
 samfundet
@@ -9745,14 +9742,12 @@ lapsia
 lapsien
 lastenne
 lastemme
-lapset
 heilte
 heita
 supist
 edusmie
 forste
 blomgre
-amerikan
 kansain
 adolfin
 oppaa
@@ -10116,3 +10111,11 @@ bambuputkihuonekutehda
 edustatehda
 setnina
 biossot
+elämänalo
+siitossonna
+kangasa
+kangasal
+urkutehda
+posli
+orive
+orived

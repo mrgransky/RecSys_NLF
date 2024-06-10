@@ -4750,7 +4750,6 @@ adoll
 adolj
 adojf
 aadojf
-aadolf
 aadolfa
 aadolffi
 aadolfi
@@ -9867,6 +9866,7 @@ matso
 maalaisi
 litau
 savonli
+savonlinta
 eonetik
 högfa
 aleksand
@@ -10119,3 +10119,11 @@ urkutehda
 posli
 orive
 orived
+starkto
+verhängande
+offici
+publicerla
+aalala
+unionbanki
+säästöpanka
+loima

@@ -439,9 +439,9 @@ def get_recsys_results(query_phrase: str="This is a sample query phrase!", nToke
 extract_tar(fname=compressed_spm_file)
 
 print(f"USER: >>{USER}<< using {nSPMs} nSPMs")
-print(fprefix)
-print(spm_files_dir+'/'+f'{fprefix}'+'_shrinked_spMtx_USERs_vs_TOKENs_*_nUSRs_x_*_nTOKs.gz')
-print(glob.glob( spm_files_dir+'/'+f'{fprefix}'+'_shrinked_spMtx_USERs_vs_TOKENs_*_nUSRs_x_*_nTOKs.gz' ))
+# print(fprefix)
+# print(spm_files_dir+'/'+f'{fprefix}'+'_shrinked_spMtx_USERs_vs_TOKENs_*_nUSRs_x_*_nTOKs.gz')
+# print(glob.glob( spm_files_dir+'/'+f'{fprefix}'+'_shrinked_spMtx_USERs_vs_TOKENs_*_nUSRs_x_*_nTOKs.gz' ))
 
 concat_spm_U_x_T = load_pickle(
 	fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'_shrinked_spMtx_USERs_vs_TOKENs_*_nUSRs_x_*_nTOKs.gz' )[0]

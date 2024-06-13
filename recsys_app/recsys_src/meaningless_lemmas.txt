@@ -10153,3 +10153,5 @@ funktionalismika
 myntgat
 saapukoo
 aspegr
+salaliittoko
+henkivakuutussopimuksiin

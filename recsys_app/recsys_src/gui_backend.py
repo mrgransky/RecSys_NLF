@@ -164,30 +164,30 @@ def get_customized_cosine_similarity(spMtx, query_vec, idf_vec, spMtx_norm, expo
 	####################################################################################################
 
 	################################### Vectorized Implementation ##########################################
-	# Convert idf_vec and query_vec to 1D arrays
 	idf_squeezed = idf_vec.ravel()
 	query_vec_squeezed = query_vec.ravel()
-	# Compute query interest with IDF
 	quInterest = query_vec_squeezed * idf_squeezed
 	quInterestNorm = np.linalg.norm(quInterest)
-	# Get the indices of non-zero elements in quInterest
-	idx_nonzeros = np.nonzero(quInterest)[0]
-	# Normalize quInterest vector
+	
+	idx_nonzeros = np.nonzero(quInterest)[0] # Get the indices of non-zero elements in quInterest
 	quInterest_nonZeros = quInterest[idx_nonzeros] / quInterestNorm
-	# Normalize user interest norms
 	usrInterestNorm = spMtx_norm + np.float32(1e-18)
+	
 	# Extract only the necessary columns from the sparse matrix
 	spMtx_nonZeros = spMtx[:, idx_nonzeros].tocsc()  # Converting to CSC for faster column slicing
+	
 	# Calculate user interest by element-wise multiplication with IDF
 	spMtx_nonZeros = spMtx_nonZeros.multiply(idf_squeezed[idx_nonzeros])
+	
 	# Normalize user interests
 	spMtx_nonZeros = spMtx_nonZeros.multiply(1 / usrInterestNorm[:, None])
+	
 	# Apply exponent if necessary
 	if exponent != 1.0:
 		spMtx_nonZeros.data **= exponent
-	# Compute the cosine similarity scores
-	cs = spMtx_nonZeros.dot(quInterest_nonZeros)
-	# cs = np.array(cs).flatten() # Ensure the result is a flat array (unnecessary)
+	
+	cs = spMtx_nonZeros.dot(quInterest_nonZeros) # Compute the cosine similarity scores
+	
 	print(f"Elapsed_t: {time.time()-st_t:.2f} s {type(cs)} {cs.dtype} {cs.shape}".center(130, " "))
 	return cs
 	################################### Vectorized Implementation ##########################################

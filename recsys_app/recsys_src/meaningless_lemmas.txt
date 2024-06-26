@@ -9556,6 +9556,7 @@ huvudstadsblas
 gardn
 demokr
 anarkiste
+Anarkismin
 alkfu
 presidenne
 itupuh
@@ -9939,7 +9940,6 @@ boxströ
 tallgr
 förbunde
 riihimä
-sortaval
 turunk
 salmeno
 itali
@@ -9957,6 +9957,7 @@ abrahamsso
 akselsso
 aleksandersso
 alexandersso
+alfre
 alfredsso
 andersso
 anderssom
@@ -10119,6 +10120,7 @@ elämänalo
 siitossonna
 kangasa
 kangasal
+Kangasalta
 urkutehda
 posli
 orive
@@ -11248,3 +11250,18 @@ hissin
 hisseille
 hissia
 amandan
+hissar
+ullgard
+tiderma
+bojsa
+nationalismin
+nationalismia
+nationalismissa
+internationalismia
+nationalismilla
+nationalismilla
+nationalismista
+californi
+seuralunta
+sortav
+sortaval

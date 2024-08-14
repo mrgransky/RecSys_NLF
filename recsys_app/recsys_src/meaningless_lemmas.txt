@@ -12593,3 +12593,9 @@ forsbergin
 kadulla
 kadulta
 kadulle
+naisa
+kvinnor
+naist
+funktionalismille
+funktionalismien
+funktionalismikin

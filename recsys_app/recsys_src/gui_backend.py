@@ -305,9 +305,13 @@ async def get_recommendation_num_NLF_pages_async(session, INPUT_QUERY: str="glob
 				TOTAL_NUM_NLF_RESULTs = res.get("totalResults")
 				# print(f"Found NLF tot_page(s): {TOTAL_NUM_NLF_RESULTs:<10} in {time.time() - st_t:.1f} sec")
 				return TOTAL_NUM_NLF_RESULTs
-	except aiohttp.ClientError as e:
+	except (
+		aiohttp.ClientError,
+		asyncio.TimeoutError,
+	) as e:
 		print(f"<!> Error: {e}")
-		return None
+		# return None
+		return
 
 async def get_num_NLF_pages_asynchronous_run(qu: str="global warming", TOKENs_list: List[str]=["tk1", "tk2"]):
 	async with aiohttp.ClientSession() as session:
@@ -344,18 +348,27 @@ def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], meaningless_lemmas_l
 			# 	tot_nlf_res_list.append(tot_nlf_res)
 				# tot_nlf_res_list = [random.randint(1, 9000) for i, v in enumerate(topK_tokens_list)]
 				topK_tokens_list.append(recommended_token)
-	tot_nlf_res_list = asyncio.run(get_num_NLF_pages_asynchronous_run(qu=raw_query, TOKENs_list=topK_tokens_list))
-
-	# remove zeros:
+	tot_nlf_res_list = asyncio.run(
+		get_num_NLF_pages_asynchronous_run(qu=raw_query, TOKENs_list=topK_tokens_list)
+	)
+	###################################################################################################################
+	# remove zeros: not time consuming...
+	# print(f"Done=> removing zero(s)...")
+	# rm_t = time.time()
 	tot_nlf_res_list_tmp = tot_nlf_res_list
 	topK_tokens_list_tmp = topK_tokens_list
 	tot_nlf_res_list = [num for num, word in zip(tot_nlf_res_list_tmp, topK_tokens_list_tmp) if (num and num != 0) ]
 	topK_tokens_list = [word for num, word in zip(tot_nlf_res_list_tmp, topK_tokens_list_tmp) if (num and num != 0) ]
+	# print(f"elp: {time.time()-rm_t:.5f} sec => sorting...")
+	###################################################################################################################
 
-	# sort descending:
+	###################################################################################################################
+	# sort descending: not time consuming...
+	# sort_t = time.time()
 	tot_nlf_res_list = tot_nlf_res_list[::-1]
 	topK_tokens_list = topK_tokens_list[::-1]
-
+	# print(f"elp: {time.time()-sort_t:.5f} sec => DONE!!!")
+	###################################################################################################################
 	print(
 		f"Found {len(topK_tokens_list)} Recommendation Results "
 		f"(with {len(tot_nlf_res_list)} NLF pages) "

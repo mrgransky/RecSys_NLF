@@ -4,7 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from recsys_app.recsys_src.gui_backend import *
 
 USER_NAME: str = "XXXXXX"
-MAX_NUM_RECOMMENDED_TOKENS: int = 40
+MAX_NUM_RECOMMENDED_TOKENS: int = 22
 CURRENT_NUM_RECOMMENDED_TOKENS: int = 5
 DIGI_BASE_URL: str = "https://digi.kansalliskirjasto.fi/search?requireAllKeywords=true&query="
 

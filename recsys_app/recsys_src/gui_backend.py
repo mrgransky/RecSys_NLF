@@ -335,7 +335,6 @@ def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], meaningless_lemmas_l
 	)
 	st_t = time.time()
 	topK_tokens_list = []
-	# tot_nlf_res_list = []
 	for iTK in avgrec.argsort()[-K:]:
 		recommended_token = mat_cols[iTK]
 		if (

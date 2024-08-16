@@ -8567,6 +8567,10 @@ tirsdag
 tuesday
 tonsdag
 keskiviikko
+viikko
+kuukausi
+vuosi
+vousi
 onsdag
 wednesday
 torstai
@@ -12599,3 +12603,4 @@ naist
 funktionalismille
 funktionalismien
 funktionalismikin
+dolla

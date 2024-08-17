@@ -1,5 +1,4 @@
 import os
-# BASE_DIR = Path(__file__).resolve().parent.parent
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) # /home/farid/WS_Farid/RecSys_NLF
 SECRET_KEY = os.getenv(
 		'DJANGO_SECRET_KEY',

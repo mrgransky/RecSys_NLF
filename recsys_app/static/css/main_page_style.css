@@ -426,7 +426,7 @@ input[type="submit"]:hover {
 
 /* Style for table rows */
 #recommendationTable tr {
-	font-size: 23px;
+	font-size: 27px;
 	background-color: #f5f1f1d0; /* Light gray background for rows */
 }
 
@@ -461,9 +461,9 @@ tbody tr {
 /* Style for circular box */
 .circular-box {
 	display: inline-block;
-	width: 60px; /* Fixed width for the circular box */
+	width: 65px; /* Fixed width for the circular box */
 	height: 30px; /* Fixed height for the circular box */
-	border-radius: 10%; /* Ensures circular shape */
+	border-radius: 8%; /* Ensures circular shape */
 	background-color: #021064;
 	color: #fff;
 	font-size: 16px;

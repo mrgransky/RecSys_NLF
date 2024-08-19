@@ -29,6 +29,7 @@ retries = Retry(total=5, backoff_factor=0.1, status_forcelist=[500, 502, 503, 50
 session.mount('https://', HTTPAdapter(max_retries=retries))
 
 #######################################################################################################################
+USER_NAME: str = "XXXXXX"
 HOME: str = os.getenv('HOME') # echo $HOME
 USER: str = os.getenv('USER') # echo $USER
 Files_DIR: str = "/media/volume" if USER == "ubuntu" else HOME
@@ -77,6 +78,7 @@ payload = {
 
 @cache
 def get_nlf_pages(INPUT_QUERY: str="global warming"):
+	print(f"Checking NLF for existence of < {INPUT_QUERY} > ...")
 	st_t = time.time()
 	URL = f"{SEARCH_QUERY_DIGI_URL}" + urllib.parse.quote_plus(INPUT_QUERY)
 	print(f"{URL:<150}", end=" ")

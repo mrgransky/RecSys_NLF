@@ -9898,6 +9898,7 @@ andvik
 lawren
 eulgarien
 belgra
+culgaria
 eulgaria
 chapli
 indelningsverke
@@ -14237,3 +14238,14 @@ kastelholma
 kastellholma
 katrineholma
 kattholma
+kristinuskon
+kristinuskonko
+kristinuskosta
+memosti
+teologins
+teologin
+göstia
+tallqvistin
+tallqva
+jeesu
+uutis

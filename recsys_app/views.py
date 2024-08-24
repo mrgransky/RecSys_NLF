@@ -122,7 +122,7 @@ def main_page(request):
 		'curr_length_recSys': CURRENT_NUM_RECOMMENDED_TOKENS,
 		'digi_base_url': DIGI_BASE_URL,
 	}
-	print(f"Who is using the system? < {USER_NAME} >".center(150, "-"))
+	print(f"Who is using the system? < {USER_NAME} >".center(180, "-"))
 	if request.method == 'POST':
 		RAW_INPUT_QUERY = request.POST.get('query', '').lower()
 		context["input_query"] = RAW_INPUT_QUERY

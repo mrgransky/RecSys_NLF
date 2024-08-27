@@ -18,7 +18,7 @@ df = pd.DataFrame(
 )
 
 def generate_random_username():
-	return f"user_{random.randint(100, 999)}"
+	return f"user_{random.randint(10, 9999)}"
 
 @csrf_exempt
 def process_feedback(request):

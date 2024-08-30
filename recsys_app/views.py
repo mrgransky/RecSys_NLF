@@ -3,7 +3,6 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from recsys_app.recsys_src.gui_backend import *
 
-# USER_NAME: str = "XXXXXX"
 MAX_NUM_RECOMMENDED_TOKENS: int = 23
 CURRENT_NUM_RECOMMENDED_TOKENS: int = 5
 DIGI_BASE_URL: str = "https://digi.kansalliskirjasto.fi/search?requireAllKeywords=true&query="
@@ -17,13 +16,11 @@ df = pd.DataFrame(
 	]
 )
 
-def generate_random_username():
-	return f"user_{random.randint(10, 9999)}"
-
 @csrf_exempt
 def process_feedback(request):
+	user_name = request.session.get('user_name', 'x_Unkown_User_x')  # Retrieve user_name from session
 	if request.method == 'POST':
-		print(f"Processing Feedback in progress for USER: {USER_NAME} ...")
+		print(f"Processing Feedback in progress for USER: {user_name} ...")
 		try:
 			data = json.loads(request.body)
 			print(type(data), len(data))
@@ -42,7 +39,7 @@ def process_feedback(request):
 			print(df.info(memory_usage="deep"))
 			print(df)
 			# Save DataFrame (if needed)
-			df.to_csv(f'USER_{USER_NAME}_Feedback.csv', index=False)
+			df.to_csv(f'USER_{user_name}_Feedback.csv', index=False)
 			return JsonResponse({'success': True})
 		except Exception as e:
 			print(f"<!> ERR: {e}")
@@ -52,8 +49,7 @@ def process_feedback(request):
 
 def submit_feedback(request):
 	if request.method == 'POST':
-		# user_name = request.POST.get('user_name', '')  # Assuming 'user_name' is passed with the request
-		user_name = USER_NAME
+		user_name = request.session.get('user_name', 'x_Unkown_User_x')  # Retrieve user_name from session
 		input_query = request.POST.get('input_query', '')
 		recommendation_results = request.POST.getlist('recommendation_results[]')
 		user_feedback = request.POST.getlist('user_feedback[]')
@@ -95,13 +91,15 @@ def submit_feedback(request):
 		print(f"ERRRORRRR")
 		return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
+def generate_random_username():
+	return f"user_{random.randint(10, 9999)}"
+
 def check_password(request):
-	global USER_NAME
 	if request.method == 'POST':
 		user_name = request.POST.get('userNameBlock', '')
 		if not user_name:
 			user_name = generate_random_username()
-		USER_NAME = user_name
+		request.session['user_name'] = user_name  # Save user_name in session
 		password = request.POST.get('password', '')
 		if password == '12345':
 			return redirect('main_page')  # Redirect to the main_page view
@@ -114,15 +112,28 @@ def check_password(request):
 	else:
 		return render(request, 'recsys_app/password_page.html')
 
+@csrf_exempt
+def track_click(request):
+	if request.method == 'POST':
+		user_name = request.session.get('user_name', 'x_Unkown_User_x')  # Retrieve user_name from session
+		data = json.loads(request.body)
+		clicked_recommendation = data.get('clicked_recommendation')
+		input_query = data.get('input_query')
+		print(f"\nUser < {user_name} >\nclicked on recommendation: '{clicked_recommendation}' for query: '{input_query}'")
+		print("#"*120)
+		return JsonResponse({'status': 'success'})
+	return JsonResponse({'status': 'error'}, status=400)
+
 def main_page(request):
+	user_name = request.session.get('user_name', 'x_Unkown_User_x')  # Retrieve user_name from session
 	context = {
-		'user_name': USER_NAME,
+		'user_name': user_name,
 		'welcome_text': "Welcome to User-based Recommendation System!<br>What are you looking after?",
 		'max_length_recSys': MAX_NUM_RECOMMENDED_TOKENS,
 		'curr_length_recSys': CURRENT_NUM_RECOMMENDED_TOKENS,
 		'digi_base_url': DIGI_BASE_URL,
 	}
-	print(f"Who is using the system? < {USER_NAME} >".center(180, "-"))
+	print(f"Who is using the system? < {user_name} >".center(180, "-"))
 	if request.method == 'POST':
 		RAW_INPUT_QUERY = request.POST.get('query', '').lower()
 		context["input_query"] = RAW_INPUT_QUERY
@@ -140,7 +151,7 @@ def main_page(request):
 				print(len(recSys_results_nlf_num_pages), recSys_results_nlf_num_pages)
 				context['recommendation_results'] = recSys_results[:MAX_NUM_RECOMMENDED_TOKENS]
 			else:
-				logging.error("No recsys results")
+				logging.error("No recsys results Found!")
 				context['recommendation_results'] = None
 		else:
 			logging.error("Invalid query or no results found.")

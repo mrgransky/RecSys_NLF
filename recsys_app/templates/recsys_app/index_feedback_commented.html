@@ -79,6 +79,83 @@
 			</form>
 		</div>
 
+		<!--
+		<div class="recommendationsContainer">
+			{% if recommendation_results %}
+				<script>document.title = "{{ input_query }}";</script>
+				<div class="slider-container">
+					<label for="recSysSlider" id="recSysSliderLbl">Total Recommendation Results: ({{ max_length_recSys }})</label>
+					<input type="range" id="recSysSlider" name="recSysSlider" min="3" max="{{ max_length_recSys }}" value="{{ curr_length_recSys }}" oninput="updateSliderValue(this.value)">
+					<span id="sliderValueDisplay">5</span>
+				</div>
+				<div id="recSysIntroContainer">
+					<p>Since you Searched</p>
+					<h1 class="glow">{{input_query}}</h1>
+					<p>You might be also interested in</p>
+				</div>
+				<div id="recommendationResultContainer"></div>
+			{% endif %}
+		</div>
+		-->
+
+		<!-- 
+		<div class="recommendationsContainer">
+			{% if recommendation_results %}
+				<script>document.title = "{{ input_query }}";</script>
+				<div id="recSysIntroContainer">
+					<p>Since you Searched</p>
+					<h1 class="glow">{{ input_query }}</h1>
+					<p>You might be also interested in</p>
+				</div>
+				<table id="recommendationTable">
+					<thead>
+						<tr>
+							<th>Total Recommendation Result(s): <span style="background-color: rgb(236, 236, 5);color: black; font-style: italic;">{{ max_length_recSys }}</span></th>
+							<th colspan="3">User Feedback</th>
+						</tr>
+						<tr>
+							<td></td>
+							<td>
+								<div class="feedback-label">Agree</div>
+							</td>
+							<td>
+								<div class="feedback-label">Unsure</div>
+							</td>
+							<td>
+								<div class="feedback-label">Disagree</div>
+							</td>
+					 	</tr>
+					</thead>
+					<tbody id="recommendationResultContainer">
+						{% for result_i in recommendation_results %}
+							{% with nlf_result=recommendation_results_nlf_found_pages|slice:forloop.counter|last %}
+								<tr>
+									<td>
+										<a class="rec-link" href="{{ digi_base_url }}{{ input_query|urlencode }}+{{ result_i|urlencode }}&orderBy=RELEVANCE" target="_blank">
+												<span style="font-size: 70%;">{{ input_query }}</span> + {{ result_i }}
+										</a>
+										<div class="circular-box">{{ nlf_result }}</div>
+									</td>
+									<td class="feedback-option">
+											<input type="radio" name="feedback_{{ forloop.counter }}" value="Agree">
+									</td>
+									<td class="feedback-option">
+											<input type="radio" name="feedback_{{ forloop.counter }}" value="Unsure">
+									</td>
+									<td class="feedback-option">
+										<input type="radio" name="feedback_{{ forloop.counter }}" value="Disagree">
+									</td>
+								</tr>
+							{% endwith %}
+						{% endfor %}
+					</tbody>
+				</table>
+				<div class="button-container">
+					<input type="submit" value="Submit Feedback" onclick="submitFeedback()">
+				</div>
+			{% endif %}
+		</div> -->
+
 		<div class="recommendationsContainer">
 			{% if recommendation_results %}
 				<script>document.title = "{{ input_query }}";</script>
@@ -91,27 +168,50 @@
 					<thead>
 						<tr>
 							<th>Total Recommendation Result(s): <span style="background-color: rgb(235, 235, 7);color: black; font-style: italic;">{{ max_length_recSys }}</span></th>
+							<!-- <th colspan="3">User Feedback</th> -->
 						</tr>
+							<!-- Additional row for feedback labels -->
+						<!-- <tr>
+							<td></td>
+							<td>
+								<div class="feedback-label">Agree</div>
+							</td>
+							<td>
+								<div class="feedback-label">Unsure</div>
+							</td>
+							<td>
+								<div class="feedback-label">Disagree</div>
+							</td>
+					 	</tr> -->
 					</thead>
 					<tbody id="recommendationResultContainer">
 						{% for result_i in recommendation_results %}
 							{% with nlf_result=recommendation_results_nlf_found_pages|slice:forloop.counter|last %}
 								<tr>
 									<td>
-										<a class="rec-link" 
-											href="{{ digi_base_url }}{{ input_query|urlencode }}+{{ result_i|urlencode }}&orderBy=RELEVANCE&clicked_recommendation={{ result_i|urlencode }}&input_query={{ input_query|urlencode }}" 
-											target="_blank"
-											data-recommendation="{{ result_i|escapejs }}"
-                      data-query="{{ input_query|escapejs }}">
+										<a class="rec-link" href="{{ digi_base_url }}{{ input_query|urlencode }}+{{ result_i|urlencode }}&orderBy=RELEVANCE" 
+											target="_blank">
 											<span style="font-size: 73%;">{{ input_query }}</span> + {{ result_i }}
 										</a>
 										<div class="circular-box">{{ nlf_result }}</div>
 									</td>
+									<!-- <td class="feedback-option">
+											<input type="radio" name="feedback_{{ forloop.counter }}" value="Agree">
+									</td>
+									<td class="feedback-option">
+											<input type="radio" name="feedback_{{ forloop.counter }}" value="Unsure">
+									</td>
+									<td class="feedback-option">
+										<input type="radio" name="feedback_{{ forloop.counter }}" value="Disagree">
+									</td> -->
 								</tr>
 							{% endwith %}
 						{% endfor %}
 					</tbody>
 				</table>
+				<!-- <div class="button-container">
+					<input type="submit" value="Submit Feedback" onclick="submitFeedback()">
+				</div> -->
 			{% endif %}
 		</div>
 
@@ -120,6 +220,7 @@
 	<script>
 		let globalQuery = `{{ input_query|safe }}`;
 		var digi_base_url = "https://digi.kansalliskirjasto.fi/search?query=";
+		// var digi_base_url = "https://digi.kansalliskirjasto.fi/search?requireAllKeywords=false&query=";
 		let recSysResults;
 		let myWindow;
 	</script>
@@ -214,30 +315,118 @@
 			var container = document.querySelector('.container');
 			container.style.transform = 'translateX(0)';
 		}
-	
-		function trackClick(clickedRecommendation, inputQuery) {
-			fetch('/track_click/', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'X-CSRFToken': '{{ csrf_token }}'
-				},
-				body: JSON.stringify({
-					clicked_recommendation: clickedRecommendation,
-					input_query: inputQuery
-				})
-			}).then(response => response.json())
-				.then(data => console.log(data))
-				.catch(error => console.error('Error:', error));
-		}
+		
+		function submitFeedback() {
+			const feedbackData = [];
+			const tableRows = document.querySelectorAll("#recommendationResultContainer tr");
 
-</script>
+			tableRows.forEach(row => {
+				console.log(row)
+				const title = row.querySelector(".rec-link").textContent; // regex in py to cleanup
+				const feedback = row.querySelector('input[name^="feedback_"]:checked');
+				const link = row.querySelector(".rec-link").href;
+				if (feedback) {
+					feedbackData.push({
+						userQueryPrompt: globalQuery,
+						recsysResultText: title,
+						recsysResultLink: link,
+						userFeedback: feedback.value
+					});
+				}
+			});
+			// Send feedbackData to the backend using AJAX
+			const xhr = new XMLHttpRequest();
+			const url = "{% url 'process_feedback' %}";  // URL to your Django view
+			xhr.open("POST", url);
+			xhr.setRequestHeader("Content-Type", "application/json");
+			xhr.onload = function() {
+				if (xhr.status === 200) {
+					alert("Feedback submitted successfully! Continue Searching...");
+				} else {
+					alert("Failed to submit feedback. Please try again.");
+				}
+			};
+			xhr.send(JSON.stringify(feedbackData));
+		}
+	</script>
+
+	<script>
+		// update with slider view
+		// function updateSliderValue(sliderValue) {
+		// 	document.getElementById('recSysSlider').value = sliderValue;
+		// 	document.getElementById('sliderValueDisplay').textContent = sliderValue;
+		// 	updateResultsBasedOnSliderValue();
+		// }
+
+		// document.addEventListener("DOMContentLoaded", function() {
+		// 	updateResultsBasedOnSliderValue();
+		// });
+
+		// function updateResultsBasedOnSliderValue() {
+		// 	var sliderValue = document.getElementById('recSysSlider').value;
+		// 	var recsysRes = document.getElementById('recommendationResultContainer');
+		// 	recsysRes.innerHTML = "";
+		// 	for (let i = 0; i < sliderValue; i++) {
+		// 		var recSysLink_i = digi_base_url + encodeURIComponent(globalQuery + " " + recSysResults[i]);
+		// 		recsysRes.innerHTML += `<p><a class="rec-link" href='${recSysLink_i}' target='_blank'><span style="font-size: 75%;">${globalQuery}</span> + ${recSysResults[i]}</a></p>`;
+		// 	}
+		// 	// Add event listener to all recommendation links
+		// 	var recLinks = document.querySelectorAll('.rec-link');
+		// 	recLinks.forEach(function(link) {
+		// 		link.addEventListener('click', function(event) {
+		// 				event.preventDefault(); // Prevent default link behavior
+		
+		// 				// Smoothly shift the page layout to the left
+		// 				var container = document.querySelector('.container');
+		// 				container.style.transform = 'translateX(-30%)';
+
+		// 				// Get the URL of the clicked link
+		// 				var url = link.href;
+		// 				console.log("clicked URL: ", url)
+
+		// 				console.log("myWindow:", myWindow);
+		// 				console.log("myWindow is opened:", myWindow && !myWindow.closed);
+
+		// 				if (myWindow) {
+		// 					try {
+		// 							console.log("closing...");
+		// 							myWindow.close();
+		// 					} catch (error) {
+		// 							console.error("Error closing window:", error);
+		// 							// Handle the error gracefully, e.g., display a message to the user
+		// 					}
+		// 				}
+
+		// 				// Calculate the width and height of the window
+		// 				const screenWidth = window.screen.width;
+		// 				const screenHeight = window.screen.height;
+		// 				const width = Math.round(screenWidth * 0.5); // 50% width
+		// 				const height = screenHeight;
+
+		// 				// Calculate the left position to place the window on the right side of the screen
+		// 				const left = screenWidth - width;
+
+		// 				// myWindow.close(() => {
+		// 				// 	// Open the new window here
+		// 				// 	myWindow = window.open(url, "", `width=${width}, height=${height}, left=${left}, top=0`);
+		// 				// 	myWindow.focus();
+		// 				// });
+
+		// 				myWindow = window.open(url, "", `width=${width}, height=${height}, left=${left}, top=0`);
+		// 				myWindow.focus();
+		// 				console.log("myWindow name, url:", myWindow.name, myWindow.location.href)
+
+		// 			});
+		// 	});
+		// }
+
+	</script>
 
 	<script>
 		try { // must be here, otherwise "alert" is shown!
 			recSysResults = {{ recommendation_results|safe }};
 		} catch (error) {
-			alert(`< ${globalQuery} > NOT FOUND in Database, Search Again!`);
+			alert(`< ${globalQuery} > NOT FOUND in database, search again!`);
 			recSysResults = null;
 			hideLoadingSpinner();
 			event.preventDefault();
@@ -270,30 +459,6 @@
 							foldElement.classList.remove('unfolder'); // Remove the unfold class
 							foldElement.classList.add('fold'); // Ensure the folded state
 					}
-			});
-		});
-		// event handler for recsys-links:
-		document.addEventListener('DOMContentLoaded', function() {
-			const links = document.querySelectorAll('.rec-link');
-			links.forEach(link => {
-				link.addEventListener('click', function(e) {
-					const clickedRecommendation = this.getAttribute('data-recommendation');
-					const inputQuery = this.getAttribute('data-query');
-					trackClick(clickedRecommendation, inputQuery);
-				});
-				link.addEventListener('auxclick', function(e) {
-					if (e.button === 1) { // Middle click
-						const clickedRecommendation = this.getAttribute('data-recommendation');
-						const inputQuery = this.getAttribute('data-query');
-						trackClick(clickedRecommendation, inputQuery);
-					}
-				});
-				// right click (not required!)
-				link.addEventListener('contextmenu', function(e) {
-					const clickedRecommendation = this.getAttribute('data-recommendation');
-					const inputQuery = this.getAttribute('data-query');
-					trackClick(clickedRecommendation, inputQuery);
-				});
 			});
 		});
 	</script>

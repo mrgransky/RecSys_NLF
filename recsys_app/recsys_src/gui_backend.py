@@ -29,7 +29,6 @@ retries = Retry(total=5, backoff_factor=0.1, status_forcelist=[500, 502, 503, 50
 session.mount('https://', HTTPAdapter(max_retries=retries))
 
 #######################################################################################################################
-USER_NAME: str = "XXXXXX"
 HOME: str = os.getenv('HOME') # echo $HOME
 USER: str = os.getenv('USER') # echo $USER
 Files_DIR: str = "/media/volume" if USER == "ubuntu" else HOME

@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
+import datetime
 from django.views.decorators.csrf import csrf_exempt
 from recsys_app.recsys_src.gui_backend import *
 
@@ -133,7 +134,7 @@ def main_page(request):
 		'curr_length_recSys': CURRENT_NUM_RECOMMENDED_TOKENS,
 		'digi_base_url': DIGI_BASE_URL,
 	}
-	print(f"Who is using the system? < {user_name} >".center(180, "-"))
+	print(f"Who is using the system? < {user_name} > {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}".center(180, "-"))
 	if request.method == 'POST':
 		RAW_INPUT_QUERY = request.POST.get('query', '').lower()
 		context["input_query"] = RAW_INPUT_QUERY
@@ -147,8 +148,9 @@ def main_page(request):
 				context['max_length_recSys'] = min(MAX_NUM_RECOMMENDED_TOKENS, len(recSys_results))
 				context['curr_length_recSys'] = min(CURRENT_NUM_RECOMMENDED_TOKENS, len(recSys_results))
 				context['recommendation_results_nlf_found_pages'] = recSys_results_nlf_num_pages[:MAX_NUM_RECOMMENDED_TOKENS]
-				print(len(recSys_results), recSys_results)
-				print(len(recSys_results_nlf_num_pages), recSys_results_nlf_num_pages)
+				print(f"For user: < {user_name} > we found {len(recSys_results)} Recommendation Result(s):\n{recSys_results}")
+				# print(len(recSys_results_nlf_num_pages), recSys_results_nlf_num_pages)
+				print("*"*150)
 				context['recommendation_results'] = recSys_results[:MAX_NUM_RECOMMENDED_TOKENS]
 			else:
 				logging.error("No recsys results Found!")

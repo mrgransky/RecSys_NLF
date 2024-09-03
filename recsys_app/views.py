@@ -1,10 +1,9 @@
+from recsys_app.recsys_src.gui_backend import *
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 import datetime
 from django.views.decorators.csrf import csrf_exempt
-from recsys_app.recsys_src.gui_backend import *
-
-MAX_NUM_RECOMMENDED_TOKENS: int = 23
+MAX_NUM_RECOMMENDED_TOKENS: int = 22
 CURRENT_NUM_RECOMMENDED_TOKENS: int = 5
 DIGI_BASE_URL: str = "https://digi.kansalliskirjasto.fi/search?requireAllKeywords=true&query="
 
@@ -140,16 +139,18 @@ def main_page(request):
 		context["input_query"] = RAW_INPUT_QUERY
 		raw_query_nlf_results = get_nlf_pages(INPUT_QUERY=RAW_INPUT_QUERY)
 		if raw_query_nlf_results and raw_query_nlf_results > 0 and clean_(docs=RAW_INPUT_QUERY):
-			recSys_results, recSys_results_nlf_num_pages = get_recsys_results(
+			recSys_results, recSys_results_total_nlf_num_pages, recSys_results_nlf_yearly_pages = get_recsys_results(
 				query_phrase=RAW_INPUT_QUERY, 
 				nTokens=MAX_NUM_RECOMMENDED_TOKENS+7,
 			)
 			if request.POST.get('isRecSys') == "true" and recSys_results and len(recSys_results)>0:
 				context['max_length_recSys'] = min(MAX_NUM_RECOMMENDED_TOKENS, len(recSys_results))
 				context['curr_length_recSys'] = min(CURRENT_NUM_RECOMMENDED_TOKENS, len(recSys_results))
-				context['recommendation_results_nlf_found_pages'] = recSys_results_nlf_num_pages[:MAX_NUM_RECOMMENDED_TOKENS]
+				context['recsys_results_total_nlf_pages'] = recSys_results_total_nlf_num_pages[:MAX_NUM_RECOMMENDED_TOKENS]
+				context['recsys_results_nlf_yearly_nPGs'] = recSys_results_nlf_yearly_pages[:MAX_NUM_RECOMMENDED_TOKENS]
 				print(f"For user: < {user_name} > we found {len(recSys_results)} Recommendation Result(s):\n{recSys_results}")
-				# print(len(recSys_results_nlf_num_pages), recSys_results_nlf_num_pages)
+				print(len(recSys_results_total_nlf_num_pages), recSys_results_total_nlf_num_pages)
+				print(len(recSys_results_nlf_yearly_pages), recSys_results_nlf_yearly_pages)
 				print("*"*150)
 				context['recommendation_results'] = recSys_results[:MAX_NUM_RECOMMENDED_TOKENS]
 			else:

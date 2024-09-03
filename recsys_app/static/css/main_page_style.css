@@ -11,12 +11,12 @@ body {
 
 .glow {
 	font-size: 35px;
-	color: #2d00f8b0;
+	color: #6b47c0b0;
 	font-weight: bold;
 	font-family: 'Poppins', sans-serif;
 	text-align: center;
-	margin-top: 20px;
-	margin-bottom: 20px;
+	margin-top: 18px;
+	margin-bottom: 18px;
 	animation: glow 0.75s ease-in-out infinite alternate;
 	/* background-color: #f7f7ff; */
 }
@@ -24,15 +24,15 @@ body {
 @keyframes glow {
 	from {
 		text-shadow: 
-			0 0 10px #340bebd7, 
+			0 0 10px #5827cab0, 
 			0 0 20px #ebff78, 
 			0 0 40px #edf5c8, 
-			0 0 80px #f3ffaf;
+			0 0 80px #d4df98;
 	}
 	
 	to {
 		text-shadow: 
-			0 0 10px rgb(0, 81, 255), 
+			0 0 10px rgb(50, 180, 180), 
 			0 0 30px #81adf0, 
 			0 0 50px #c699f0, 
 			0 0 50px #dbbacb,
@@ -293,34 +293,12 @@ input[type="submit"]:hover {
 	backdrop-filter: invert(80%);
 	display: inline-block;
 	padding: 10px;
-	/* color: #ebebff; */
 	background-color: #9b9b9bc7;
-}
-
-.recommendationsContainer {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	background-color: #ffffff; /* MUST BE SET TO WHITE*/
 }
 
 .slider-container {
 	margin: 10px;
 	text-align: center;
-}
-
-#recSysIntroContainer {
-	color: rgba(2, 131, 19, 0.692);
-	font-weight: bold;
-	font-size: 20px;
-	/* background-color: #bdbdbd; */
-}
-
-#recommendationResultContainer {
-	margin-top: 10px;
-	font-size: 10px;
-	/* font-weight: bold; */
 }
 
 #recSysSlider {
@@ -372,14 +350,13 @@ input[type="submit"]:hover {
 }
 
 .spinner-text {
-	color: #f7f7f7;
+	color: #b3b3b3d7;
 	font-family: 'Times New Roman', Times, serif;
 	font-size: 25px;
 	font-weight: bold;
 	font-style: oblique;
 	backdrop-filter: blur(5px);
-	/* padding: 8px; */
-	background-color: rgba(200, 200, 200, 0.5);
+	background-color: rgba(255, 255, 255, 0.644);
 	-webkit-backdrop-filter: blur(5px);
 }
 
@@ -391,15 +368,11 @@ input[type="submit"]:hover {
 	content: '';
 	box-sizing: border-box;
 	position: absolute;
-
 	width: 65px;
 	height: 65px;
-	/* top: calc(62% + 0px);  */
 	margin-left: -70px;
-	/* left: calc(42% - 0px); */
-
 	border-radius: 70%;
-	border: 5px solid #f7f7f7;
+	border: 5px solid #bebaba;
 	border-top: 1px solid transparent;
 	animation: spin 0.7s linear infinite;
 }
@@ -409,42 +382,58 @@ input[type="submit"]:hover {
 	100% { transform: rotate(360deg); }
 }
 
-#recommendationTable {
-	width: 50%; /* Full width of the container */
-	border-collapse: collapse; /* Collapse borders between cells */
-	margin-top: 15px; /* Top margin for spacing */
-	font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
-}
-
-/* Style for table headers */
-#recommendationTable th {
-	background-color: #222222; /* Dark gray background for headers */
-	color: white; /* White text color for headers */
-	padding: 10px; /* Padding for headers */
-	text-align: center; /* Center-align text */
-}
-
-/* Style for table rows */
-#recommendationTable tr {
-	font-size: 27px;
-	background-color: #f5f1f1d0; /* Light gray background for rows */
-}
-
-#recommendationTable tr:nth-child(even) {
-	background-color: #afafafe7; /* Alternate row color Darker gray for even rows */
-}
-
-/* Style for table cells */
-#recommendationTable td {
-	padding: 12px; /* Padding for cells */
-	border: 1px solid #ccc; /* Light gray border around cells */
-	text-align: center; /* Center-align text */
-}
-
 .feedback-option, .feedback-label {
 	width: 100px; /* Set a fixed width for both columns */
 	text-align: center; /* Center-align the content */
 	font-weight: bold; /* Make the text bold */
+}
+
+.recommendationsContainer {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	background-color: #ffffff; /* MUST BE SET TO WHITE*/
+}
+
+#recSysIntroContainer {
+	color: rgba(1, 20, 14, 0.6);
+	font-weight: bold;
+	font-size: 22px;
+}
+
+#recommendationTable {
+	width: 45%; /* Full width of the container */
+	border-collapse: collapse; /* Collapse borders between cells */
+	margin-top: 10px; /* Top margin for spacing */
+	font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+}
+
+#recommendationTable th {
+	background-color: #222222;
+	color: white;
+	padding: 10px;
+	text-align: center;
+}
+
+#recommendationTable tr {
+	font-size: 25px;
+	background-color: #dadadade; /* Light gray background for rows */
+}
+
+#recommendationTable tr:nth-child(even) {
+	background-color: #acababa4; /* Alternate row color Darker gray for even rows */
+}
+
+#recommendationTable td {
+	padding: 35px; /* Padding for cells */
+	border: 1px solid #dadada; /* Light gray border around cells */
+	text-align: left; /* left-align text */
+}
+
+#recommendationResultContainer {
+	margin-top: 10px;
+	font-size: 10px;
 }
 
 .rec-link {
@@ -453,22 +442,50 @@ input[type="submit"]:hover {
 	text-align: left; /* Align text to the left within the cell */
 }
 
-/* Ensure table row position is relative */
-tbody tr {
+/* Hover effect for the recommendation table rows */
+#recommendationResultContainer tr:hover .rec-link {
+	font-size: 1.4em; /* Slightly enlarge the font size */
+	line-height: 2.0; /* Adjust line height for vertical enlargement */
+	background-color: rgba(193, 255, 182, 0.88); /* Set background color of the link to white */
+	color: #001cb9; /* Ensure text color is black for contrast */
+	padding: 5px; /* Add padding for a more noticeable effect */
+	border-radius: 5px; /* Optionally round the corners of the background */
 	position: relative;
+	z-index: 1; /* Ensure the link appears above the blurred background */
 }
 
-/* Style for circular box */
+#recommendationResultContainer tr:hover .rec-link::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.5); /* Slightly darken the background with a blur */
+	filter: blur(10px); /* Apply the blur effect */
+	z-index: -1; /* Place the blur effect behind the text */
+	border-radius: 5px; /* Match the border radius to the link background */
+}
+
+/* Ensure the hover effect doesn't affect the table row's background */
+#recommendationResultContainer tr:hover {
+	background-color: inherit; /* Keep the original background color */
+}
+
+tbody tr {
+	position: relative; /* Ensure table row position is relative */
+}
+
 .circular-box {
 	display: inline-block;
-	width: 65px; /* Fixed width for the circular box */
-	height: 30px; /* Fixed height for the circular box */
+	width: 70px; /* Fixed width for the circular box */
+	height: 40px; /* Fixed height for the circular box */
+	line-height: 40px; /* Vertical centering text */
 	border-radius: 8%; /* Ensures circular shape */
 	background-color: #021064;
 	color: #fff;
-	font-size: 16px;
+	font-size: 17px;
 	font-weight: bold;
-	line-height: 30px; /* Vertical centering text */
 	text-align: center; /* Center align text horizontally */
 	position: absolute;
 	top: 50%; /* Align to the vertical center of the table row */
@@ -476,9 +493,70 @@ tbody tr {
 	right: 10px; /* Distance from the right edge of the first column */
 }
 
-/* Style for the first column */
 td:first-child {
 	position: relative; /* Ensure relative positioning */
 	padding-right: 50px; /* Add space to accommodate circular box */
 	text-align: left; /* Align text in the first column to the left */
+}
+
+.pie-chart-container {
+	display: inline-block;
+	width: 90px;
+	height: 90px;
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	right: 100px; /* Position it to the left of the circular box */
+}
+
+.pieChart {
+	width: 100%;
+	height: 100%;
+}
+
+.pieSegment {
+	transition: transform 0.2s;
+	transform-origin: center;
+	stroke: black; /* Add black border to each segment */
+	stroke-width: 1px; /* Set the width of the border */
+}
+
+.pieSegment:hover {
+	transform: scale(1.15);
+	filter: brightness(1.28);
+	stroke-width: 2px; /* Optionally increase border width on hover */
+}
+
+.pie-chart-legend-container {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-top: 10px;
+	font-size: 14px;
+	color: #333;
+	font-weight: 500;
+}
+
+.legend-container {
+	display: flex;
+	justify-content: center;
+}
+
+.legend-item {
+	display: flex;
+	align-items: center;
+	margin: 0 15px;
+}
+
+.legend-color {
+	width: 20px;
+	height: 20px;
+	border-radius: 50%;
+	margin-right: 5px;
+}
+
+.legend-text {
+	color: #b4b0b0;
+	font-weight: bold;
+	font-size: 18px;
 }

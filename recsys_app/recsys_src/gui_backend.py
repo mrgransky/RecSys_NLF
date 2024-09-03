@@ -18,17 +18,16 @@ from requests.packages.urllib3.util.retry import Retry
 from typing import List, Set, Dict, Tuple
 from celery import shared_task
 from recsys_app.recsys_src.tokenizer_utils import *
+
+#######################################################################################################################
 lemmatizer_methods = {
 	"nltk": nltk_lemmatizer,
 	"trankit": trankit_lemmatizer,
 	"stanza": stanza_lemmatizer,
 }
-
 session = requests.Session()
 retries = Retry(total=5, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504])
 session.mount('https://', HTTPAdapter(max_retries=retries))
-
-#######################################################################################################################
 HOME: str = os.getenv('HOME') # echo $HOME
 USER: str = os.getenv('USER') # echo $USER
 Files_DIR: str = "/media/volume" if USER == "ubuntu" else HOME
@@ -38,7 +37,6 @@ DATASET_DIR: str = f"Nationalbiblioteket/compressed_concatenated_SPMs" if USER =
 fprefix: str = f"concatinated_{nSPMs}_SPMs_lm_{lmMethod}"
 compressed_spm_file = os.path.join(Files_DIR, DATASET_DIR, f"concat_x{nSPMs}_lm_{lmMethod}.tar.gz")
 spm_files_dir = os.path.join(Files_DIR, DATASET_DIR, f"concat_x{nSPMs}_lm_{lmMethod}")
-
 SEARCH_QUERY_DIGI_URL: str = "https://digi.kansalliskirjasto.fi/search?requireAllKeywords=true&query="
 DIGI_HOME_PAGE_URL : str = "https://digi.kansalliskirjasto.fi"
 headers = {
@@ -73,7 +71,33 @@ payload = {
 	"startDate": None,
 	"tags": [],	
 }
+
 #######################################################################################################################
+def load_pickle(fpath: str="unknown",):
+	print(f"Checking for existence? {fpath}")
+	st_t = time.time()
+	try:
+		with gzip.open(fpath, mode='rb') as f:
+			pkl=dill.load(f)
+	except gzip.BadGzipFile as ee:
+		print(f"<!> {ee} | gzip.open NOT functional!")
+		with open(fpath, mode='rb') as f:
+			pkl=dill.load(f)
+	except Exception as e:
+		print(f"<<!>> {e} loading for pandas read_pkl...")
+		pkl = pd.read_pickle(fpath)
+	elpt = time.time()-st_t
+	fsize = os.stat( fpath ).st_size / 1e9 # in GB
+	print(f"Loaded in: {elpt:.3f} s {type(pkl)} {fsize:.2f} GB".center(150, " "))
+	return pkl
+
+def extract_tar(fname: str="file_name"):
+	output_folder = fname.split(".")[0]
+	if not os.path.isdir(output_folder):
+		print(f'extracting {nSPMs} nSPMs: {fname}')
+		print(f"{output_folder} does not exist, creating...")
+		with tarfile.open(fname, 'r:gz') as tfile:
+			tfile.extractall(output_folder)
 
 @cache
 def get_nlf_pages(INPUT_QUERY: str="global warming"):
@@ -286,6 +310,25 @@ def get_customized_recsys_avg_vec(spMtx, cosine_sim, idf_vec, spMtx_norm):
 	print(f"Elapsed_t: {time.time()-st_t:.2f} s {type(avg_rec)} {avg_rec.dtype} {avg_rec.shape}".center(130, " "))	
 	return avg_rec
 
+def count_years_by_range(year_num_dict: Dict[str, int]):
+	first_range = 0
+	second_range = 0
+	third_range = 0
+	if not year_num_dict:
+		return [0, 0, 0]
+	# world war 1: 28 july 1914 – 11 nov. 1918
+	# world war 2: 1 sep. 1939 – 2 sep. 1945
+	for year, count in year_num_dict.items():
+		year_int = int(year)
+		if year_int <= 1924: 
+			first_range += count
+		elif 1925 <= year_int <= 1949: # ww1 < <= ww2 
+			second_range += count
+		elif year_int >= 1950:
+			third_range += count
+	yearly_nlf_pages = [first_range, second_range, third_range]
+	return yearly_nlf_pages
+
 async def get_recommendation_num_NLF_pages_async(session, INPUT_QUERY: str="global warming", REC_TK: str="pollution"):
 	URL = f"{SEARCH_QUERY_DIGI_URL}" + urllib.parse.quote_plus(INPUT_QUERY + " " + REC_TK)
 	# print(f"{URL:<150}", end=" ")
@@ -295,6 +338,7 @@ async def get_recommendation_num_NLF_pages_async(session, INPUT_QUERY: str="glob
 	search_page_request_url = f"{DIGI_HOME_PAGE_URL}/rest/binding-search/search/binding?offset={offset_pg}&count=20"
 	payload["query"] = parameters.get('query')[0] if parameters.get('query') else ""
 	payload["requireAllKeywords"] = parameters.get('requireAllKeywords')[0] if parameters.get('requireAllKeywords') else "false"
+	st_t = time.time()
 	try:
 		async with session.post(
 			url=search_page_request_url,
@@ -303,34 +347,48 @@ async def get_recommendation_num_NLF_pages_async(session, INPUT_QUERY: str="glob
 		) as response:
 				response.raise_for_status()
 				res = await response.json()
-				TOTAL_NUM_NLF_RESULTs = res.get("totalResults")
-				# print(f"Found NLF tot_page(s): {TOTAL_NUM_NLF_RESULTs:<10} in {time.time() - st_t:.1f} sec")
-				return TOTAL_NUM_NLF_RESULTs
+				TOTAL_NUM_NLF_RESULTs = res.get("totalResults") # <class 'int'>
+				NLF_pages_by_year_dict = res.get("hitsByYear") # <class 'dict'>: 'year': num_pgs EX) '1939':10
+				NLF_pages_by_year_list = count_years_by_range(NLF_pages_by_year_dict)
+				# print(type(NLF_pages_by_year_dict), NLF_pages_by_year_dict)
+				print(type(NLF_pages_by_year_list), NLF_pages_by_year_list)
+				print(f"Found {type(TOTAL_NUM_NLF_RESULTs)} NLF tot_page(s): {TOTAL_NUM_NLF_RESULTs:<10} in {time.time() - st_t:.1f} sec")
+				print()
+				return TOTAL_NUM_NLF_RESULTs, NLF_pages_by_year_list
 	except (
 		aiohttp.ClientError,
 		asyncio.TimeoutError,
 	) as e:
 		print(f"<!> Error: {e}")
-		# return None
-		return
+		return None, None
+
+# async def get_num_NLF_pages_asynchronous_run(qu: str="global warming", TOKENs_list: List[str]=["tk1", "tk2"]):
+# 	async with aiohttp.ClientSession() as session:
+# 		tasks = [
+# 			NLF_TOT_NUM_PGs
+# 			for tk in TOKENs_list
+# 			if (
+# 				(NLF_TOT_NUM_PGs:=get_recommendation_num_NLF_pages_async(session, INPUT_QUERY=qu, REC_TK=tk))
+# 			)
+# 		]
+# 		num_NLF_pages = await asyncio.gather(*tasks)
+# 		return num_NLF_pages
 
 async def get_num_NLF_pages_asynchronous_run(qu: str="global warming", TOKENs_list: List[str]=["tk1", "tk2"]):
 	async with aiohttp.ClientSession() as session:
 		tasks = [
-			NUMBER_OF_PAGES
+			get_recommendation_num_NLF_pages_async(session, INPUT_QUERY=qu, REC_TK=tk)
 			for tk in TOKENs_list
-			if (
-				(NUMBER_OF_PAGES:=get_recommendation_num_NLF_pages_async(session, INPUT_QUERY=qu, REC_TK=tk))
-			)
 		]
-		num_NLF_pages = await asyncio.gather(*tasks)
-		# # Filter out None and 0 values
-		# num_NLF_pages = [pages for pages in num_NLF_pages if pages not in [None, 0]]
-		return num_NLF_pages
+		results = await asyncio.gather(*tasks)			
+		# Separating total NLF results and pages by year from the gathered results
+		num_NLF_pages = [result[0] for result in results if result[0] is not None]
+		NLF_pages_by_year_list = [result[1] for result in results if result[1] is not None]
+		return num_NLF_pages, NLF_pages_by_year_list
 
 def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], meaningless_lemmas_list: List[str], raw_query: str="Raw Query Phrase!", K: int=50):
 	print(
-		f"Looking for < topK={K} > token(s)...\n"
+		f"Looking for < topK={K} > token(s) from NLF REST API...\n"
 		f"Query [raw]: {raw_query}\n"
 		f"Query [tokenized]: {raw_query.lower().split()} | tk: {tok_query}"
 	)
@@ -343,65 +401,52 @@ def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], meaningless_lemmas_l
 			and recommended_token not in meaningless_lemmas_list
 			and recommended_token not in raw_query.lower().split()
 		):
-			# tot_nlf_res = get_num_NLF_pages(INPUT_QUERY=raw_query, REC_TK=recommended_token)
-			# if tot_nlf_res > 0:
-			# 	tot_nlf_res_list.append(tot_nlf_res)
-				# tot_nlf_res_list = [random.randint(1, 9000) for i, v in enumerate(topK_tokens_list)]
-				topK_tokens_list.append(recommended_token)
-	tot_nlf_res_list = asyncio.run(
-		get_num_NLF_pages_asynchronous_run(qu=raw_query, TOKENs_list=topK_tokens_list)
+			topK_tokens_list.append(recommended_token)
+	tot_nlf_res_list, nlf_pages_by_year_list = asyncio.run(
+		get_num_NLF_pages_asynchronous_run(
+			qu=raw_query, 
+			TOKENs_list=topK_tokens_list,
+		)
 	)
 	###################################################################################################################
 	# remove zeros: not time consuming...
-	# print(f"Done=> removing zero(s)...")
-	# rm_t = time.time()
+	print(f"Done=> removing zero(s)...")
+	rm_t = time.time()
 	tot_nlf_res_list_tmp = tot_nlf_res_list
 	topK_tokens_list_tmp = topK_tokens_list
+	nlf_pages_by_year_list_tmp = nlf_pages_by_year_list
+
 	tot_nlf_res_list = [num for num, word in zip(tot_nlf_res_list_tmp, topK_tokens_list_tmp) if (num and num != 0) ]
 	topK_tokens_list = [word for num, word in zip(tot_nlf_res_list_tmp, topK_tokens_list_tmp) if (num and num != 0) ]
-	# print(f"elp: {time.time()-rm_t:.5f} sec => sorting...")
+	nlf_pages_by_year_list = [yearly_pages for yearly_pages, tot_pages, tk in zip(nlf_pages_by_year_list_tmp, tot_nlf_res_list_tmp, topK_tokens_list_tmp) if (tot_pages and tot_pages != 0)]
+
+	print(len(topK_tokens_list), topK_tokens_list)
+	print(len(tot_nlf_res_list), tot_nlf_res_list)
+	print(len(nlf_pages_by_year_list), nlf_pages_by_year_list)
+	print(f"elp: {time.time()-rm_t:.5f} sec")
 	###################################################################################################################
 
 	###################################################################################################################
 	# sort descending: not time consuming...
-	# sort_t = time.time()
+	sort_t = time.time()
+	print(f"=> sorting...")
 	tot_nlf_res_list = tot_nlf_res_list[::-1]
 	topK_tokens_list = topK_tokens_list[::-1]
-	# print(f"elp: {time.time()-sort_t:.5f} sec => DONE!!!")
+	nlf_pages_by_year_list = nlf_pages_by_year_list[::-1]
+	
+	print(len(topK_tokens_list), topK_tokens_list)
+	print(len(tot_nlf_res_list), tot_nlf_res_list)
+	print(len(nlf_pages_by_year_list), nlf_pages_by_year_list)
+
+	print(f"elp: {time.time()-sort_t:.5f} sec => DONE!!!")
 	###################################################################################################################
 	print(
 		f"Found {len(topK_tokens_list)} Recommendation Results "
-		f"(with {len(tot_nlf_res_list)} NLF pages) "
-		f"in {time.time()-st_t:.2f} sec"
-		.center(130, "-")
+		f"(with {len(tot_nlf_res_list)} NLF pages) and separated: {len(nlf_pages_by_year_list)} "
+		f"Elapsed: {time.time()-st_t:.2f} sec"
+		.center(160, "-")
 	)
-	return topK_tokens_list, tot_nlf_res_list
-
-def load_pickle(fpath:str="unknown",):
-	print(f"Checking for existence? {fpath}")
-	st_t = time.time()
-	try:
-		with gzip.open(fpath, mode='rb') as f:
-			pkl=dill.load(f)
-	except gzip.BadGzipFile as ee:
-		print(f"<!> {ee} | gzip.open NOT functional!")
-		with open(fpath, mode='rb') as f:
-			pkl=dill.load(f)
-	except Exception as e:
-		print(f"<<!>> {e} loading for pandas read_pkl...")
-		pkl = pd.read_pickle(fpath)
-	elpt = time.time()-st_t
-	fsize = os.stat( fpath ).st_size / 1e9 # in GB
-	print(f"Loaded in: {elpt:.3f} s {type(pkl)} {fsize:.2f} GB".center(150, " "))
-	return pkl
-
-def extract_tar(fname):
-	output_folder = fname.split(".")[0]
-	if not os.path.isdir(output_folder):
-		print(f'extracting {nSPMs} nSPMs: {fname}')
-		print(f"{output_folder} does not exist, creating...")
-		with tarfile.open(fname, 'r:gz') as tfile:
-			tfile.extractall(output_folder)
+	return topK_tokens_list, tot_nlf_res_list, nlf_pages_by_year_list
 
 @cache
 def get_recsys_results(query_phrase: str="This is a sample query phrase!", nTokens: int=5):
@@ -437,16 +482,25 @@ def get_recsys_results(query_phrase: str="This is a sample query phrase!", nToke
 		idf_vec=idf_vec,
 		spMtx_norm=usrNorms,
 	)
-	topK_TKs, topK_TKs_nlf_num_pages = get_topK_tokens(
+	# topK_TKs, topK_TKs_nlf_num_pages = get_topK_tokens(
+	# 	mat_cols=concat_spm_tokNames,
+	# 	avgrec=avgRecSys,
+	# 	raw_query=query_phrase,
+	# 	tok_query=tokenized_query_phrase,
+	# 	meaningless_lemmas_list=UNQ_STW,
+	# 	K=nTokens,
+	# )
+	# return topK_TKs, topK_TKs_nlf_num_pages
+	topK_TKs, topK_TKs_nlf_num_pages, topK_TKs_nlf_pages_by_year = get_topK_tokens(
 		mat_cols=concat_spm_tokNames,
 		avgrec=avgRecSys,
 		raw_query=query_phrase,
 		tok_query=tokenized_query_phrase,
 		meaningless_lemmas_list=UNQ_STW,
 		K=nTokens,
-	)
-	return topK_TKs, topK_TKs_nlf_num_pages
-
+	)	
+	return topK_TKs, topK_TKs_nlf_num_pages, topK_TKs_nlf_pages_by_year  # Returning the additional value
+#######################################################################################################################
 extract_tar(fname=compressed_spm_file)
 
 print(f"USER: >>{USER}<< using {nSPMs} nSPMs")

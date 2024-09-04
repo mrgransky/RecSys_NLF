@@ -475,14 +475,14 @@ def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], meaningless_lemmas_l
 
 @cache
 def get_recsys_results(query_phrase: str="A Sample query phrase!", nTokens: int=5, ts_1st: int=1899, ts_2nd=np.arange(1900, 1919+1, 1), ts_3rd=np.arange(1920, 1945+1, 1), ts_end: int=1946):
-	print(ts_1st)
-	print(ts_2nd)
-	print(ts_3rd)
-	print(ts_end)
+	# print(ts_1st)
+	# print(ts_2nd)
+	# print(ts_3rd)
+	# print(ts_end)
 	tokenized_query_phrase = get_lemmatized_sqp(qu_phrase=query_phrase, lm=lmMethod)
 	print(f"Search Query Prompt: {query_phrase} [lemma(s)]: {tokenized_query_phrase}")
 	if not tokenized_query_phrase:
-		return None, 0
+		return None, 0, 0
 
 	query_vector=get_query_vec(
 		mat=concat_spm_U_x_T,
@@ -498,7 +498,7 @@ def get_recsys_results(query_phrase: str="A Sample query phrase!", nTokens: int=
 	)
 	if not np.any(query_vector):
 		print(f"Sorry! >> {query_phrase} << Not Found in our database! Search something else...")
-		return None, 0
+		return None, 0, 0
 	ccs=get_customized_cosine_similarity(
 		spMtx=concat_spm_U_x_T,
 		query_vec=query_vector, 

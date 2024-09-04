@@ -3,12 +3,12 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 import datetime
 from django.views.decorators.csrf import csrf_exempt
-MAX_NUM_RECOMMENDED_TOKENS: int = 7
+MAX_NUM_RECOMMENDED_TOKENS: int = 10
 CURRENT_NUM_RECOMMENDED_TOKENS: int = 5
 DIGI_BASE_URL: str = "https://digi.kansalliskirjasto.fi/search?requireAllKeywords=true&query="
-TIMESTAMP_1ST: int=1899
-TIMESTAMP_2ND: List[int]=[1900, 1919]
-TIMESTAMP_3RD: List[int]=[1920, 1945]
+TIMESTAMP_1ST: int=1913
+TIMESTAMP_2ND: List[int]=[1914, 1934] # WWI: 	28 july 1914 – 11 nov. 1918 # pink
+TIMESTAMP_3RD: List[int]=[1935, 1945] # WWII: 1 sep. 1939 – 2 sep. 1945 # blue
 TIMESTAMP_END: int=1946
 
 df = pd.DataFrame(

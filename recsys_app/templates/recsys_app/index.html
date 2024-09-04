@@ -258,112 +258,91 @@
 		}
 
 		function createPieChart(container) {
-			const yearlyPages = JSON.parse(container.getAttribute('data-nlf-yearly-pages'));
-			if (!yearlyPages || yearlyPages.length === 0) {
+			try {
+				const yearlyPages = JSON.parse(container.getAttribute('data-nlf-yearly-pages'));
+				if (!yearlyPages || yearlyPages.length === 0) {
 					return;
-			}
-			
-			// Ensure there's at least a minimal value for segments that are zero to prevent zero-length arcs
-			const adjustedPages = yearlyPages.map(v => v > 0 ? v : 0.01);
-			const total = adjustedPages.reduce((a, b) => a + b, 0);
-			const normalizedValues = adjustedPages.map(v => v / total);
-			let cumulativeAngle = 0;
-			
-			const colors = ['green', 'pink', 'blue', 'red',];
-			// const links = ['https://www.youtube.com', 'https://www.amazon.com', 'https://www.google.com', 'https://www.ebay.com',];
-
-			// Retrieve the base link from the corresponding recommendation link
-			const baseLink = container.closest('tr').querySelector('.rec-link').getAttribute('href');
-			// const links = [
-			// 	`${baseLink}&endDate=1899-12-31`,
-			// 	`${baseLink}&startDate=1900-01-01&endDate=1919-12-31`,
-			// 	`${baseLink}&startDate=1920-01-01&endDate=1945-12-31`,
-			// 	`${baseLink}&startDate=1946-01-01`
-			// ];
-			const links = [
-				`${baseLink}&endDate=${TS_1ST}-12-31`,
-				`${baseLink}&startDate=${TS_2ND[0]}-01-01&endDate=${TS_2ND[1]}-12-31`,
-				`${baseLink}&startDate=${TS_3RD[0]}-01-01&endDate=${TS_3RD[1]}-12-31`,
-				`${baseLink}&startDate=${TS_END}-01-01`
-			];
-			const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-			svg.setAttribute("viewBox", "0 0 100 100");
-			svg.classList.add("pieChart");
-			
-			normalizedValues.forEach((value, index) => {
-				const startAngle = cumulativeAngle;
-				const endAngle = cumulativeAngle + value * 2 * Math.PI;
-				cumulativeAngle = endAngle;
-				const x1 = 50 + 50 * Math.cos(startAngle);
-				const y1 = 50 + 50 * Math.sin(startAngle);
-				const x2 = 50 + 50 * Math.cos(endAngle);
-				const y2 = 50 + 50 * Math.sin(endAngle);
-				const largeArcFlag = value > 0.5 ? 1 : 0;
-				const pathData = [
-					`M 50 50`,
-					`L ${x1} ${y1}`,
-					`A 50 50 0 ${largeArcFlag} 1 ${x2} ${y2}`,
-					`Z`
-				].join(' ');
-
-				const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-				path.setAttribute("d", pathData);
-				path.setAttribute("fill", colors[index]);
-				path.classList.add("pieSegment");
+				}
 				
-				// Create a link element for each segment
-				const link = document.createElementNS("http://www.w3.org/2000/svg", "a");
-				link.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", links[index]);
-				link.setAttribute("target", "_blank");
-				link.appendChild(path);
+				// Ensure there's at least a minimal value for segments that are zero to prevent zero-length arcs
+				const adjustedPages = yearlyPages.map(v => v > 0 ? v : 0.0001);
+				const total = adjustedPages.reduce((a, b) => a + b, 0);
+				const normalizedValues = adjustedPages.map(v => v / total);
+				let cumulativeAngle = 0;
+				
+				const colors = ['green', 'pink', 'blue', 'red',];
+				// const links = ['https://www.youtube.com', 'https://www.amazon.com', 'https://www.google.com', 'https://www.ebay.com',];
 
-				svg.appendChild(link);
-			});
+				// Retrieve the base link from the corresponding recommendation link
+				const baseLink = container.closest('tr').querySelector('.rec-link').getAttribute('href');
+				// const links = [
+				// 	`${baseLink}&endDate=1899-12-31`,
+				// 	`${baseLink}&startDate=1900-01-01&endDate=1919-12-31`,
+				// 	`${baseLink}&startDate=1920-01-01&endDate=1945-12-31`,
+				// 	`${baseLink}&startDate=1946-01-01`
+				// ];
+				const links = [
+					`${baseLink}&endDate=${TS_1ST}-12-31`,
+					`${baseLink}&startDate=${TS_2ND[0]}-01-01&endDate=${TS_2ND[1]}-12-31`,
+					`${baseLink}&startDate=${TS_3RD[0]}-01-01&endDate=${TS_3RD[1]}-12-31`,
+					`${baseLink}&startDate=${TS_END}-01-01`
+				];
+				// Reference to the circular box
+				const circularBox = container.closest('tr').querySelector('.circular-box');				
+				// Store the original color and value of the circular box
+				const originalColor = circularBox.style.backgroundColor;
+				const originalValue = circularBox.textContent;
+
+				const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+				svg.setAttribute("viewBox", "0 0 100 100");
+				svg.classList.add("pieChart");
+				
+				normalizedValues.forEach((value, index) => {
+					const startAngle = cumulativeAngle;
+					const endAngle = cumulativeAngle + value * 2 * Math.PI;
+					cumulativeAngle = endAngle;
+					const x1 = 50 + 50 * Math.cos(startAngle);
+					const y1 = 50 + 50 * Math.sin(startAngle);
+					const x2 = 50 + 50 * Math.cos(endAngle);
+					const y2 = 50 + 50 * Math.sin(endAngle);
+					const largeArcFlag = value > 0.5 ? 1 : 0;
+					const pathData = [
+						`M 50 50`,
+						`L ${x1} ${y1}`,
+						`A 50 50 0 ${largeArcFlag} 1 ${x2} ${y2}`,
+						`Z`
+					].join(' ');
+
+					const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+					path.setAttribute("d", pathData);
+					path.setAttribute("fill", colors[index]);
+					path.classList.add("pieSegment");
+					
+					// Create a link element for each segment
+					const link = document.createElementNS("http://www.w3.org/2000/svg", "a");
+					link.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", links[index]);
+					link.setAttribute("target", "_blank");
+					link.appendChild(path);
+
+					// Add event listeners for hover effects
+					link.addEventListener('mouseenter', () => {
+						circularBox.style.backgroundColor = colors[index];
+						circularBox.textContent = yearlyPages[index]; // Update the circular box value
+					});
 			
-			container.appendChild(svg);
+					link.addEventListener('mouseleave', () => {
+						circularBox.style.backgroundColor = originalColor; // Reset to original color
+						circularBox.textContent = originalValue; // Reset to original value
+					});
+								
+					svg.appendChild(link);
+				});
+				
+				container.appendChild(svg);
+			} catch (error) {
+				console.error('Error creating pie chart:', error);
+			}
 		}
-
-	// 	function createPieChart(container) {
-	// 		const values = [
-	// 			Math.random(),
-	// 			Math.random(),
-	// 			Math.random(),
-	// 		];
-	// 		const total = values.reduce((a, b) => a + b, 0);
-	// 		const normalizedValues = values.map(v => v / total);
-	// 		let cumulativeAngle = 0;
-	// 		const colors = ['red', 'blue', 'green',];
-	// 		const links = ['https://www.youtube.com', 'https://www.amazon.com', 'https://www.google.com',];					
-	// 		const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-	// 		svg.setAttribute("viewBox", "0 0 100 100");
-	// 		svg.classList.add("pieChart");								
-	// 		normalizedValues.forEach((value, index) => {
-	// 			const startAngle = cumulativeAngle;
-	// 			const endAngle = cumulativeAngle + value * 2 * Math.PI;
-	// 			cumulativeAngle = endAngle;
-	// 			const x1 = 50 + 50 * Math.cos(startAngle);
-	// 			const y1 = 50 + 50 * Math.sin(startAngle);
-	// 			const x2 = 50 + 50 * Math.cos(endAngle);
-	// 			const y2 = 50 + 50 * Math.sin(endAngle);
-	// 			const largeArcFlag = value > 0.5 ? 1 : 0;
-	// 			const pathData = [
-	// 				`M 50 50`,
-	// 				`L ${x1} ${y1}`,
-	// 				`A 50 50 0 ${largeArcFlag} 1 ${x2} ${y2}`,
-	// 				`Z`
-	// 			].join(' ');
-	// 			const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-	// 			path.setAttribute("d", pathData);
-	// 			path.setAttribute("fill", colors[index]);
-	// 			path.classList.add("pie-segment");
-	// 			const link = document.createElementNS("http://www.w3.org/2000/svg", "a");
-	// 			link.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", links[index]);
-	// 			link.setAttribute("target", "_blank");
-	// 			link.appendChild(path);
-	// 			svg.appendChild(link);
-	// 		});
-	// 		container.appendChild(svg);
-	// }
 
 	document.addEventListener('DOMContentLoaded', function() {
 		const pieChartContainers = document.querySelectorAll('.pie-chart-container');

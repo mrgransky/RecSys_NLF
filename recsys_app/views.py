@@ -3,9 +3,13 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 import datetime
 from django.views.decorators.csrf import csrf_exempt
-MAX_NUM_RECOMMENDED_TOKENS: int = 23
+MAX_NUM_RECOMMENDED_TOKENS: int = 7
 CURRENT_NUM_RECOMMENDED_TOKENS: int = 5
 DIGI_BASE_URL: str = "https://digi.kansalliskirjasto.fi/search?requireAllKeywords=true&query="
+TIMESTAMP_1ST: int=1899
+TIMESTAMP_2ND: List[int]=[1900, 1919]
+TIMESTAMP_3RD: List[int]=[1920, 1945]
+TIMESTAMP_END: int=1946
 
 df = pd.DataFrame(
 	columns=[
@@ -132,6 +136,10 @@ def main_page(request):
 		'max_length_recSys': MAX_NUM_RECOMMENDED_TOKENS,
 		'curr_length_recSys': CURRENT_NUM_RECOMMENDED_TOKENS,
 		'digi_base_url': DIGI_BASE_URL,
+		'timestamp_1st': TIMESTAMP_1ST,
+		'timestamp_2nd': TIMESTAMP_2ND,
+		'timestamp_3rd': TIMESTAMP_3RD,
+		'timestamp_end': TIMESTAMP_END,
 	}
 	print(f"Who is using the system? < {user_name} > {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}".center(180, "-"))
 	if request.method == 'POST':
@@ -142,6 +150,10 @@ def main_page(request):
 			recSys_results, recSys_results_total_nlf_num_pages, recSys_results_nlf_yearly_pages = get_recsys_results(
 				query_phrase=RAW_INPUT_QUERY, 
 				nTokens=MAX_NUM_RECOMMENDED_TOKENS+7,
+				ts_1st=TIMESTAMP_1ST,
+				ts_2nd=range(TIMESTAMP_2ND[0], TIMESTAMP_2ND[1]+1, 1),
+				ts_3rd=range(TIMESTAMP_3RD[0], TIMESTAMP_3RD[1]+1, 1),
+				ts_end=TIMESTAMP_END,
 			)
 			if request.POST.get('isRecSys') == "true" and recSys_results and len(recSys_results)>0:
 				context['max_length_recSys'] = min(MAX_NUM_RECOMMENDED_TOKENS, len(recSys_results))

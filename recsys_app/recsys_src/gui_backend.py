@@ -310,29 +310,32 @@ def get_customized_recsys_avg_vec(spMtx, cosine_sim, idf_vec, spMtx_norm):
 	print(f"Elapsed_t: {time.time()-st_t:.2f} s {type(avg_rec)} {avg_rec.dtype} {avg_rec.shape}".center(130, " "))	
 	return avg_rec
 
-def count_years_by_range(year_num_dict: Dict[str, int], first_y: int=1899, sec_ts=np.arange(1900, 1919+1, 1), third_ts=np.arange(1920, 1945+1, 1), last_ts: int=1946):
+def count_years_by_range(yr_vs_nPGs: Dict[str, int], ts_1st: int=1899, ts_2nd=np.arange(1900, 1919+1, 1), ts_3rd=np.arange(1920, 1945+1, 1), ts_end: int=1946):
+	print(ts_1st)
+	print(ts_2nd)
+	print(ts_3rd)
+	print(ts_end)
+
 	first_range = 0
 	second_range = 0
 	third_range = 0
 	forth_range = 0
-	if not year_num_dict:
-		return [0, 0, 0, 0]
-	# world war 1: 28 july 1914 – 11 nov. 1918
-	# world war 2: 1 sep. 1939 – 2 sep. 1945
-	for year, count in year_num_dict.items():
+	if not yr_vs_nPGs:
+		return [0, 0, 0, 0]	
+	for year, count in yr_vs_nPGs.items():
 		year_int = int(year)
-		if year_int <= first_y: # green
+		if year_int <= ts_1st: # green
 			first_range += count
-		elif year_int in sec_ts: # ww1 # pink
+		elif year_int in ts_2nd: # WWI: 28 july 1914 – 11 nov. 1918 # pink
 			second_range += count
-		elif year_int in third_ts: # ww2 # blue
+		elif year_int in ts_3rd: # WWII: 1 sep. 1939 – 2 sep. 1945 # blue
 			third_range += count
-		elif year_int >= last_ts: # red
+		elif year_int >= ts_end: # red
 			forth_range += count
 	yearly_nlf_pages = [first_range, second_range, third_range, forth_range]
 	return yearly_nlf_pages
 
-async def get_recommendation_num_NLF_pages_async(session, INPUT_QUERY: str="global warming", REC_TK: str="pollution"):
+async def get_recommendation_num_NLF_pages_async(session, INPUT_QUERY: str="global warming", REC_TK: str="pollution", ts_1st: int=1899, ts_2nd=np.arange(1900, 1919+1, 1), ts_3rd=np.arange(1920, 1945+1, 1), ts_end: int=1946):
 	URL = f"{SEARCH_QUERY_DIGI_URL}" + urllib.parse.quote_plus(INPUT_QUERY + " " + REC_TK)
 	# print(f"{URL:<150}", end=" ")
 	parsed_url = urllib.parse.urlparse(URL)
@@ -353,7 +356,13 @@ async def get_recommendation_num_NLF_pages_async(session, INPUT_QUERY: str="glob
 				TOTAL_NUM_NLF_RESULTs = res.get("totalResults") # <class 'int'>
 				NLF_pages_by_year_dict = res.get("hitsByYear") # <class 'dict'>: 'year': num_pgs EX) '1939':10
 				# TODO: must provide year args:
-				NLF_pages_by_year_list = count_years_by_range(NLF_pages_by_year_dict)
+				NLF_pages_by_year_list = count_years_by_range(
+					yr_vs_nPGs=NLF_pages_by_year_dict,
+					ts_1st=ts_1st,
+					ts_2nd=ts_2nd,
+					ts_3rd=ts_3rd,
+					ts_end=ts_end,
+				)
 				# print(type(NLF_pages_by_year_dict), NLF_pages_by_year_dict)
 				print(type(NLF_pages_by_year_list), NLF_pages_by_year_list)
 				print(f"Found {type(TOTAL_NUM_NLF_RESULTs)} NLF tot_page(s): {TOTAL_NUM_NLF_RESULTs:<10} in {time.time() - st_t:.1f} sec")
@@ -366,31 +375,39 @@ async def get_recommendation_num_NLF_pages_async(session, INPUT_QUERY: str="glob
 		print(f"<!> Error: {e}")
 		return None, None
 
-# async def get_num_NLF_pages_asynchronous_run(qu: str="global warming", TOKENs_list: List[str]=["tk1", "tk2"]):
-# 	async with aiohttp.ClientSession() as session:
-# 		tasks = [
-# 			NLF_TOT_NUM_PGs
-# 			for tk in TOKENs_list
-# 			if (
-# 				(NLF_TOT_NUM_PGs:=get_recommendation_num_NLF_pages_async(session, INPUT_QUERY=qu, REC_TK=tk))
-# 			)
-# 		]
-# 		num_NLF_pages = await asyncio.gather(*tasks)
-# 		return num_NLF_pages
-
-async def get_num_NLF_pages_asynchronous_run(qu: str="global warming", TOKENs_list: List[str]=["tk1", "tk2"]):
+async def get_num_NLF_pages_asynchronous_run(qu: str="global warming", TOKENs_list: List[str]=["tk1", "tk2"], ts_1st: int=1899, ts_2nd=np.arange(1900, 1919+1, 1), ts_3rd=np.arange(1920, 1945+1, 1), ts_end: int=1946):
+	# async with aiohttp.ClientSession() as session:
+	# 		tasks = [
+	# 			NLF_TOT_NUM_PGs
+	# 			for tk in TOKENs_list
+	# 			if (
+	# 				(NLF_TOT_NUM_PGs:=get_recommendation_num_NLF_pages_async(session, INPUT_QUERY=qu, REC_TK=tk))
+	# 			)
+	# 		]
+	# 		num_NLF_pages = await asyncio.gather(*tasks)
+	# 		return num_NLF_pages
 	async with aiohttp.ClientSession() as session:
 		tasks = [
-			get_recommendation_num_NLF_pages_async(session, INPUT_QUERY=qu, REC_TK=tk)
+			get_recommendation_num_NLF_pages_async(
+				session, 
+				INPUT_QUERY=qu, 
+				REC_TK=tk,
+				ts_1st=ts_1st,
+				ts_2nd=ts_2nd,
+				ts_3rd=ts_3rd,
+				ts_end=ts_end,
+			)
 			for tk in TOKENs_list
 		]
-		results = await asyncio.gather(*tasks)			
+		results = await asyncio.gather(*tasks)
+
 		# Separating total NLF results and pages by year from the gathered results
 		num_NLF_pages = [result[0] for result in results if result[0] is not None]
 		NLF_pages_by_year_list = [result[1] for result in results if result[1] is not None]
+		
 		return num_NLF_pages, NLF_pages_by_year_list
 
-def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], meaningless_lemmas_list: List[str], raw_query: str="Raw Query Phrase!", K: int=50):
+def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], meaningless_lemmas_list: List[str], raw_query: str="MonarKisti", K: int=50, ts_1st: int=1899, ts_2nd=np.arange(1900, 1919+1, 1), ts_3rd=np.arange(1920, 1945+1, 1), ts_end: int=1946):
 	print(
 		f"Looking for < topK={K} > token(s) from NLF REST API...\n"
 		f"Query [raw]: {raw_query}\n"
@@ -410,6 +427,10 @@ def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], meaningless_lemmas_l
 		get_num_NLF_pages_asynchronous_run(
 			qu=raw_query, 
 			TOKENs_list=topK_tokens_list,
+			ts_1st=ts_1st,
+			ts_2nd=ts_2nd,
+			ts_3rd=ts_3rd,
+			ts_end=ts_end,
 		)
 	)
 	###################################################################################################################
@@ -453,7 +474,11 @@ def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], meaningless_lemmas_l
 	return topK_tokens_list, tot_nlf_res_list, nlf_pages_by_year_list
 
 @cache
-def get_recsys_results(query_phrase: str="This is a sample query phrase!", nTokens: int=5):
+def get_recsys_results(query_phrase: str="A Sample query phrase!", nTokens: int=5, ts_1st: int=1899, ts_2nd=np.arange(1900, 1919+1, 1), ts_3rd=np.arange(1920, 1945+1, 1), ts_end: int=1946):
+	print(ts_1st)
+	print(ts_2nd)
+	print(ts_3rd)
+	print(ts_end)
 	tokenized_query_phrase = get_lemmatized_sqp(qu_phrase=query_phrase, lm=lmMethod)
 	print(f"Search Query Prompt: {query_phrase} [lemma(s)]: {tokenized_query_phrase}")
 	if not tokenized_query_phrase:
@@ -486,15 +511,6 @@ def get_recsys_results(query_phrase: str="This is a sample query phrase!", nToke
 		idf_vec=idf_vec,
 		spMtx_norm=usrNorms,
 	)
-	# topK_TKs, topK_TKs_nlf_num_pages = get_topK_tokens(
-	# 	mat_cols=concat_spm_tokNames,
-	# 	avgrec=avgRecSys,
-	# 	raw_query=query_phrase,
-	# 	tok_query=tokenized_query_phrase,
-	# 	meaningless_lemmas_list=UNQ_STW,
-	# 	K=nTokens,
-	# )
-	# return topK_TKs, topK_TKs_nlf_num_pages
 	topK_TKs, topK_TKs_nlf_num_pages, topK_TKs_nlf_pages_by_year = get_topK_tokens(
 		mat_cols=concat_spm_tokNames,
 		avgrec=avgRecSys,
@@ -502,6 +518,10 @@ def get_recsys_results(query_phrase: str="This is a sample query phrase!", nToke
 		tok_query=tokenized_query_phrase,
 		meaningless_lemmas_list=UNQ_STW,
 		K=nTokens,
+		ts_1st=ts_1st,
+		ts_2nd=ts_2nd,
+		ts_3rd=ts_3rd,
+		ts_end=ts_end,
 	)	
 	return topK_TKs, topK_TKs_nlf_num_pages, topK_TKs_nlf_pages_by_year  # Returning the additional value
 #######################################################################################################################

@@ -96,19 +96,19 @@
 										<span class="legend-text">Yearly Distribution</span>
 										<div class="legend-item">
 												<span class="legend-color" style="background-color: green;"></span>
-												<span class="legend-text">Before 1899</span>
+												<span class="legend-text">Before {{ timestamp_1st }}</span>
 										</div>
 										<div class="legend-item">
 												<span class="legend-color" style="background-color: pink;"></span>
-												<span class="legend-text">1900 - 1919 (WWI)</span>
+												<span class="legend-text">{{ timestamp_2nd.0 }} - {{ timestamp_2nd.1 }} (WWI)</span>
 										</div>
 										<div class="legend-item">
 											<span class="legend-color" style="background-color: blue;"></span>
-											<span class="legend-text">1920 - 1945 (WWII)</span>
+											<span class="legend-text">{{ timestamp_3rd.0 }} - {{ timestamp_3rd.1 }} (WWII)</span>
 										</div>
 										<div class="legend-item">
 												<span class="legend-color" style="background-color: red;"></span>
-												<span class="legend-text">After 1946</span>
+												<span class="legend-text">After {{ timestamp_end }}</span>
 										</div>
 								</div>								
 							</th>
@@ -144,6 +144,10 @@
 		var digi_base_url = "https://digi.kansalliskirjasto.fi/search?query=";
 		let recSysResults;
 		let myWindow;
+		const TS_1ST = {{ timestamp_1st }};
+		const TS_2ND = {{ timestamp_2nd|safe }};
+		const TS_3RD = {{ timestamp_3rd|safe }};
+		const TS_END = {{ timestamp_end }};
 	</script>
 
 	<script>
@@ -260,22 +264,28 @@
 			}
 			
 			// Ensure there's at least a minimal value for segments that are zero to prevent zero-length arcs
-			const adjustedPages = yearlyPages.map(v => v > 0 ? v : 0.000001);
+			const adjustedPages = yearlyPages.map(v => v > 0 ? v : 0.01);
 			const total = adjustedPages.reduce((a, b) => a + b, 0);
 			const normalizedValues = adjustedPages.map(v => v / total);
 			let cumulativeAngle = 0;
 			
 			const colors = ['green', 'pink', 'blue', 'red',];
-			const links = ['https://www.youtube.com', 'https://www.amazon.com', 'https://www.google.com', 'https://www.ebay.com',];
+			// const links = ['https://www.youtube.com', 'https://www.amazon.com', 'https://www.google.com', 'https://www.ebay.com',];
 
 			// Retrieve the base link from the corresponding recommendation link
 			const baseLink = container.closest('tr').querySelector('.rec-link').getAttribute('href');
 			// const links = [
-			// 	`${baseLink}&endDate=1924-12-31`,
-			// 	`${baseLink}&startDate=1925-01-01&endDate=1949-12-31`,
-			// 	`${baseLink}&startDate=1950-01-01`
+			// 	`${baseLink}&endDate=1899-12-31`,
+			// 	`${baseLink}&startDate=1900-01-01&endDate=1919-12-31`,
+			// 	`${baseLink}&startDate=1920-01-01&endDate=1945-12-31`,
+			// 	`${baseLink}&startDate=1946-01-01`
 			// ];
-
+			const links = [
+				`${baseLink}&endDate=${TS_1ST}-12-31`,
+				`${baseLink}&startDate=${TS_2ND[0]}-01-01&endDate=${TS_2ND[1]}-12-31`,
+				`${baseLink}&startDate=${TS_3RD[0]}-01-01&endDate=${TS_3RD[1]}-12-31`,
+				`${baseLink}&startDate=${TS_END}-01-01`
+			];
 			const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
 			svg.setAttribute("viewBox", "0 0 100 100");
 			svg.classList.add("pieChart");

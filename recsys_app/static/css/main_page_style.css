@@ -356,7 +356,7 @@ input[type="submit"]:hover {
 	font-weight: bold;
 	font-style: oblique;
 	backdrop-filter: blur(5px);
-	background-color: rgba(255, 255, 255, 0.644);
+	background-color: rgba(255, 255, 255, 0.8);
 	-webkit-backdrop-filter: blur(5px);
 }
 
@@ -446,7 +446,7 @@ input[type="submit"]:hover {
 #recommendationResultContainer tr:hover .rec-link {
 	font-size: 1.4em; /* Slightly enlarge the font size */
 	line-height: 2.0; /* Adjust line height for vertical enlargement */
-	background-color: rgba(193, 255, 182, 0.88); /* Set background color of the link to white */
+	background-color: rgba(239, 255, 236, 0.89); /* Set background color of the link to white */
 	color: #001cb9; /* Ensure text color is black for contrast */
 	padding: 5px; /* Add padding for a more noticeable effect */
 	border-radius: 5px; /* Optionally round the corners of the background */
@@ -517,14 +517,14 @@ td:first-child {
 .pieSegment {
 	transition: transform 0.2s;
 	transform-origin: center;
-	stroke: black; /* Add black border to each segment */
-	stroke-width: 1px; /* Set the width of the border */
+	/* stroke: black;
+	stroke-width: 1px; */
 }
 
 .pieSegment:hover {
 	transform: scale(1.15);
 	filter: brightness(1.28);
-	stroke-width: 2px; /* Optionally increase border width on hover */
+	/* stroke-width: 2px; */
 }
 
 .pie-chart-legend-container {
@@ -556,7 +556,7 @@ td:first-child {
 }
 
 .legend-text {
-	color: #b4b0b0;
+	color: #c5c4c4;
 	font-weight: bold;
-	font-size: 18px;
+	font-size: 17px;
 }

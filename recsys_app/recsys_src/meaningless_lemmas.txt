@@ -750,7 +750,6 @@ nta
 tlyllal
 viv
 sån
-hitl
 vrt
 pohj
 nky
@@ -9865,8 +9864,19 @@ puuseppätehda
 nisul
 internatlon
 hitel
+hitl
+hitle
 hitlers
 hitlerin
+hitlerille
+hitleis
+hitlej
+hitlejr
+hitlek
+hitlem
+hitlemp
+hitlen
+hitlena
 sisäministeriä
 naiskara
 internationalki

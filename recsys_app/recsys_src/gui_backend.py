@@ -310,23 +310,26 @@ def get_customized_recsys_avg_vec(spMtx, cosine_sim, idf_vec, spMtx_norm):
 	print(f"Elapsed_t: {time.time()-st_t:.2f} s {type(avg_rec)} {avg_rec.dtype} {avg_rec.shape}".center(130, " "))	
 	return avg_rec
 
-def count_years_by_range(year_num_dict: Dict[str, int]):
+def count_years_by_range(year_num_dict: Dict[str, int], first_y: int=1899, sec_ts=np.arange(1900, 1919+1, 1), third_ts=np.arange(1920, 1945+1, 1), last_ts: int=1946):
 	first_range = 0
 	second_range = 0
 	third_range = 0
+	forth_range = 0
 	if not year_num_dict:
-		return [0, 0, 0]
+		return [0, 0, 0, 0]
 	# world war 1: 28 july 1914 – 11 nov. 1918
 	# world war 2: 1 sep. 1939 – 2 sep. 1945
 	for year, count in year_num_dict.items():
 		year_int = int(year)
-		if year_int <= 1924: 
+		if year_int <= first_y: # green
 			first_range += count
-		elif 1925 <= year_int <= 1949: # ww1 < <= ww2 
+		elif year_int in sec_ts: # ww1 # pink
 			second_range += count
-		elif year_int >= 1950:
+		elif year_int in third_ts: # ww2 # blue
 			third_range += count
-	yearly_nlf_pages = [first_range, second_range, third_range]
+		elif year_int >= last_ts: # red
+			forth_range += count
+	yearly_nlf_pages = [first_range, second_range, third_range, forth_range]
 	return yearly_nlf_pages
 
 async def get_recommendation_num_NLF_pages_async(session, INPUT_QUERY: str="global warming", REC_TK: str="pollution"):
@@ -349,6 +352,7 @@ async def get_recommendation_num_NLF_pages_async(session, INPUT_QUERY: str="glob
 				res = await response.json()
 				TOTAL_NUM_NLF_RESULTs = res.get("totalResults") # <class 'int'>
 				NLF_pages_by_year_dict = res.get("hitsByYear") # <class 'dict'>: 'year': num_pgs EX) '1939':10
+				# TODO: must provide year args:
 				NLF_pages_by_year_list = count_years_by_range(NLF_pages_by_year_dict)
 				# print(type(NLF_pages_by_year_dict), NLF_pages_by_year_dict)
 				print(type(NLF_pages_by_year_list), NLF_pages_by_year_list)

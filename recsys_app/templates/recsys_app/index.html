@@ -93,18 +93,22 @@
 							<th>
 								Total Recommendation Result(s): <span style="background-color: rgb(235, 235, 7);color: black; font-style: italic;">{{ max_length_recSys }}</span>
 								<div class="pie-chart-legend-container">
-										<span class="legend-text">Pie Chart Yearly Distribution</span>
+										<span class="legend-text">Yearly Distribution</span>
 										<div class="legend-item">
 												<span class="legend-color" style="background-color: green;"></span>
-												<span class="legend-text">Before 1924</span>
+												<span class="legend-text">Before 1899</span>
 										</div>
 										<div class="legend-item">
-												<span class="legend-color" style="background-color: blue;"></span>
-												<span class="legend-text">1925 - 1949</span>
+												<span class="legend-color" style="background-color: pink;"></span>
+												<span class="legend-text">1900 - 1919 (WWI)</span>
+										</div>
+										<div class="legend-item">
+											<span class="legend-color" style="background-color: blue;"></span>
+											<span class="legend-text">1920 - 1945 (WWII)</span>
 										</div>
 										<div class="legend-item">
 												<span class="legend-color" style="background-color: red;"></span>
-												<span class="legend-text">After 1950</span>
+												<span class="legend-text">After 1946</span>
 										</div>
 								</div>								
 							</th>
@@ -254,21 +258,23 @@
 			if (!yearlyPages || yearlyPages.length === 0) {
 					return;
 			}
+			
 			// Ensure there's at least a minimal value for segments that are zero to prevent zero-length arcs
-			const adjustedPages = yearlyPages.map(v => v > 0 ? v : 0.00001);
+			const adjustedPages = yearlyPages.map(v => v > 0 ? v : 0.000001);
 			const total = adjustedPages.reduce((a, b) => a + b, 0);
 			const normalizedValues = adjustedPages.map(v => v / total);
 			let cumulativeAngle = 0;
 			
-			const colors = ['green', 'blue', 'red',];
-			// const links = ['https://www.youtube.com', 'https://www.amazon.com', 'https://www.google.com',];
+			const colors = ['green', 'pink', 'blue', 'red',];
+			const links = ['https://www.youtube.com', 'https://www.amazon.com', 'https://www.google.com', 'https://www.ebay.com',];
+
 			// Retrieve the base link from the corresponding recommendation link
 			const baseLink = container.closest('tr').querySelector('.rec-link').getAttribute('href');
-			const links = [
-				`${baseLink}&endDate=1924-12-31`,
-				`${baseLink}&startDate=1925-01-01&endDate=1949-12-31`,
-				`${baseLink}&startDate=1950-01-01`
-			];
+			// const links = [
+			// 	`${baseLink}&endDate=1924-12-31`,
+			// 	`${baseLink}&startDate=1925-01-01&endDate=1949-12-31`,
+			// 	`${baseLink}&startDate=1950-01-01`
+			// ];
 
 			const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
 			svg.setAttribute("viewBox", "0 0 100 100");

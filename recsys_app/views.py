@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 import datetime
 from django.views.decorators.csrf import csrf_exempt
-MAX_NUM_RECOMMENDED_TOKENS: int = 10
+MAX_NUM_RECOMMENDED_TOKENS: int = 23
 CURRENT_NUM_RECOMMENDED_TOKENS: int = 5
 DIGI_BASE_URL: str = "https://digi.kansalliskirjasto.fi/search?requireAllKeywords=true&query="
 TIMESTAMP_1ST: int=1913

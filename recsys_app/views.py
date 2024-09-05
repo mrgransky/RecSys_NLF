@@ -123,8 +123,16 @@ def track_click(request):
 		data = json.loads(request.body)
 		clicked_recommendation = data.get('clicked_recommendation')
 		input_query = data.get('input_query')
-		print(f"\nUser < {user_name} >\nclicked on recommendation: '{clicked_recommendation}' for query: '{input_query}'")
-		print("#"*120)
+		segment_info = data.get('segment_info')
+		print(f"\nUser < {user_name} > searched for query: < {input_query} > clicked on Recommendation: < {clicked_recommendation} >")
+		if segment_info:
+			print(f" [Interested in] Pie chart Year Distribution ".center(80, "+"))
+			print(
+				f"Segment: < {segment_info['timeRange']} > "
+				f"|nPGs| = {segment_info['yearlyPages']}"
+				.center(80, " ")
+			)
+		print("#"*140)
 		return JsonResponse({'status': 'success'})
 	return JsonResponse({'status': 'error'}, status=400)
 

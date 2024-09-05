@@ -110,7 +110,7 @@
 												<span class="legend-color" style="background-color: red;"></span>
 												<span class="legend-text">After {{ timestamp_end }}</span>
 										</div>
-								</div>								
+								</div>
 							</th>
 						</tr>
 					</thead>
@@ -241,20 +241,26 @@
 			container.style.transform = 'translateX(0)';
 		}
 	
-		function trackClick(clickedRecommendation, inputQuery) {
-			fetch('/track_click/', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'X-CSRFToken': '{{ csrf_token }}'
-				},
-				body: JSON.stringify({
+		function trackClick(clickedRecommendation, inputQuery, segmentInfo = null) {
+			const payload = {
 					clicked_recommendation: clickedRecommendation,
 					input_query: inputQuery
-				})
+			};
+
+			if (segmentInfo) {
+					payload.segment_info = segmentInfo;
+			}
+
+			fetch('/track_click/', {
+					method: 'POST',
+					headers: {
+							'Content-Type': 'application/json',
+							'X-CSRFToken': '{{ csrf_token }}'
+					},
+					body: JSON.stringify(payload)
 			}).then(response => response.json())
-				.then(data => console.log(data))
-				.catch(error => console.error('Error:', error));
+					.then(data => console.log(data))
+					.catch(error => console.error('Error:', error));
 		}
 
 		function createPieChart(container) {
@@ -263,24 +269,16 @@
 				if (!yearlyPages || yearlyPages.length === 0) {
 					return;
 				}
-				
 				// Ensure there's at least a minimal value for segments that are zero to prevent zero-length arcs
 				const adjustedPages = yearlyPages.map(v => v > 0 ? v : 0.0001);
 				const total = adjustedPages.reduce((a, b) => a + b, 0);
 				const normalizedValues = adjustedPages.map(v => v / total);
 				let cumulativeAngle = 0;
-				
 				const colors = ['green', 'pink', 'blue', 'red',];
 				// const links = ['https://www.youtube.com', 'https://www.amazon.com', 'https://www.google.com', 'https://www.ebay.com',];
 
 				// Retrieve the base link from the corresponding recommendation link
 				const baseLink = container.closest('tr').querySelector('.rec-link').getAttribute('href');
-				// const links = [
-				// 	`${baseLink}&endDate=1899-12-31`,
-				// 	`${baseLink}&startDate=1900-01-01&endDate=1919-12-31`,
-				// 	`${baseLink}&startDate=1920-01-01&endDate=1945-12-31`,
-				// 	`${baseLink}&startDate=1946-01-01`
-				// ];
 				const links = [
 					`${baseLink}&endDate=${TS_1ST}-12-31`,
 					`${baseLink}&startDate=${TS_2ND[0]}-01-01&endDate=${TS_2ND[1]}-12-31`,
@@ -317,24 +315,35 @@
 					path.setAttribute("d", pathData);
 					path.setAttribute("fill", colors[index]);
 					path.classList.add("pieSegment");
-					
-					// Create a link element for each segment
-					const link = document.createElementNS("http://www.w3.org/2000/svg", "a");
+
+					const link = document.createElementNS("http://www.w3.org/2000/svg", "a"); // Create a link element for each segment
 					link.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", links[index]);
-					link.setAttribute("target", "_blank");
+					link.setAttribute("target", "_blank"); // Open in a new tab, not the same pg
 					link.appendChild(path);
 
-					// Add event listeners for hover effects
+					// Event listeners for hovering effects (enter)
 					link.addEventListener('mouseenter', () => {
 						circularBox.style.backgroundColor = colors[index];
 						circularBox.textContent = yearlyPages[index]; // Update the circular box value
 					});
-			
+
+					// Event listeners for hovering effects (leave)
 					link.addEventListener('mouseleave', () => {
 						circularBox.style.backgroundColor = originalColor; // Reset to original color
 						circularBox.textContent = originalValue; // Reset to original value
 					});
-								
+
+					link.addEventListener('click', (e) => {
+						e.preventDefault(); // Prevent default link behavior
+						const clickedRecommendation = container.closest('tr').querySelector('.rec-link').getAttribute('data-recommendation');
+						const inputQuery = container.closest('tr').querySelector('.rec-link').getAttribute('data-query');
+						const segmentInfo = {
+								timeRange: getTimeRangeForIndex(index),
+								yearlyPages: yearlyPages[index]
+						};
+						trackClick(clickedRecommendation, inputQuery, segmentInfo);
+						window.open(links[index], '_blank'); // Open link in new tab
+					});				
 					svg.appendChild(link);
 				});
 				
@@ -344,10 +353,16 @@
 			}
 		}
 
-	document.addEventListener('DOMContentLoaded', function() {
-		const pieChartContainers = document.querySelectorAll('.pie-chart-container');
-		pieChartContainers.forEach(createPieChart);
-	});
+	// Helper function to get time range for segment index
+	function getTimeRangeForIndex(index) {
+			const ranges = [
+					`Before ${TS_1ST}`,
+					`${TS_2ND[0]} - ${TS_2ND[1]} (WWI)`,
+					`${TS_3RD[0]} - ${TS_3RD[1]} (WWII)`,
+					`After ${TS_END}`
+			];
+			return ranges[index];
+	}
 </script>
 
 	<script>
@@ -389,7 +404,8 @@
 					}
 			});
 		});
-		// event handler for recsys-links:
+
+		// event handler to keep track of the clicked links recsys-links:
 		document.addEventListener('DOMContentLoaded', function() {
 			const links = document.querySelectorAll('.rec-link');
 			links.forEach(link => {
@@ -405,15 +421,21 @@
 						trackClick(clickedRecommendation, inputQuery);
 					}
 				});
-				// right click (not required!)
-				link.addEventListener('contextmenu', function(e) {
+				link.addEventListener('contextmenu', function(e) { // right click (not required!)
 					const clickedRecommendation = this.getAttribute('data-recommendation');
 					const inputQuery = this.getAttribute('data-query');
 					trackClick(clickedRecommendation, inputQuery);
 				});
 			});
 		});
-	</script>
+
+		// event handler to create a pie chart for links of rec-links:
+		document.addEventListener('DOMContentLoaded', function() {
+		const pieChartContainers = document.querySelectorAll('.pie-chart-container');
+		pieChartContainers.forEach(createPieChart);
+	});
+
+</script>
 
 </body>
 

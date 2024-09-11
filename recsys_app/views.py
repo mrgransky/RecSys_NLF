@@ -181,8 +181,8 @@ def main_page(request):
 			context['recommendation_results'] = None
 	return render(request, 'recsys_app/index.html', context)
 
-def help_page(request):
-	return render(request, 'recsys_app/help.html')
+def instruction_page(request):
+	return render(request, 'recsys_app/instruction.html')
 
 def about_us_page(request):
 	return render(request, 'recsys_app/about_us.html')

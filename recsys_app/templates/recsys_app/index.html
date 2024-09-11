@@ -8,22 +8,21 @@
 		<title>User-based RecSys</title>
 		<link rel="website icon" type="png" href="https://i.pinimg.com/564x/fe/b7/01/feb70145fc9cab28c61c5868305b8600.jpg">
 		<link rel="stylesheet" href="{% static 'css/main_page_style.css' %}">
-		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Audiowide|Sofia|Trirong|Roboto|Pacifico|Indie+Flower|Kaushan+Script">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 	</head>
 
 <body>
 	<div class="navbar">
-		<a href="{% url 'main_page' %}" class="home">Home</a>
-		<a href="{% url 'about_us' %}">About Us</a>
+		<a href="{% url 'main_page' %}" class="home"><i class="fa fa-home"></i> HOME</a>
+		<a href="{% url 'instruction' %}" class="insturction"><i class="fa fa-info-circle"></i> INSTRUCTION</a>
+		<a href="{% url 'about_us' %}" class="about"><i class="fa fa-envelope"></i> ABOUT US</a>
 	</div>
 
 	<div class="container">
-
 		<div class="imageContainer">
 			<img src="https://dpt3vly6oaqnt.cloudfront.net/media/universities/university/MDCs3L29TEOvIDJYiWSqMg.jpg" alt="Left Image">
 			<img src="https://netpreserve.org/resources/logo_KK.fi_-150x150.png" alt="Right Image">
 		</div>
-
 		<div class="search-container">
 			<h2>Hi there, <i>{{ user_name|safe }}</i> &#128521;</h2>
 			<h3>{{ welcome_text|safe }}</h3>
@@ -32,7 +31,7 @@
 				{% csrf_token %}
 				<div class="search-input">
 					<input type="text" name="query" class="search-input-field" placeholder="Hakusana | Sökord | Query prompt">
-					<div class="help-container">
+					<!-- <div class="help-container">
 						<input type="checkbox" id="toggle" class="unfolder"/>
 						<label for="toggle" class="toggle-label">
 							<span class="unfold-icon">&#9654;</span>
@@ -55,27 +54,22 @@
 									<dd>Example: 12 kk helmikuu 1966 NOT required</dd>
 							</dl>
 						</div>
-					</div>
+					</div> -->
 				</div>
-
 				<div class="button-container">
 					<input class="btn-nlf-search" type="button" value="Search NLF" onclick="searchNLF()">
 					<input class="btn-clear" type="button" value="Clear" onclick="clearNlfSearch()">
 				</div>
-
 				<div id="libraryLinkContainer"></div>
-
 				<div class="button-container">
 					<input type="submit" value="Recommend Me" onclick="recommendMe(event)">
 					<input class="btn-clear" type="button" value="Clear" onclick="clearRecSys()">
 				</div>
-
 				<div class="loading-container">
 					<div id="loadingSpinner" class="loading-spinner">
 						<p id="loadingText" class="spinner-text">Please Wait (~2.0 min)</p>
 					</div>
 				</div>
-
 			</form>
 		</div>
 
@@ -353,17 +347,17 @@
 			}
 		}
 
-	// Helper function to get time range for segment index
-	function getTimeRangeForIndex(index) {
+		// Helper function to get time range for segment index
+		function getTimeRangeForIndex(index) {
 			const ranges = [
-					`Before ${TS_1ST}`,
-					`${TS_2ND[0]} - ${TS_2ND[1]} (WWI)`,
-					`${TS_3RD[0]} - ${TS_3RD[1]} (WWII)`,
-					`After ${TS_END}`
+				`Before ${TS_1ST}`,
+				`${TS_2ND[0]} - ${TS_2ND[1]} (WWI)`,
+				`${TS_3RD[0]} - ${TS_3RD[1]} (WWII)`,
+				`After ${TS_END}`
 			];
 			return ranges[index];
-	}
-</script>
+		}
+	</script>
 
 	<script>
 		try { // must be here, otherwise "alert" is shown!
@@ -435,7 +429,7 @@
 		pieChartContainers.forEach(createPieChart);
 	});
 
-</script>
+	</script>
 
 </body>
 

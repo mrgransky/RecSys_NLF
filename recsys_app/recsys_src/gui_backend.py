@@ -350,7 +350,6 @@ async def get_recommendation_num_NLF_pages_async(session, INPUT_QUERY: str="glob
 				res = await response.json()
 				TOTAL_NUM_NLF_RESULTs = res.get("totalResults") # <class 'int'>
 				NLF_pages_by_year_dict = res.get("hitsByYear") # <class 'dict'>: 'year': num_pgs EX) '1939':10
-				# TODO: must provide year args:
 				NLF_pages_by_year_list = count_years_by_range(
 					yr_vs_nPGs=NLF_pages_by_year_dict,
 					ts_1st=ts_1st,
@@ -359,9 +358,9 @@ async def get_recommendation_num_NLF_pages_async(session, INPUT_QUERY: str="glob
 					ts_end=ts_end,
 				)
 				# print(type(NLF_pages_by_year_dict), NLF_pages_by_year_dict)
-				print(type(NLF_pages_by_year_list), NLF_pages_by_year_list)
-				print(f"Found {type(TOTAL_NUM_NLF_RESULTs)} NLF tot_page(s): {TOTAL_NUM_NLF_RESULTs:<10} in {time.time() - st_t:.1f} sec")
-				print()
+				# print(type(NLF_pages_by_year_list), NLF_pages_by_year_list)
+				# print(f"Found {type(TOTAL_NUM_NLF_RESULTs)} NLF tot_page(s): {TOTAL_NUM_NLF_RESULTs:<10} in {time.time() - st_t:.1f} sec")
+				# print()
 				return TOTAL_NUM_NLF_RESULTs, NLF_pages_by_year_list
 	except (
 		aiohttp.ClientError,
@@ -430,8 +429,9 @@ def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], meaningless_lemmas_l
 	)
 	###################################################################################################################
 	# remove zeros: not time consuming...
-	print(f"Done=> removing zero(s)...")
-	rm_t = time.time()
+	# print(f"Done=> removing zero(s)...")
+	# rm_t = time.time()
+
 	tot_nlf_res_list_tmp = tot_nlf_res_list
 	topK_tokens_list_tmp = topK_tokens_list
 	nlf_pages_by_year_list_tmp = nlf_pages_by_year_list
@@ -440,25 +440,25 @@ def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], meaningless_lemmas_l
 	topK_tokens_list = [word for num, word in zip(tot_nlf_res_list_tmp, topK_tokens_list_tmp) if (num and num != 0) ]
 	nlf_pages_by_year_list = [yearly_pages for yearly_pages, tot_pages, tk in zip(nlf_pages_by_year_list_tmp, tot_nlf_res_list_tmp, topK_tokens_list_tmp) if (tot_pages and tot_pages != 0)]
 
-	print(len(topK_tokens_list), topK_tokens_list)
-	print(len(tot_nlf_res_list), tot_nlf_res_list)
-	print(len(nlf_pages_by_year_list), nlf_pages_by_year_list)
-	print(f"elp: {time.time()-rm_t:.5f} sec")
+	# print(len(topK_tokens_list), topK_tokens_list)
+	# print(len(tot_nlf_res_list), tot_nlf_res_list)
+	# print(len(nlf_pages_by_year_list), nlf_pages_by_year_list)
+	# print(f"elp: {time.time()-rm_t:.5f} sec")
 	###################################################################################################################
 
 	###################################################################################################################
 	# sort descending: not time consuming...
 	sort_t = time.time()
-	print(f"=> sorting...")
+	# print(f"=> sorting...")
 	tot_nlf_res_list = tot_nlf_res_list[::-1]
 	topK_tokens_list = topK_tokens_list[::-1]
 	nlf_pages_by_year_list = nlf_pages_by_year_list[::-1]
 	
-	print(len(topK_tokens_list), topK_tokens_list)
-	print(len(tot_nlf_res_list), tot_nlf_res_list)
-	print(len(nlf_pages_by_year_list), nlf_pages_by_year_list)
+	# print(len(topK_tokens_list), topK_tokens_list)
+	# print(len(tot_nlf_res_list), tot_nlf_res_list)
+	# print(len(nlf_pages_by_year_list), nlf_pages_by_year_list)
 
-	print(f"elp: {time.time()-sort_t:.5f} sec => DONE!!!")
+	# print(f"elp: {time.time()-sort_t:.5f} sec => DONE!!!")
 	###################################################################################################################
 	print(
 		f"Found {len(topK_tokens_list)} Recommendation Results "

@@ -7,15 +7,17 @@
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>Contact Information</title>
+		<link rel="website icon" type="png" href="https://i.pinimg.com/564x/17/08/21/1708219df45a2bbf34737ff7a94d5339.jpg">
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 		<link rel="stylesheet" href="{% static 'css/about_page_style.css' %}">
 </head>
 
 <body>
 	<div class="navbar">
-		<a href="{% url 'main_page' %}">Home</a>
-		<a href="{% url 'about_us' %}" class="about">About Us</a>
-	</div>
+		<a href="{% url 'main_page' %}" class="home"><i class="fa fa-home"></i> HOME</a>
+		<a href="{% url 'instruction' %}" class="insturction"><i class="fa fa-info-circle"></i> INSTRUCTION</a>
+		<a href="{% url 'about_us' %}" class="about"><i class="fa fa-envelope"></i> ABOUT US</a>
+</div>
 	<div class="project-contributors-container">
 		<div id="heading-container"><i class="fa fa-envelope"> Contact Information</i><hr></div>
 		<h2>Developer:</h2>

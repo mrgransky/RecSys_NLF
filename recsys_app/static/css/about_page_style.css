@@ -4,7 +4,7 @@ body {
 	height: 100vh;
 	max-width: 1200px; /* Ensure max-width for consistency on all screens */
 	margin: 0 auto; /* centered layout */
-	padding: 10px;
+	padding: 0;
 	box-sizing: border-box;
   color: #333;
 	background-image: url("https://images.cdn.yle.fi/image/upload/ar_1.3334527220630372,c_fill,g_faces,h_899,w_1200/dpr_1.0/q_auto:eco/f_auto/fl_lossy/v1648199454/39-933245623d8607f1068");

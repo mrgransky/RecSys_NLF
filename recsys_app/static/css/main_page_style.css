@@ -4,7 +4,7 @@ body {
 	height: 100vh;
 	max-width: 1200px; /* Ensure max-width for consistency on all screens */
 	margin: 0 auto; /* centered layout */
-	padding: 10px;
+	padding: 0;
 	box-sizing: border-box;
 }
 
@@ -38,7 +38,6 @@ body {
 	animation: glow 0.85s ease-in-out infinite alternate; /* Slows the animation */
 }
 
-/* Navigation Bar */
 .navbar {
 	display: flex;
 	align-items: center;

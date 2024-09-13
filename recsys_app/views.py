@@ -179,7 +179,8 @@ def main_page(request):
 		else:
 			logging.error("Invalid query or no results found.")
 			context['recommendation_results'] = None
-	return render(request, 'recsys_app/index.html', context)
+	# return render(request, 'recsys_app/index.html', context)
+	return render(request, 'recsys_app/index_slider.html', context)
 
 def instruction_page(request):
 	return render(request, 'recsys_app/instruction.html')

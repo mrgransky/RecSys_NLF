@@ -19,10 +19,12 @@
 	</div>
 
 	<div class="container">
+
 		<div class="imageContainer">
 			<img src="https://dpt3vly6oaqnt.cloudfront.net/media/universities/university/MDCs3L29TEOvIDJYiWSqMg.jpg" alt="Left Image">
 			<img src="https://netpreserve.org/resources/logo_KK.fi_-150x150.png" alt="Right Image">
 		</div>
+
 		<div class="search-container">
 			<h2>Hi there, <i>{{ user_name|safe }}</i> &#128521;</h2>
 			<h3>{{ welcome_text|safe }}</h3>
@@ -31,30 +33,6 @@
 				{% csrf_token %}
 				<div class="search-input">
 					<input type="text" name="query" class="search-input-field" placeholder="Hakusana | Sökord | Query prompt">
-					<!-- <div class="help-container">
-						<input type="checkbox" id="toggle" class="unfolder"/>
-						<label for="toggle" class="toggle-label">
-							<span class="unfold-icon">&#9654;</span>
-							<span class="fold-icon">&#9660;</span>
-							Instruction
-						</label>
-						<div class="fold">
-							<dl>
-								<dt>Change browser window to miximized mode for better visibility</dt>
-									<dd>side by side windows should be avoided</dd>
-								<dt>Search query prompts can be either in &#x1F1EB;&#x1F1EE; / &#x1F1F8;&#x1F1EA;</dt>
-								<dt>Avoid using punctuations in search query prompts</dt>
-									<dd>Example: *~/.!# NOT required</dd>
-								<dt>Choose search query prompts with >= 5 characters</dt>
-									<dd>Example 1: Suomen sosialistinen tasavalta</dd>
-									<dd>Example 2: Ålands kulturhistoriska museum</dd>
-									<dd>Example 3: Helsingin pörssi ja suomen pankki</dd>
-								<dt>Avoid using numbers, digits or years in query prompts</dt>
-									<dd>Example: Helmikuu 1932 NOT required</dd>
-									<dd>Example: 12 kk helmikuu 1966 NOT required</dd>
-							</dl>
-						</div>
-					</div> -->
 				</div>
 				<div class="button-container">
 					<input class="btn-nlf-search" type="button" value="Search NLF" onclick="searchNLF()">
@@ -135,7 +113,7 @@
 
 	<script>
 		let globalQuery = `{{ input_query|safe }}`;
-		var digi_base_url = "https://digi.kansalliskirjasto.fi/search?query=";
+		var digi_base_url = "https://digi.kansalliskirjasto.fi/search?query="; //TODO:
 		let recSysResults;
 		let myWindow;
 		const TS_1ST = {{ timestamp_1st }};
@@ -152,22 +130,14 @@
 		function searchNLF() {
 			var query = document.getElementsByName("query")[0].value.trim();
 			if (query !== "") {
-				// document.title = "Q: " + query;
 				document.title = query;
 				var libLinkContainer = document.getElementById("libraryLinkContainer");
-
-				// Create a link element
 				var link = document.createElement("a");
 				link.href = digi_base_url + encodeURIComponent(query);
 				link.target = "_blank";
 				link.textContent = "Click here to open National Library Results";
-
-				// Clear any previous content
-				libLinkContainer.innerHTML = "";
-
-				// Append the link to the container
+				libLinkContainer.innerHTML = "";// Clear any previous content
 				libLinkContainer.appendChild(link);
-
 				libLinkContainer.classList.add('blur-background');
 			} else {
 				alert('Enter a valid query prompt to proceed!');
@@ -204,8 +174,9 @@
 		function recommendMe(event) {
 			var query = document.getElementsByName("query")[0].value.trim();
 			document.getElementById("isRecSys").value = true; // Update the hidden input field
-			showLoadingSpinner();
 			if (query !== "") {
+				showLoadingSpinner();				
+				// Submit the search form after the new window opens
 				document.getElementById("searchForm").submit();
 			} else {
 				alert('Oops! Enter a valid query prompt to proceed!');
@@ -213,28 +184,28 @@
 				event.preventDefault();
 			}
 		}
-		
-		function clearRecSys() {
-			resetTitle();
-			document.getElementsByName("query")[0].value = "";
-			document.getElementsByName("query")[0].placeholder = "Hakusana | Sökord | Query prompt";
 
-			// Remove the recommendationsContainer
+		function clearRecSys() {
+			resetTitle();			
+			document.getElementsByName("query")[0].value = "";
+			document.getElementsByName("query")[0].placeholder = "Hakusana | Sökord | Query prompt";			
 			var recommendationsContainer = document.querySelector('.recommendationsContainer');
 			if (recommendationsContainer) {
 				recommendationsContainer.remove();
 			}
-
 			// Close the opened window if it exists and is not closed
+			console.log("clearning and closing windows....", myWindow, myWindow.closed, !myWindow.closed)
 			if (myWindow && !myWindow.closed) {
+				console.log("yes closing now!")
 				myWindow.close();
+				console.log("<<CLOSED!>>")
 			}
-
-			// Translate the container back to its original position
 			var container = document.querySelector('.container');
-			container.style.transform = 'translateX(0)';
+			container.style.transition = 'transform 0.5s ease, width 0.5s ease'; // Ensure smooth transition
+			container.style.transform = 'translateX(0)'; // Reset position
+			container.style.width = '100%'; // Reset size to full width
 		}
-	
+
 		function trackClick(clickedRecommendation, inputQuery, segmentInfo = null) {
 			const payload = {
 					clicked_recommendation: clickedRecommendation,
@@ -347,8 +318,7 @@
 			}
 		}
 
-		// Helper function to get time range for segment index
-		function getTimeRangeForIndex(index) {
+		function getTimeRangeForIndex(index) {// Helper function to get time range for segment index
 			const ranges = [
 				`Before ${TS_1ST}`,
 				`${TS_2ND[0]} - ${TS_2ND[1]} (WWI)`,
@@ -369,40 +339,41 @@
 			event.preventDefault();
 		}
 
-		document.addEventListener("DOMContentLoaded", function() {
-			const searchInputField = document.querySelector('.search-input-field');
-			const helpContainer = document.querySelector('.help-container');
-			const foldElement = document.querySelector('.fold');
-
-			searchInputField.addEventListener('focus', function() {
-					helpContainer.style.display = 'flex'; // Show the help container
-					foldElement.classList.remove('unfolder'); // Remove the unfold class to fold element
-					foldElement.classList.add('fold'); // Ensure the initial folded state
-			});
-
-			// Toggle fold/unfold when clicking on the help container
-			helpContainer.addEventListener('click', function(event) {
-					// Toggle the fold class
-					foldElement.classList.toggle('unfold');
-
-					// Prevent event propagation to parent elements
-					event.stopPropagation();
-			});
-
-			// Close the help container when clicking outside of it
-			document.addEventListener('click', function(event) {
-					if (!searchInputField.contains(event.target)) {
-							helpContainer.style.display = 'none'; // Hide the help container
-							foldElement.classList.remove('unfolder'); // Remove the unfold class
-							foldElement.classList.add('fold'); // Ensure the folded state
-					}
-			});
-		});
-
-		// event handler to keep track of the clicked links recsys-links:
+		// Event Listeners: 
 		document.addEventListener('DOMContentLoaded', function() {
+			// pie chart:
+			const pieChartContainers = document.querySelectorAll('.pie-chart-container');
+			pieChartContainers.forEach(createPieChart);
+			
+			// rec-link:
 			const links = document.querySelectorAll('.rec-link');
-			links.forEach(link => {
+			links.forEach(function(link) {
+				link.addEventListener('click', function(event) {
+						event.preventDefault(); // Prevent default link behavior
+						var container = document.querySelector('.container');
+						container.style.transform = 'translateX(-30%)';
+						container.style.width = '60%'; // Shrink width
+						var url = link.href; // Get the URL of the clicked link
+
+						console.log("closing any prev opened win (if any)...", myWindow)
+						if (myWindow) {
+							try {
+								console.log("try block")
+								myWindow.close(); // Close the previous window if open
+								console.log("MUST BE CLOSED NOW!!!!")
+							} catch {
+								console.error("Error closing window:", error);
+							}
+						}
+						const screenWidth = window.screen.width;
+						const screenHeight = window.screen.height;
+						const width = Math.round(screenWidth * 0.5); // 50% width
+						const height = screenHeight;
+						const left = screenWidth - width; //Shift window to the right side
+						myWindow = window.open(url, "", `width=${width}, height=${height}, left=${left}, top=0`);
+						myWindow.focus();
+						console.log("myWindow After Focus:", myWindow)
+				});
 				link.addEventListener('click', function(e) {
 					const clickedRecommendation = this.getAttribute('data-recommendation');
 					const inputQuery = this.getAttribute('data-query');
@@ -422,13 +393,7 @@
 				});
 			});
 		});
-
-		// event handler to create a pie chart for links of rec-links:
-		document.addEventListener('DOMContentLoaded', function() {
-		const pieChartContainers = document.querySelectorAll('.pie-chart-container');
-		pieChartContainers.forEach(createPieChart);
-	});
-
+		
 	</script>
 
 </body>

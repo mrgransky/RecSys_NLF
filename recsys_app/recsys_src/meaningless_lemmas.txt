@@ -9867,8 +9867,10 @@ hitel
 hitl
 hitle
 hitlers
+hitleriä
 hitlerin
 hitlerille
+hitlerin
 hitleis
 hitlej
 hitlejr
@@ -11186,7 +11188,6 @@ työväke
 työväkeä
 Karlssonia
 holmströmil
-hitlerin
 afganistanin
 liechtenste
 indef

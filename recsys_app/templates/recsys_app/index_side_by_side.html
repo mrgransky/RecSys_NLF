@@ -1,0 +1,280 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+				<head>
+								<meta charset="UTF-8">
+								<meta name="viewport" content="width=device-width, initial-scale=1.0">
+								<title>User-based RecSys</title>
+								<link rel="website icon" type="png" href="https://i.pinimg.com/564x/fe/b7/01/feb70145fc9cab28c61c5868305b8600.jpg">
+								<link rel="stylesheet" href="{% static 'css/main_page_style.css' %}">
+								<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Audiowide|Sofia|Trirong|Roboto|Pacifico|Indie+Flower|Kaushan+Script">
+				</head>
+
+<body>
+				<div class="navbar">
+								<a href="{% url 'main_page' %}" class="home">Home</a>
+								<a href="{% url 'about_us' %}">About Us</a>
+				</div>
+
+				<div class="container">
+
+								<div class="imageContainer">
+												<img src="https://dpt3vly6oaqnt.cloudfront.net/media/universities/university/MDCs3L29TEOvIDJYiWSqMg.jpg" alt="Left Image">
+												<img src="https://netpreserve.org/resources/logo_KK.fi_-150x150.png" alt="Right Image">
+								</div>
+
+								<div class="search-container">
+												<h2>Hi there, <i>{{ user_name|safe }}</i> &#128521;</h2>
+												<h3>{{ welcome_text|safe }}</h3>
+												<form method="post" action="{% url 'main_page' %}" class="search-form">
+																<input type="hidden" name="isRecSys" id="isRecSys" value="false">
+																{% csrf_token %}
+																<div class="search-input">
+																				<input type="text" name="query" class="search-input-field" placeholder="Hakusana | Sökord | Query prompt">
+																				<div class="help-container">
+																								<input type="checkbox" id="toggle" class="unfolder"/>
+																								<label for="toggle" class="toggle-label">
+																												<span class="unfold-icon">&#9654;</span>
+																												<span class="fold-icon">&#9660;</span>
+																												Instruction
+																								</label>
+																								<div class="fold">
+																												<dl>
+																																<dt>Change browser window to miximized mode for better visibility</dt>
+																																				<dd>side by side windows should be avoided</dd>
+																																<dt>Search query prompts can be either in &#x1F1EB;&#x1F1EE; / &#x1F1F8;&#x1F1EA;</dt>
+																																<dt>Avoid using punctuations in search query prompts</dt>
+																																				<dd>Example: *~/.!# NOT required</dd>
+																																<dt>Choose search query prompts with >= 5 characters</dt>
+																																				<dd>Example 1: Suomen sosialistinen tasavalta</dd>
+																																				<dd>Example 2: Ålands kulturhistoriska museum</dd>
+																																				<dd>Example 3: Helsingin pörssi ja suomen pankki</dd>
+																																<dt>Avoid using numbers, digits or years in query prompts</dt>
+																																				<dd>Example: Helmikuu 1932 NOT required</dd>
+																																				<dd>Example: 12 kk helmikuu 1966 NOT required</dd>
+																												</dl>
+																								</div>
+																				</div>
+																</div>
+
+																<div class="button-container">
+																				<input class="btn-nlf-search" type="button" value="Search NLF" onclick="searchNLF()">
+																				<input class="btn-clear" type="button" value="Clear" onclick="clearNlfSearch()">
+																</div>
+
+																<div id="libraryLinkContainer"></div>
+
+																<div class="button-container">
+																				<input type="submit" value="Recommend Me" onclick="recommendMe(event)">
+																				<input class="btn-clear" type="button" value="Clear" onclick="clearRecSys()">
+																</div>
+
+																<div class="loading-container">
+																				<div id="loadingSpinner" class="loading-spinner">
+																								<p id="loadingText" class="spinner-text">Please Wait (~2.0 min)</p>
+																				</div>
+																</div>
+
+												</form>
+								</div>
+
+								<div class="recommendation-container">
+												{% if recommendation_results %}
+												<script>
+																document.title = "{{ input_query }}";
+												</script>
+												<div class="slider-container">
+																<label for="recSysSlider" id="recSysSliderLbl">Number of RecSys Results:</label>
+																<input type="range" id="recSysSlider" name="recSysSlider" min="3" max="{{ max_length_recSys }}" value="5" oninput="updateSliderValue(this.value)">
+																<span id="sliderValueDisplay">5</span>
+												</div>
+												<div id="recSysIntroContainer">
+																<div><p>Since you Searched</p></div>
+																<div><h1 class="glow">{{input_query}}</h1></div>
+																<div><p>You might be also interested in</p></div>
+												</div>
+												<div id="recommendationResultContainer"></div>
+												{% endif %}
+												</div>
+								</div>
+				<script>
+								let globalQuery = `{{ input_query|safe }}`;
+								var digi_base_url = "https://digi.kansalliskirjasto.fi/search?query=";
+								let recSysResults;
+								let myWindow;
+				</script>
+				<script>
+								function resetTitle() {
+												document.title = "User-based RecSys";
+								}
+								function searchNLF() {
+												var query = document.getElementsByName("query")[0].value.trim();
+												if (query !== "") {
+																// document.title = "Q: " + query;
+																document.title = query;
+																var libLinkContainer = document.getElementById("libraryLinkContainer");
+
+																// Create a link element
+																var link = document.createElement("a");
+																link.href = digi_base_url + encodeURIComponent(query);
+																link.target = "_blank";
+																link.textContent = "Click here to open National Library Results";
+
+																// Clear any previous content
+																libLinkContainer.innerHTML = "";
+
+																// Append the link to the container
+																libLinkContainer.appendChild(link);
+
+																libLinkContainer.classList.add('blur-background');
+												} else {
+																				alert('Enter a valid search query to proceed!');
+																}
+								}
+								function clearNlfSearch() {
+												resetTitle();
+												// Clear the search results
+												var libLinkContainer = document.getElementById("libraryLinkContainer");
+												libLinkContainer.innerHTML = "";
+
+												// Clear the search input field
+												var queryInput = document.getElementsByName("query")[0];
+												queryInput.value = "";
+												queryInput.placeholder = "Hakusana | Sökord | Query prompt";
+
+												// Remove blur effect from all elements with the class .blur-background
+												var blurElements = document.querySelectorAll('.blur-background');
+												blurElements.forEach(function(element) {
+																				element.classList.remove('blur-background');
+												});
+								}
+								function showLoadingSpinner() {
+												document.title = "Searching...";
+												document.getElementById("loadingSpinner").style.display = "flex";
+								}
+								function hideLoadingSpinner() {
+												document.getElementById("loadingSpinner").style.display = "none";
+								}
+								function recommendMe(event) {
+												var query = document.getElementsByName("query")[0].value.trim();
+												document.getElementById("isRecSys").value = true; // Update the hidden input field
+												showLoadingSpinner();
+												if (query !== "") {
+																document.getElementById("searchForm").submit();
+												} else {
+																alert('Oops! Enter a valid search query to proceed!');
+																hideLoadingSpinner();
+																event.preventDefault();
+												}
+								}
+								function clearRecSys() {
+												resetTitle();
+												document.getElementsByName("query")[0].value = "";
+												document.getElementsByName("query")[0].placeholder = "Hakusana | Sökord | Query prompt";
+												document.getElementById("recSysIntroContainer").remove();
+												document.getElementById("recommendationResultContainer").remove();
+												document.getElementById("recSysSlider").remove();
+												document.getElementById("sliderValueDisplay").remove();
+												document.getElementById("recSysSliderLbl").remove();
+												// Close the opened window if it exists and is not closed
+												if (myWindow && !myWindow.closed) {
+																myWindow.close();
+												}
+												// Translate the container back to its original position
+												var container = document.querySelector('.container');
+												container.style.transform = 'translateX(0)';
+								}
+								function updateSliderValue(sliderValue) {
+												document.getElementById('recSysSlider').value = sliderValue;
+												document.getElementById('sliderValueDisplay').textContent = sliderValue;
+												updateResultsBasedOnSliderValue();
+								}
+				</script>
+
+				<script>
+								try {
+												recSysResults = {{ recommendation_results|safe }};
+								} catch (error) {
+												alert(`Sorry! ${globalQuery} NOT found in our database! Search something else!`);
+												recSysResults = null;
+												hideLoadingSpinner();
+												event.preventDefault();
+								}
+
+								document.addEventListener("DOMContentLoaded", function() {
+												updateResultsBasedOnSliderValue();
+								});
+
+								function updateResultsBasedOnSliderValue() {
+												var sliderValue = document.getElementById('recSysSlider').value;
+												var recsysRes = document.getElementById('recommendationResultContainer');
+												recsysRes.innerHTML = "";
+												for (let i = 0; i < sliderValue; i++) {
+																var recSysLink_i = digi_base_url + encodeURIComponent(globalQuery + " " + recSysResults[i]);
+																recsysRes.innerHTML += `<p><a class="rec-link" href='${recSysLink_i}' target='_blank'><span style="font-size: 75%;">${globalQuery}</span> + ${recSysResults[i]}</a></p>`;
+												}
+												// Add event listener to all recommendation links
+												var recLinks = document.querySelectorAll('.rec-link');
+												recLinks.forEach(function(link) {
+																link.addEventListener('click', function(event) {
+																								event.preventDefault(); // Prevent default link behavior
+																								var container = document.querySelector('.container');
+																								container.style.transform = 'translateX(-30%)';
+																								var url = link.href;
+																								if (myWindow) {
+																												try {
+																																				console.log("closing...");
+																																				myWindow.close();
+																												} catch (error) {
+																																				console.error("Error closing window:", error);
+																												}
+																								}
+																								// Calculate the width and height of the window
+																								const screenWidth = window.screen.width;
+																								const screenHeight = window.screen.height;
+																								const width = Math.round(screenWidth * 0.5); // 50% width
+																								const height = screenHeight;
+																								// Calculate the left position to place the window on the right side of the screen
+																								const left = screenWidth - width;
+																								myWindow = window.open(url, "", `width=${width}, height=${height}, left=${left}, top=0`);
+																								myWindow.focus();
+																								console.log("myWindow name, url:", myWindow.name, myWindow.location.href)
+																				});
+												});
+								}
+				</script>
+
+				<script>
+								document.addEventListener("DOMContentLoaded", function() {
+												const searchInputField = document.querySelector('.search-input-field');
+												const helpContainer = document.querySelector('.help-container');
+												const foldElement = document.querySelector('.fold');
+
+												searchInputField.addEventListener('focus', function() {
+																				helpContainer.style.display = 'flex'; // Show the help container
+																				foldElement.classList.remove('unfolder'); // Remove the unfold class to fold element
+																				foldElement.classList.add('fold'); // Ensure the initial folded state
+												});
+
+												// Toggle fold/unfold when clicking on the help container
+												helpContainer.addEventListener('click', function(event) {
+																				// Toggle the fold class
+																				foldElement.classList.toggle('unfold');
+
+																				// Prevent event propagation to parent elements
+																				event.stopPropagation();
+												});
+
+												// Close the help container when clicking outside of it
+												document.addEventListener('click', function(event) {
+																				if (!searchInputField.contains(event.target)) {
+																												helpContainer.style.display = 'none'; // Hide the help container
+																												foldElement.classList.remove('unfolder'); // Remove the unfold class
+																												foldElement.classList.add('fold'); // Ensure the folded state
+																				}
+												});
+								});
+				</script>
+
+</body>

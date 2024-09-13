@@ -64,7 +64,7 @@
 						<tr>
 							<th>
 								Total Recommendation Result(s): <span style="background-color: rgb(235, 235, 7);color: black; font-style: italic;">{{ max_length_recSys }}</span>
-								<div class="pie-chart-legend-container">
+								<!-- <div class="pie-chart-legend-container">
 										<span class="legend-text">Pie Chart Year Distribution</span>
 										<div class="legend-item">
 												<span class="legend-color" style="background-color: green;"></span>
@@ -82,7 +82,7 @@
 												<span class="legend-color" style="background-color: red;"></span>
 												<span class="legend-text">After {{ timestamp_end }}</span>
 										</div>
-								</div>
+								</div> -->
 							</th>
 						</tr>
 					</thead>
@@ -98,7 +98,7 @@
 											data-query="{{ input_query|escapejs }}">
 											<span style="font-size: 71%;">{{ input_query }}</span> + {{ result_i }}
 										</a>
-										<div class="pie-chart-container" data-nlf-yearly-pages="{{ recsys_results_nlf_yearly_nPGs|slice:forloop.counter|last }}"></div>
+										<!-- <div class="pie-chart-container" data-nlf-yearly-pages="{{ recsys_results_nlf_yearly_nPGs|slice:forloop.counter|last }}"></div> -->
 										<div class="circular-box">{{ nlf_result }}</div>
 									</td>
 								</tr>
@@ -352,7 +352,7 @@
 						event.preventDefault(); // Prevent default link behavior
 						var container = document.querySelector('.container');
 						container.style.transform = 'translateX(-30%)';
-						container.style.width = '60%'; // Shrink width
+						container.style.width = '50%'; // Shrink width
 						var url = link.href; // Get the URL of the clicked link
 
 						console.log("closing any prev opened win (if any)...", myWindow)

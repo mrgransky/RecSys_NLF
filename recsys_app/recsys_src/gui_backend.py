@@ -415,6 +415,8 @@ def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], meaningless_lemmas_l
 			recommended_token not in tok_query
 			and recommended_token not in meaningless_lemmas_list
 			and recommended_token not in raw_query.lower().split()
+			and recommended_token not in raw_query.lower() 
+			and raw_query.lower() not in recommended_token # tehdas vs rautatehdas
 		):
 			topK_tokens_list.append(recommended_token)
 	tot_nlf_res_list, nlf_pages_by_year_list = asyncio.run(

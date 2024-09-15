@@ -415,7 +415,7 @@ def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], meaningless_lemmas_l
 			recommended_token not in tok_query
 			and recommended_token not in meaningless_lemmas_list
 			and recommended_token not in raw_query.lower().split()
-			and recommended_token not in raw_query.lower() 
+			and recommended_token not in raw_query.lower() # reklamkampanj vs reklam | keskustapuolue vs puolue 
 			and raw_query.lower() not in recommended_token # tehdas vs rautatehdas
 		):
 			topK_tokens_list.append(recommended_token)
@@ -518,12 +518,9 @@ def get_recsys_results(query_phrase: str="A Sample query phrase!", nTokens: int=
 	)	
 	return topK_TKs, topK_TKs_nlf_num_pages, topK_TKs_nlf_pages_by_year  # Returning the additional value
 #######################################################################################################################
-extract_tar(fname=compressed_spm_file)
 
+extract_tar(fname=compressed_spm_file)
 print(f"USER: >>{USER}<< using {nSPMs} nSPMs")
-# print(fprefix)
-# print(spm_files_dir+'/'+f'{fprefix}'+'_shrinked_spMtx_USERs_vs_TOKENs_*_nUSRs_x_*_nTOKs.gz')
-# print(glob.glob( spm_files_dir+'/'+f'{fprefix}'+'_shrinked_spMtx_USERs_vs_TOKENs_*_nUSRs_x_*_nTOKs.gz' ))
 
 concat_spm_U_x_T = load_pickle(
 	fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'_shrinked_spMtx_USERs_vs_TOKENs_*_nUSRs_x_*_nTOKs.gz' )[0]

@@ -170,7 +170,7 @@ def main_page(request):
 				context['recsys_results_nlf_yearly_nPGs'] = recSys_results_nlf_yearly_pages[:MAX_NUM_RECOMMENDED_TOKENS]
 				print(f"For user: < {user_name} > we found {len(recSys_results)} Recommendation Result(s):\n{recSys_results}")
 				print(len(recSys_results_total_nlf_num_pages), recSys_results_total_nlf_num_pages)
-				print(len(recSys_results_nlf_yearly_pages), recSys_results_nlf_yearly_pages)
+				# print(len(recSys_results_nlf_yearly_pages), recSys_results_nlf_yearly_pages) # separate page numbers for pie chart
 				print("*"*150)
 				context['recommendation_results'] = recSys_results[:MAX_NUM_RECOMMENDED_TOKENS]
 			else:

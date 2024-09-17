@@ -20,8 +20,7 @@ body {
 	background-color: #2c2c2c;
 	padding: 2px;
   padding: 10px 20px;
-	/* width: 100%; */
-	border-radius: 8px;
+	border-radius: 0 0 8px 8px;
 }
 
 .navbar a {

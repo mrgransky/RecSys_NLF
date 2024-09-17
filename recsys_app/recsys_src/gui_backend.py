@@ -99,6 +99,17 @@ def extract_tar(fname: str="file_name"):
 		with tarfile.open(fname, 'r:gz') as tfile:
 			tfile.extractall(output_folder)
 
+def is_substring(A: str="evankelis luterilainen kirkko", B: str="evankelisluterilainen") -> bool:
+	words_in_A = A.lower().split()
+	# print(f"Q: {words_in_A} | Recommended: {B}")
+	for word in words_in_A:
+		# print(word)
+		if word in B or B in word:
+			print(f"\t>> Q: {words_in_A} | < {word} > removing Recommeded: {B}")
+			return False
+	# print("True")
+	return True
+
 @cache
 def get_nlf_pages(INPUT_QUERY: str="global warming"):
 	print(f"Checking NLF for existence of < {INPUT_QUERY} > ...")
@@ -415,8 +426,9 @@ def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], meaningless_lemmas_l
 			recommended_token not in tok_query
 			and recommended_token not in meaningless_lemmas_list
 			and recommended_token not in raw_query.lower().split()
-			and recommended_token not in raw_query.lower() # reklamkampanj vs reklam | keskustapuolue vs puolue 
-			and raw_query.lower() not in recommended_token # tehdas vs rautatehdas
+			and is_substring(A=raw_query, B=recommended_token) # evankelis luterilainen kirkko vs evankelisluterilainen
+			# and recommended_token not in raw_query.lower() # reklamkampanj vs reklam | keskustapuolue vs puolue 
+			# and raw_query.lower() not in recommended_token # tehdas vs rautatehdas
 		):
 			topK_tokens_list.append(recommended_token)
 	tot_nlf_res_list, nlf_pages_by_year_list = asyncio.run(

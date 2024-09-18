@@ -95,7 +95,7 @@ def extract_tar(fname: str="file_name"):
 	output_folder = fname.split(".")[0]
 	if not os.path.isdir(output_folder):
 		print(f'extracting {nSPMs} nSPMs: {fname}')
-		print(f"{output_folder} does not exist, creating...")
+		print(f"< {output_folder} > NOT found, Creating...")
 		with tarfile.open(fname, 'r:gz') as tfile:
 			tfile.extractall(output_folder)
 

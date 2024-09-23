@@ -7,6 +7,7 @@ import time
 import gzip
 import dill
 import random
+import torch
 import numpy as np
 import pandas as pd
 import urllib
@@ -72,6 +73,11 @@ payload = {
 	"tags": [],	
 }
 
+if torch.cuda.is_available():
+	print(f"Available GPU(s) = {torch.cuda.device_count()}")
+	device = torch.device(f"cuda:3") if USER == "ubuntu" else torch.device(f"cuda:0")
+else:
+	device = torch.device("cpu")
 #######################################################################################################################
 def load_pickle(fpath: str="unknown",):
 	print(f"Checking for existence? {fpath}")
@@ -138,7 +144,8 @@ def get_nlf_pages(INPUT_QUERY: str="global warming"):
 	return TOTAL_NUM_NLF_RESULTs
 
 def get_lemmatized_sqp(qu_phrase, lm: str="stanza"):
-	return lemmatizer_methods.get(lm)( clean_(docs=qu_phrase) )
+	cleaned_phrase = clean_(docs=qu_phrase) 
+	return lemmatizer_methods.get(lm)( docs=cleaned_phrase, device=device )
 
 def get_query_vec(mat, mat_row, mat_col, tokenized_qu_phrases=["åbo", "akademi"]):
 	query_vector=np.zeros((1, mat.shape[1]), dtype=np.float32)
@@ -532,7 +539,7 @@ def get_recsys_results(query_phrase: str="A Sample query phrase!", nTokens: int=
 #######################################################################################################################
 
 extract_tar(fname=compressed_spm_file)
-print(f"USER: >>{USER}<< using {nSPMs} nSPMs")
+print(f"USER: >>{USER}<< using {nSPMs} nSPMs | Device: {device}")
 
 concat_spm_U_x_T = load_pickle(
 	fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'_shrinked_spMtx_USERs_vs_TOKENs_*_nUSRs_x_*_nTOKs.gz' )[0]

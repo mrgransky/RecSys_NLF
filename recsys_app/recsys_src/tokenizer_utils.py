@@ -24,6 +24,7 @@ with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
 	import stanza
 	from stanza.pipeline.multilingual import MultilingualPipeline
 	from stanza.pipeline.core import DownloadMethod
+
 	lang_id_config={
 		"langid_lang_subset": [
 			'fi', 
@@ -52,15 +53,15 @@ with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
 		# "fr": {"processors":"tokenize,lemma,pos,mwt", "package":'sequoia',"tokenize_no_ssplit":True},
 	}
 
-	print(f"Creating Stanza[{stanza.__version__}] < MultilingualPipeline >", end=" ")
-	tt = time.time()
-	# Create the MultilingualPipeline object
-	smp = MultilingualPipeline( 
-		lang_id_config=lang_id_config,
-		lang_configs=lang_configs,
-		download_method=DownloadMethod.REUSE_RESOURCES,
-	)
-	print(f"Elapsed_t: {time.time()-tt:.3f} sec")
+	# print(f"Creating Stanza[{stanza.__version__}] < MultilingualPipeline >", end=" ")
+	# tt = time.time()
+	# # Create the MultilingualPipeline object
+	# smp = MultilingualPipeline( 
+	# 	lang_id_config=lang_id_config,
+	# 	lang_configs=lang_configs,
+	# 	download_method=DownloadMethod.REUSE_RESOURCES,
+	# )
+	# print(f"Elapsed_t: {time.time()-tt:.3f} sec")
 
 	useless_upos_tags = [
 		"PUNCT", 
@@ -84,8 +85,24 @@ with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
 	STOPWORDS.extend(my_custom_stopwords)
 	# UNQ_STW = list(set(STOPWORDS))
 	UNQ_STW = set(STOPWORDS)
+	lemmatizer_multi_lingual_pipeline = None
+
 
 # logging.getLogger("stanza").setLevel(logging.WARNING) # disable stanza log messages with severity levels of WARNING and higher (ERROR, CRITICAL)
+
+def create_stanza_multilingual_pipeline(device: str):
+	global lemmatizer_multi_lingual_pipeline
+	if lemmatizer_multi_lingual_pipeline is None:
+		print(f"Initialize Stanza {stanza.__version__} Multilingual Pipeline using {device}".center(130, "-"))
+		tt = time.time()
+		# Create the MultilingualPipeline object
+		lemmatizer_multi_lingual_pipeline = MultilingualPipeline( 
+			lang_id_config=lang_id_config,
+			lang_configs=lang_configs,
+			download_method=DownloadMethod.REUSE_RESOURCES,
+			device=device,
+		)
+		print(f"Elapsed_t: {time.time()-tt:.3f} sec".center(130, "-"))
 
 def nltk_lemmatizer(docs):
 	return None
@@ -126,11 +143,14 @@ def clean_(docs: str="This is a <NORMAL> string!!"):
 	return docs
 
 @cache
-def stanza_lemmatizer(docs: str="This is a <NORMAL> sentence in document."):
+def stanza_lemmatizer(docs: str="This is a <NORMAL> sentence in document.", device=None):
+	# Ensure MultilingualPipeline object is created:
+	create_stanza_multilingual_pipeline(device=device)
 	try:
 		print(f'Stanza[{stanza.__version__}] Raw Input: {docs}')
 		st_t = time.time()
-		all_ = smp(docs)
+		# all_ = smp(docs)
+		all_ = lemmatizer_multi_lingual_pipeline(docs)
 		lemmas_list = [
 			re.sub(r'[";=&#<>_\-\+\^\.\$\[\]]', '', wlm.lower())
 			for _, vsnt in enumerate(all_.sentences) 

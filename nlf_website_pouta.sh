@@ -14,5 +14,5 @@ echo "${stars// /*}"
 HOME_DIR=$(echo $HOME)
 echo "HOME DIR $HOME_DIR"
 source $HOME_DIR/miniconda3/bin/activate py39
-rm -rf staticfiles; python manage.py collectstatic; clear
+rm -rf staticfiles; python manage.py collectstatic;
 python -u manage.py runserver 0.0.0.0:8000

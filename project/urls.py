@@ -18,7 +18,6 @@ urlpatterns = [
 	path('help/', instruction_page, name='instruction'),
 	path('process_feedback/', process_feedback, name='process_feedback'),
 	path('track_click/', track_click, name='track_click'),
-
 ]
 
 if settings.DEBUG:

@@ -1,5 +1,5 @@
 import os
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) # /home/farid/WS_Farid/RecSys_NLF
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) # $HOME/WS_Farid/RecSys_NLF
 SECRET_KEY = os.getenv(
 		'DJANGO_SECRET_KEY',
 		'9e4@&tw46$l31)zrqe3wi+-slqm(ruvz&se0^%9#6(_w3ui!c0'
@@ -12,8 +12,8 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC'
 
-DEBUG = False # if css style layout changes occure
-# DEBUG = True # causes "Broken pipe from ('94.72.62.225', 53959)" error!
+DEBUG = False # To observe that css style layout changes have already taken place! => must be when executed in Pouta!
+# DEBUG = True # causes "Broken pipe from ('94.72.62.225', 53959)" error! # just for debugging purposes!
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
 SECURE_SSL_REDIRECT = False
@@ -105,10 +105,6 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-# if os.getenv('USER') == "ubuntu":
-# 	STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),) # Extra places for collectstatic to find static files
-# STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),) # Extra places for collectstatic to find static files
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')] # Extra places for collectstatic to find static files
 
 INTERNAL_IPS = ['127.0.0.1']

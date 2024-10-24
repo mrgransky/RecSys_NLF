@@ -2,7 +2,7 @@
 
 ## run using command:
 ## $ nohup bash nlf_website_pouta.sh > /dev/null 2>&1 &
-## $ nohup bash nlf_website_pouta.sh >> /media/volume/trash/NLF/nlf_website_logs.out 2>&1 & # with output saved in logs.out
+## $ nohup bash nlf_website_pouta.sh >> /media/volume/trash/NLF/nlf_website_logs.out 2>&1 &
 
 user="`whoami`"
 stars=$(printf '%*s' 100 '')

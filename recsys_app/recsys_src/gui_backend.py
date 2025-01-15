@@ -8,17 +8,20 @@ import gzip
 import dill
 import random
 import torch
-import numpy as np
-import pandas as pd
 import urllib
 import aiohttp
 import asyncio
 import requests
+
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 from typing import List, Set, Dict, Tuple
 from celery import shared_task
 from recsys_app.recsys_src.tokenizer_utils import *
+
+import numpy as np
+import pandas as pd
+import cupy as cp
 
 #######################################################################################################################
 lemmatizer_methods = {
@@ -73,12 +76,6 @@ payload = {
 	"tags": [],	
 }
 
-# if torch.cuda.is_available():
-# 	print(f"Available GPU(s) = {torch.cuda.device_count()}")
-# 	device = torch.device(f"cuda:3") if USER == "ubuntu" else torch.device(f"cuda:0")
-# else:
-# 	device = torch.device("cpu")
-
 def get_device_with_most_free_memory():
 	if torch.cuda.is_available():
 		print(f"Available GPU(s) = {torch.cuda.device_count()}")
@@ -97,9 +94,10 @@ def get_device_with_most_free_memory():
 		print("No GPU available ==>> using CPU")
 	return device
 device = get_device_with_most_free_memory()
+print(f"USER: >>{USER}<< using {nSPMs} nSPMs | Device: {device}")
 
 #######################################################################################################################
-def load_pickle(fpath: str="unknown",):
+def load_pickle(fpath: str="path/to/file.pkl",):
 	print(f"Checking for existence? {fpath}")
 	st_t = time.time()
 	try:
@@ -175,6 +173,60 @@ def get_query_vec(mat, mat_row, mat_col, tokenized_qu_phrases=["åbo", "akademi"
 	# print(np.where(query_vector.flatten()!=0)[0])
 	return query_vector
 
+def get_customized_cosine_similarity_gpu(spMtx, query_vec, idf_vec, spMtx_norm, exponent: float = 1.0):
+		print(f"[GPU Optimized] Customized Cosine Similarity (1 x nUsers={spMtx.shape[0]})".center(130, "-"))
+		print(
+				f"Query: {query_vec.shape} {type(query_vec)} {query_vec.dtype}\n"
+				f"spMtx {type(spMtx)} {spMtx.shape} {spMtx.dtype}\n"
+				f"spMtxNorm: {type(spMtx_norm)} {spMtx_norm.shape} {spMtx_norm.dtype}\n"
+				f"IDF {type(idf_vec)} {idf_vec.shape} {idf_vec.dtype}"
+		)
+		st_t = time.time()
+
+		# Convert inputs to CuPy arrays (float32 instead of float16)
+		query_vec_squeezed = cp.asarray(query_vec.ravel(), dtype=cp.float32)
+		idf_squeezed = cp.asarray(idf_vec.ravel(), dtype=cp.float32)
+		spMtx_norm = cp.asarray(spMtx_norm, dtype=cp.float32)
+
+		# Convert sparse matrix to CuPy CSR format (float32 instead of float16)
+		spMtx_csr = spMtx.tocsr()
+		spMtx_gpu = cp.sparse.csr_matrix(
+				(
+					cp.asarray(spMtx_csr.data, dtype=cp.float32),
+					cp.asarray(spMtx_csr.indices),
+					cp.asarray(spMtx_csr.indptr)
+				),
+				shape=spMtx_csr.shape
+		)
+
+		# Compute quInterest and its norm
+		quInterest = query_vec_squeezed * idf_squeezed
+		quInterestNorm = cp.linalg.norm(quInterest)
+
+		# Get indices of non-zero elements in quInterest
+		idx_nonzeros = cp.nonzero(quInterest)[0]
+		quInterest_nonZeros = quInterest[idx_nonzeros] / quInterestNorm
+
+		# Normalize user interests
+		usrInterestNorm = spMtx_norm + cp.float32(1e-4)
+
+		# Extract only the necessary columns from the sparse matrix
+		spMtx_nonZeros = spMtx_gpu[:, idx_nonzeros]
+
+		# Apply IDF and normalize
+		spMtx_nonZeros = spMtx_nonZeros.multiply(idf_squeezed[idx_nonzeros])
+		spMtx_nonZeros = spMtx_nonZeros.multiply(1 / usrInterestNorm[:, None])
+
+		# Apply exponent if necessary
+		if exponent != 1.0:
+				spMtx_nonZeros.data **= exponent
+
+		# Compute cosine similarity scores
+		cs = spMtx_nonZeros.dot(quInterest_nonZeros)
+
+		print(f"Elapsed_t: {time.time() - st_t:.2f} s {type(cs)} {cs.dtype} {cs.shape}".center(130, " "))
+		return cp.asnumpy(cs)  # Convert result back to NumPy for compatibility
+
 def get_customized_cosine_similarity(spMtx, query_vec, idf_vec, spMtx_norm, exponent: float=1.0):
 	print(f"Customized Cosine Similarity (1 x nUsers={spMtx.shape[0]})".center(130, "-"))
 	print(
@@ -184,50 +236,10 @@ def get_customized_cosine_similarity(spMtx, query_vec, idf_vec, spMtx_norm, expo
 		f"IDF {type(idf_vec)} {idf_vec.shape} {idf_vec.dtype}"
 	)
 	st_t=time.time()
-	# nUsers, _ = spMtx.shape
-	# quInterest=np.squeeze(query_vec)*np.squeeze(np.asarray(idf_vec))#(nTokens,)x(nTokens,)
-	# quInterestNorm=np.linalg.norm(quInterest)#.astype("float32") # float	
-	# idx_nonzeros=np.nonzero(quInterest)#[1]
-	# cs=np.zeros(nUsers, dtype=np.float32) # (nUsers,)
-	# idf_squeezed=np.squeeze(np.asarray(idf_vec))
-	# quInterest_nonZeros=quInterest[idx_nonzeros]*(1/quInterestNorm)
-	# # for ui,_ in enumerate(spMtx): # slightly faster than for ui in np.arange(nUsers, dtype=np.int32)
-	# for ui in np.arange(nUsers, dtype=np.int32):
-	# 	usrInterest=np.squeeze(spMtx[ui, idx_nonzeros].toarray())*idf_squeezed[idx_nonzeros] # 1 x len(idx[1])
-	# 	usrInterestNorm=spMtx_norm[ui]+1e-18
-
-	# 	# usrInterest_noNorms=usrInterest # added Nov 10th
-	# 	# temp_cs_multiplier=np.sum(usrInterest_noNorms*quInterest_nonZeros) # added Nov 10th
-
-	# 	usrInterest=(usrInterest*(1/usrInterestNorm))#**0.1 # seems faster
-	# 	# usrInterest=numba_exp(array=(usrInterest*(1/usrInterestNorm)), exponent=0.1)#~0.35s 1cpu=>~0.07s 8cpu
-
-	# 	usrInterest=(usrInterest**exponent) # added Nov 30th
-
-	# 	cs[ui]=np.sum(usrInterest*quInterest_nonZeros)
-	# 	# cs[ui]*=temp_cs_multiplier # added Nov 10th
-	####################################################################################################
-	# nUsers, _ = spMtx.shape
-	# idf_squeezed = idf_vec.ravel() # faster than np.squeeze(np.asarray(idf_vec))
-	# query_vec_squeezed = query_vec.ravel()
-	# quInterest = query_vec_squeezed * idf_squeezed #(nTokens,)x(nTokens,)
-	# quInterestNorm = np.linalg.norm(quInterest)
-	# idx_nonzeros = np.nonzero(quInterest)#[1]
-	# cs=np.zeros(nUsers, dtype=np.float32) # (nUsers,)
-	# quInterest_nonZeros=quInterest[idx_nonzeros] * (1/quInterestNorm)
-	# usrInterestNorm=spMtx_norm+np.float32(1e-18)    
-	# for ui in np.arange(nUsers, dtype=np.int32): # ip1, ip2, ..., ipN
-	# 	usrInterest = spMtx[ui, idx_nonzeros].toarray().ravel() * idf_squeezed[idx_nonzeros]
-	# 	usrInterest=(usrInterest*(1/usrInterestNorm[ui]))#**0.1 # faster?!        
-	# 	usrInterest=(usrInterest**exponent)
-	# 	cs[ui]=np.sum(usrInterest*quInterest_nonZeros)
-	# return cs # (nUsers,)
-	####################################################################################################
-
 	################################### Vectorized Implementation ##########################################
 	idf_squeezed = idf_vec.ravel()
 	query_vec_squeezed = query_vec.ravel()
-	quInterest = query_vec_squeezed * idf_squeezed
+	quInterest = query_vec_squeezed * idf_squeezed # Element-wise multiplication
 	quInterestNorm = np.linalg.norm(quInterest)
 	
 	idx_nonzeros = np.nonzero(quInterest)[0] # Get the indices of non-zero elements in quInterest
@@ -439,7 +451,18 @@ async def get_num_NLF_pages_asynchronous_run(qu: str="global warming", TOKENs_li
 		
 		return num_NLF_pages, NLF_pages_by_year_list
 
-def get_topK_tokens(mat_cols, avgrec, tok_query: List[str], meaningless_lemmas_list: List[str], raw_query: str="MonarKisti", K: int=50, ts_1st: int=1899, ts_2nd=np.arange(1900, 1919+1, 1), ts_3rd=np.arange(1920, 1945+1, 1), ts_end: int=1946):
+def get_topK_tokens(
+		mat_cols, 
+		avgrec, 
+		tok_query: List[str], 
+		meaningless_lemmas_list: List[str], 
+		raw_query: str="MonarKisti", 
+		K: int=50, 
+		ts_1st: int=1899, 
+		ts_2nd=np.arange(1900, 1919+1, 1), 
+		ts_3rd=np.arange(1920, 1945+1, 1), 
+		ts_end: int=1946,
+	):
 	print(
 		f"Looking for < topK={K} > token(s) from NLF REST API...\n"
 		f"Query [raw]: {raw_query}\n"
@@ -531,7 +554,7 @@ def get_recsys_results(query_phrase: str="A Sample query phrase!", nTokens: int=
 	if not np.any(query_vector):
 		print(f"Sorry! >> {query_phrase} << Not Found in our database! Search something else...")
 		return None, 0, 0
-	ccs=get_customized_cosine_similarity(
+	ccs=get_customized_cosine_similarity_gpu(
 		spMtx=concat_spm_U_x_T,
 		query_vec=query_vector, 
 		idf_vec=idf_vec,
@@ -559,7 +582,6 @@ def get_recsys_results(query_phrase: str="A Sample query phrase!", nTokens: int=
 #######################################################################################################################
 
 extract_tar(fname=compressed_spm_file)
-print(f"USER: >>{USER}<< using {nSPMs} nSPMs | Device: {device}")
 
 concat_spm_U_x_T = load_pickle(
 	fpath=glob.glob( spm_files_dir+'/'+f'{fprefix}'+'_shrinked_spMtx_USERs_vs_TOKENs_*_nUSRs_x_*_nTOKs.gz' )[0]

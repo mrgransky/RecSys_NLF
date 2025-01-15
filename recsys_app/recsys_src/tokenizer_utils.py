@@ -112,7 +112,7 @@ def trankit_lemmatizer(docs):
 
 @cache
 def clean_(docs: str="This is a <NORMAL> string!!"):
-	print(f'Raw Input:\n>>{docs}<<')
+	print(f'Raw Input: « {docs} «')
 	if not docs or len(docs) == 0 or docs == "":
 		return
 	t0 = time.time()
@@ -136,7 +136,7 @@ def clean_(docs: str="This is a <NORMAL> string!!"):
 	# TODO: library checking?!!!! Enchant? only for Pouta!
 	docs = docs.lower()
 	##########################################################################################
-	print(f'Cleaned Input [elasped_t: {time.time()-t0:.5f} s]:\n{docs}')
+	print(f'Cleaned Input: « {docs} » [elasped_t: {time.time()-t0:.5f} s]:')
 	print(f"<>"*40)
 	if not docs or len(docs) == 0 or docs == "":
 		return
@@ -147,7 +147,7 @@ def stanza_lemmatizer(docs: str="This is a <NORMAL> sentence in document.", devi
 	# Ensure MultilingualPipeline object is created:
 	create_stanza_multilingual_pipeline(device=device)
 	try:
-		print(f'Stanza[{stanza.__version__}] Raw Input: {docs}')
+		print(f'Stanza[{stanza.__version__}] Input: {docs}')
 		st_t = time.time()
 		# all_ = smp(docs)
 		all_ = lemmatizer_multi_lingual_pipeline(docs)
@@ -167,6 +167,7 @@ def stanza_lemmatizer(docs: str="This is a <NORMAL> sentence in document.", devi
 	except Exception as e:
 		print(f"<!> Stanza Error: {e}")
 		return
-	print( lemmas_list )
-	print(f"Found {len(lemmas_list)} lemma(s) in {end_t-st_t:.2f} s".center(130, "-") )
+	print(  )
+	print(f"Found {len(lemmas_list)} lemma(s): {lemmas_list}".center(180, " "))
+	print(f"Elapsed_t: {end_t-st_t:.2f} s".center(180, "-"))
 	return lemmas_list

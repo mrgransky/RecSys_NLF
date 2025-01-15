@@ -73,11 +73,31 @@ payload = {
 	"tags": [],	
 }
 
-if torch.cuda.is_available():
-	print(f"Available GPU(s) = {torch.cuda.device_count()}")
-	device = torch.device(f"cuda:3") if USER == "ubuntu" else torch.device(f"cuda:0")
-else:
-	device = torch.device("cpu")
+# if torch.cuda.is_available():
+# 	print(f"Available GPU(s) = {torch.cuda.device_count()}")
+# 	device = torch.device(f"cuda:3") if USER == "ubuntu" else torch.device(f"cuda:0")
+# else:
+# 	device = torch.device("cpu")
+
+def get_device_with_most_free_memory():
+	if torch.cuda.is_available():
+		print(f"Available GPU(s) = {torch.cuda.device_count()}")
+		max_free_memory = 0
+		selected_device = 0
+		for i in range(torch.cuda.device_count()):
+			torch.cuda.set_device(i)
+			free_memory = torch.cuda.mem_get_info()[0]
+			if free_memory > max_free_memory:
+				max_free_memory = free_memory
+				selected_device = i
+		device = torch.device(f"cuda:{selected_device}")
+		print(f"Selected GPU: cuda:{selected_device} with {max_free_memory / 1024**3:.2f} GB free memory")
+	else:
+		device = torch.device("cpu")
+		print("No GPU available ==>> using CPU")
+	return device
+device = get_device_with_most_free_memory()
+
 #######################################################################################################################
 def load_pickle(fpath: str="unknown",):
 	print(f"Checking for existence? {fpath}")

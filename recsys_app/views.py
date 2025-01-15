@@ -173,80 +173,72 @@ def get_user_info(request):
 @csrf_exempt
 def track_click(request):
 	if request.method == 'POST':
-			try:
-					# Get user information
-					user_info = get_user_info(request)
-					detailed_user_info = get_detailed_user_info()
-					# Get click data
-					data = json.loads(request.body)
-					clicked_recommendation = data.get('clicked_recommendation')
-					input_query = data.get('input_query')
-					segment_info = data.get('segment_info')
-					
-					# Create log message
-					log_message = (
-							f"\nUser Activity Report\n"
-							f"{'='*150}\n"
-							f"Timestamp: {user_info['timestamp']}\n"
-							f"IP Address: {user_info['ip_address']} (Routable: {user_info['is_routable']}) {detailed_user_info.get('ip_address')}\n"
-							f"User Name: {user_info['user_name']}\n"
-							f"Session ID: {user_info['session_id']}\n"
-							f"User Agent: {user_info['user_agent']}\n"
-							f"Referrer: {user_info['referrer']}\n"
-							f"Search Query: {input_query}\n"
-							f"Clicked Recommendation: {clicked_recommendation}\n"
+		try:
+			# Get user information
+			user_info = get_user_info(request)
+			detailed_user_info = get_detailed_user_info()
+			# Get click data
+			data = json.loads(request.body)
+			clicked_recommendation = data.get('clicked_recommendation')
+			input_query = data.get('input_query')
+			segment_info = data.get('segment_info')
+			# Create log message
+			log_message = (
+				f"\nUser Activity Report\n"
+				f"{'='*150}\n"
+				f"Timestamp: {user_info['timestamp']}\n"
+				f"IP Address: {user_info['ip_address']} (Routable: {user_info['is_routable']}) {detailed_user_info.get('ip_address')}\n"
+				f"User Name: {user_info['user_name']}\n"
+				f"Session ID: {user_info['session_id']}\n"
+				f"User Agent: {user_info['user_agent']}\n"
+				f"Referrer: {user_info['referrer']}\n"
+				f"Search Query: {input_query}\n"
+				f"Clicked Recommendation: {clicked_recommendation}\n"
+			)
+			# Add segment info if available
+			if segment_info:
+					log_message += (
+							f"\nPie Chart Interaction\n"
+							f"{'-'*80}\n"
+							f"Time Range: {segment_info['timeRange']}\n"
+							f"Number of Pages: {segment_info['yearlyPages']}\n"
 					)
-					
-					# Add segment info if available
-					if segment_info:
-							log_message += (
-									f"\nPie Chart Interaction\n"
-									f"{'-'*80}\n"
-									f"Time Range: {segment_info['timeRange']}\n"
-									f"Number of Pages: {segment_info['yearlyPages']}\n"
-							)
-					
-					log_message += "="*150 + "\n"
-					
-					# Log the information
-					logger.info(log_message)
-					
-					# Store in session for user history
-					if not request.session.get('user_history'):
-							request.session['user_history'] = []
-					
-					request.session['user_history'].append({
-							'timestamp': user_info['timestamp'],
-							'query': input_query,
-							'recommendation': clicked_recommendation,
-							'segment_info': segment_info
-					})
-					
-					return JsonResponse({
-							'status': 'success',
-							'tracked_info': {
-									'ip': user_info['ip_address'],
-									'timestamp': user_info['timestamp']
-							}
-					})
-					
-			except Exception as e:
-					logger.error(f"Error tracking click: {str(e)}")
-					return JsonResponse({
-							'status': 'error',
-							'message': 'Error tracking user activity'
-					}, status=500)
-					
+			log_message += "="*150 + "\n"
+			# Log the information
+			logger.info(log_message)
+			# Store in session for user history
+			if not request.session.get('user_history'):
+				request.session['user_history'] = []
+			request.session['user_history'].append(
+				{
+					'timestamp': user_info['timestamp'],
+					'query': input_query,
+					'recommendation': clicked_recommendation,
+					'segment_info': segment_info
+				}
+			)
+			return JsonResponse(
+				{
+					'status': 'success',
+					'tracked_info': {
+						'ip': user_info['ip_address'],
+						'timestamp': user_info['timestamp']
+					}
+				}
+			)
+		except Exception as e:
+			logger.error(f"Error tracking click: {str(e)}")
+			return JsonResponse(
+				{
+					'status': 'error',
+					'message': 'Error tracking user activity'
+				}, 
+				status=500,
+			)
 	return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=400)
 
 def generate_random_username():
 	return f"user_{random.randint(10, 9999)}"
-
-def get_or_set_user_uuid(request):
-	user_uuid = request.COOKIES.get('user_uuid')
-	if not user_uuid:
-		user_uuid = str(uuid4())  # Generate a new UUID
-	return user_uuid
 
 def check_password(request):
 	if request.method == 'POST':
@@ -256,7 +248,10 @@ def check_password(request):
 		request.session['user_name'] = user_name  # Save user_name in session
 		password = request.POST.get('password', '')
 		if password == '12345':
-			return redirect('main_page')  # Redirect to the main_page view
+			# next_url = request.GET.get('next', 'main_page')
+			next_url = request.GET.get('next', '/home/')
+			return redirect(next_url)
+			# return redirect('main_page')  # Redirect to the main_page view
 		else:
 			return render(
 				request,
@@ -267,9 +262,17 @@ def check_password(request):
 		return render(request, 'recsys_app/password_page.html')
 
 def main_page(request, query=None):
+	# Check if the user is authenticated:
 	user_name = request.session.get('user_name')  # Retrieve user_name from session
+
+	# if not user_name:
+	# 	return redirect('check_password') # Redirect to password page
+
 	if not user_name:
-		return redirect('check_password') # Redirect to password page
+		# Build the 'next' parameter to redirect the user back to their intended query page
+		next_url = f"/home/query={query}" if query else "/home/"
+		return redirect(f"/?next={next_url}")
+
 	context = {
 		'user_name': user_name,
 		'welcome_text': "Welcome to User-based Recommendation System!<br>What are you looking after?",
@@ -285,15 +288,12 @@ def main_page(request, query=None):
 	if request.method == 'POST' or query:
 		# Get query either from POST or URL parameter
 		RAW_INPUT_QUERY = (request.POST.get('query', '') if request.method == 'POST' else unquote(query)).lower()
-		print(f"Debug - Input Query: {RAW_INPUT_QUERY}")  # Debug print
 		if request.method == 'POST':
 			# Redirect to URL with query parameter
 			return redirect('main_page_with_query', query=RAW_INPUT_QUERY)
 
 		context["input_query"] = RAW_INPUT_QUERY
 		raw_query_nlf_results = get_nlf_pages(INPUT_QUERY=RAW_INPUT_QUERY)
-		print(f"Debug - NLF Results: {raw_query_nlf_results}")  # Debug print
-
 		if raw_query_nlf_results and raw_query_nlf_results > 0 and clean_(docs=RAW_INPUT_QUERY):
 			recSys_results, recSys_results_total_nlf_num_pages, recSys_results_nlf_yearly_pages = get_recsys_results(
 				query_phrase=RAW_INPUT_QUERY, 

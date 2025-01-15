@@ -303,9 +303,6 @@ def main_page(request, query=None):
 				ts_3rd=range(TIMESTAMP_3RD[0], TIMESTAMP_3RD[1]+1, 1),
 				ts_end=TIMESTAMP_END,
 			)
-			print(f"Debug - RecSys Results: {recSys_results}")  # Debug print
-			print(f"request.POST.get('isRecSys'): {request.POST.get('isRecSys')}")
-			# if request.POST.get('isRecSys') == "true" and recSys_results and len(recSys_results)>0:
 			if recSys_results and len(recSys_results)>0:
 				context['max_length_recSys'] = min(MAX_NUM_RECOMMENDED_TOKENS, len(recSys_results))
 				context['curr_length_recSys'] = min(CURRENT_NUM_RECOMMENDED_TOKENS, len(recSys_results))

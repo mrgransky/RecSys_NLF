@@ -3,6 +3,21 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 import datetime
 from django.views.decorators.csrf import csrf_exempt
+from uuid import uuid4
+from urllib.parse import unquote
+from ipware import get_client_ip
+import logging
+
+# Set up logging
+logging.basicConfig(
+		level=logging.INFO,
+		format='%(asctime)s - %(levelname)s - %(message)s',
+		handlers=[
+				logging.FileHandler('user_tracking.log'),
+				logging.StreamHandler()
+		]
+)
+logger = logging.getLogger(__name__)
 
 MAX_NUM_RECOMMENDED_TOKENS: int = 23
 CURRENT_NUM_RECOMMENDED_TOKENS: int = 5
@@ -96,8 +111,142 @@ def submit_feedback(request):
 		print(f"ERRRORRRR")
 		return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
+def get_detailed_user_info():
+	try:
+		response = requests.get('http://ip-api.com/json')
+		data = response.json()
+		ip_info = {
+			'ip_address': data['query'],
+			'location': f"{data['city']}, {data['regionName']}, {data['country']}",
+			'isp': data['isp'],
+			'latitude': data['lat'],
+			'longitude': data['lon'],
+			'timezone': data['timezone'],
+			'organization': data['org'],
+			'as_number': data['as'],
+			'as_name': data.get('asname', None),
+			'mobile': data.get('mobile', False),
+			'proxy': data.get('proxy', False)
+		}
+		ip_address = data['query']
+		location = f"{data['city']}, {data['regionName']}, {data['country']}"
+		isp = data['isp']
+		lat, lon = data['lat'], data['lon']
+		timezone = data['timezone']
+		org = data['org'] # organization
+		as_number = data['as']
+		as_name = data.get('asname', None)
+		mobile = data.get('mobile', False)
+		proxy = data.get('proxy', False)
+		print(f"IP Address: {ip_address} Location: {location} ISP: {isp}".center(170, "-"))
+		print(f"(Latitude, Longitude): ({lat}, {lon}) Time Zone: {timezone} Organization: {org} AS Number: {as_number}, AS Name: {as_name} Mobile: {mobile}, Proxy: {proxy}")
+		print("-"*170)
+		return ip_info
+	except requests.exceptions.RequestException as e:
+		print(f"Error: {e}")
+
+def get_user_info(request):
+	"""Helper function to gather user information"""
+	# Get IP address
+	client_ip, is_routable = get_client_ip(request)
+	
+	# Get user agent
+	user_agent = request.META.get('HTTP_USER_AGENT', 'Unknown')
+	
+	# Get session or cookie info
+	user_name = request.session.get('user_name', 'x_Unknown_User_x')
+	session_id = request.session.session_key
+	
+	# Get referrer if available
+	referrer = request.META.get('HTTP_REFERER', 'Direct Access')
+	
+	return {
+			'ip_address': client_ip if client_ip else 'Unknown IP',
+			'is_routable': is_routable,
+			'user_agent': user_agent,
+			'user_name': user_name,
+			'session_id': session_id,
+			'referrer': referrer,
+			'timestamp': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+	}
+
+@csrf_exempt
+def track_click(request):
+	if request.method == 'POST':
+			try:
+					# Get user information
+					user_info = get_user_info(request)
+					detailed_user_info = get_detailed_user_info()
+					# Get click data
+					data = json.loads(request.body)
+					clicked_recommendation = data.get('clicked_recommendation')
+					input_query = data.get('input_query')
+					segment_info = data.get('segment_info')
+					
+					# Create log message
+					log_message = (
+							f"\nUser Activity Report\n"
+							f"{'='*150}\n"
+							f"Timestamp: {user_info['timestamp']}\n"
+							f"IP Address: {user_info['ip_address']} (Routable: {user_info['is_routable']}) {detailed_user_info.get('ip_address')}\n"
+							f"User Name: {user_info['user_name']}\n"
+							f"Session ID: {user_info['session_id']}\n"
+							f"User Agent: {user_info['user_agent']}\n"
+							f"Referrer: {user_info['referrer']}\n"
+							f"Search Query: {input_query}\n"
+							f"Clicked Recommendation: {clicked_recommendation}\n"
+					)
+					
+					# Add segment info if available
+					if segment_info:
+							log_message += (
+									f"\nPie Chart Interaction\n"
+									f"{'-'*80}\n"
+									f"Time Range: {segment_info['timeRange']}\n"
+									f"Number of Pages: {segment_info['yearlyPages']}\n"
+							)
+					
+					log_message += "="*150 + "\n"
+					
+					# Log the information
+					logger.info(log_message)
+					
+					# Store in session for user history
+					if not request.session.get('user_history'):
+							request.session['user_history'] = []
+					
+					request.session['user_history'].append({
+							'timestamp': user_info['timestamp'],
+							'query': input_query,
+							'recommendation': clicked_recommendation,
+							'segment_info': segment_info
+					})
+					
+					return JsonResponse({
+							'status': 'success',
+							'tracked_info': {
+									'ip': user_info['ip_address'],
+									'timestamp': user_info['timestamp']
+							}
+					})
+					
+			except Exception as e:
+					logger.error(f"Error tracking click: {str(e)}")
+					return JsonResponse({
+							'status': 'error',
+							'message': 'Error tracking user activity'
+					}, status=500)
+					
+	return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=400)
+
 def generate_random_username():
 	return f"user_{random.randint(10, 9999)}"
+
+def get_or_set_user_uuid(request):
+	user_uuid = request.COOKIES.get('user_uuid')
+	if not user_uuid:
+		user_uuid = str(uuid4())  # Generate a new UUID
+	return user_uuid
 
 def check_password(request):
 	if request.method == 'POST':
@@ -117,28 +266,10 @@ def check_password(request):
 	else:
 		return render(request, 'recsys_app/password_page.html')
 
-@csrf_exempt
-def track_click(request):
-	if request.method == 'POST':
-		user_name = request.session.get('user_name', 'x_Unkown_User_x')  # Retrieve user_name from session
-		data = json.loads(request.body)
-		clicked_recommendation = data.get('clicked_recommendation')
-		input_query = data.get('input_query')
-		segment_info = data.get('segment_info')
-		print(f"\nUser < {user_name} > searched for query: < {input_query} > clicked on Recommendation: < {clicked_recommendation} >")
-		if segment_info:
-			print(f" [Interested in] Pie chart Year Distribution ".center(80, "+"))
-			print(
-				f"Segment: < {segment_info['timeRange']} > "
-				f"|nPGs| = {segment_info['yearlyPages']}"
-				.center(80, " ")
-			)
-		print("#"*140)
-		return JsonResponse({'status': 'success'})
-	return JsonResponse({'status': 'error'}, status=400)
-
-def main_page(request):
-	user_name = request.session.get('user_name', 'x_Unkown_User_x')  # Retrieve user_name from session
+def main_page(request, query=None):
+	user_name = request.session.get('user_name')  # Retrieve user_name from session
+	if not user_name:
+		return redirect('check_password') # Redirect to password page
 	context = {
 		'user_name': user_name,
 		'welcome_text': "Welcome to User-based Recommendation System!<br>What are you looking after?",
@@ -151,10 +282,18 @@ def main_page(request):
 		'timestamp_end': TIMESTAMP_END,
 	}
 	print(f"Who is using the system? < {user_name} > {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}".center(180, "-"))
-	if request.method == 'POST':
-		RAW_INPUT_QUERY = request.POST.get('query', '').lower()
+	if request.method == 'POST' or query:
+		# Get query either from POST or URL parameter
+		RAW_INPUT_QUERY = (request.POST.get('query', '') if request.method == 'POST' else unquote(query)).lower()
+		print(f"Debug - Input Query: {RAW_INPUT_QUERY}")  # Debug print
+		if request.method == 'POST':
+			# Redirect to URL with query parameter
+			return redirect('main_page_with_query', query=RAW_INPUT_QUERY)
+
 		context["input_query"] = RAW_INPUT_QUERY
 		raw_query_nlf_results = get_nlf_pages(INPUT_QUERY=RAW_INPUT_QUERY)
+		print(f"Debug - NLF Results: {raw_query_nlf_results}")  # Debug print
+
 		if raw_query_nlf_results and raw_query_nlf_results > 0 and clean_(docs=RAW_INPUT_QUERY):
 			recSys_results, recSys_results_total_nlf_num_pages, recSys_results_nlf_yearly_pages = get_recsys_results(
 				query_phrase=RAW_INPUT_QUERY, 
@@ -164,7 +303,10 @@ def main_page(request):
 				ts_3rd=range(TIMESTAMP_3RD[0], TIMESTAMP_3RD[1]+1, 1),
 				ts_end=TIMESTAMP_END,
 			)
-			if request.POST.get('isRecSys') == "true" and recSys_results and len(recSys_results)>0:
+			print(f"Debug - RecSys Results: {recSys_results}")  # Debug print
+			print(f"request.POST.get('isRecSys'): {request.POST.get('isRecSys')}")
+			# if request.POST.get('isRecSys') == "true" and recSys_results and len(recSys_results)>0:
+			if recSys_results and len(recSys_results)>0:
 				context['max_length_recSys'] = min(MAX_NUM_RECOMMENDED_TOKENS, len(recSys_results))
 				context['curr_length_recSys'] = min(CURRENT_NUM_RECOMMENDED_TOKENS, len(recSys_results))
 				context['recsys_results_total_nlf_pages'] = recSys_results_total_nlf_num_pages[:MAX_NUM_RECOMMENDED_TOKENS]

@@ -32,7 +32,7 @@
 				<input type="hidden" name="isRecSys" id="isRecSys" value="false">
 				{% csrf_token %}
 				<div class="search-input">
-					<input type="text" name="query" class="search-input-field" placeholder="Hakusana | Sökord | Query prompt">
+					<input type="text" name="query" class="search-input-field" placeholder="Hakusana | Sökord | Query prompt" value="{{ input_query|default:'' }}">
 				</div>
 				<div class="button-container">
 					<input class="btn-nlf-search" type="button" value="Search NLF" onclick="searchNLF()">
@@ -158,8 +158,11 @@
 			// Remove blur effect from all elements with the class .blur-background
 			var blurElements = document.querySelectorAll('.blur-background');
 			blurElements.forEach(function(element) {
-					element.classList.remove('blur-background');
+				element.classList.remove('blur-background');
 			});
+			
+			// Redirect to base URL
+			window.location.href = '/home/';
 		}
 		
 		function showLoadingSpinner() {
@@ -204,6 +207,9 @@
 			container.style.transition = 'transform 0.5s ease, width 0.5s ease'; // Ensure smooth transition
 			container.style.transform = 'translateX(0)'; // Reset position
 			container.style.width = '100%'; // Reset size to full width
+
+			// Redirect to base URL
+			window.location.href = '/home/';
 		}
 
 		function trackClick(clickedRecommendation, inputQuery, segmentInfo = null) {
@@ -330,17 +336,42 @@
 	</script>
 
 	<script>
-		try { // must be here, otherwise "alert" is shown!
-			recSysResults = {{ recommendation_results|safe }};
-		} catch (error) {
-			alert(`< ${globalQuery} > NOT FOUND in Database, Search Again!`);
-			recSysResults = null;
-			hideLoadingSpinner();
-			event.preventDefault();
-		}
+		// try { // must be here, otherwise "alert" is shown!
+		// 	recSysResults = {{ recommendation_results|safe }};
+		// } catch (error) {
+		// 	alert(`< ${globalQuery} > NOT FOUND in Database, Search Again!`);
+		// 	recSysResults = null;
+		// 	hideLoadingSpinner();
+		// 	event.preventDefault();
+		// }
 
 		// Event Listeners: 
 		document.addEventListener('DOMContentLoaded', function() {
+		try {
+					// Check if recommendation_results exists in the template context
+					{% if recommendation_results %}
+							recSysResults = {{ recommendation_results|safe }};
+							if (!recSysResults || recSysResults.length === 0) {
+									throw new Error('No results found');
+							}
+							// Hide loading spinner if it's visible
+							hideLoadingSpinner();
+					{% else %}
+							// Only show alert if there was actually a search attempt
+							if (globalQuery && globalQuery.trim() !== '') {
+									alert(`< ${globalQuery} > NOT FOUND in Database, Search Again! [if recommendation_results]`);
+									recSysResults = null;
+									hideLoadingSpinner();
+							}
+					{% endif %}
+			} catch (error) {
+					console.error('Error processing results:', error);
+					if (globalQuery && globalQuery.trim() !== '') {
+							alert(`< ${globalQuery} > NOT FOUND in Database, Search Again!`);
+					}
+					recSysResults = null;
+					hideLoadingSpinner();
+			}
 			// pie chart:
 			const pieChartContainers = document.querySelectorAll('.pie-chart-container');
 			pieChartContainers.forEach(createPieChart);

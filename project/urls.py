@@ -14,6 +14,7 @@ urlpatterns = [
 	path('', check_password, name='check_password'),
 	# path('', main_page, name='index'),
 	path('home/', main_page, name='main_page'),
+	path('home/query=<str:query>', main_page, name='main_page_with_query'),
 	path('about_us/', about_us_page, name='about_us'),
 	path('help/', instruction_page, name='instruction'),
 	path('process_feedback/', process_feedback, name='process_feedback'),

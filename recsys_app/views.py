@@ -286,12 +286,9 @@ def main_page(request, query=None):
 	}
 	print(f"Who is using the system? < {user_name} > {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}".center(180, "-"))
 	if request.method == 'POST' or query:
-		# Get query either from POST or URL parameter
 		RAW_INPUT_QUERY = (request.POST.get('query', '') if request.method == 'POST' else unquote(query)).lower()
 		if request.method == 'POST':
-			# Redirect to URL with query parameter
 			return redirect('main_page_with_query', query=RAW_INPUT_QUERY)
-
 		context["input_query"] = RAW_INPUT_QUERY
 		raw_query_nlf_results = get_nlf_pages(INPUT_QUERY=RAW_INPUT_QUERY)
 		if raw_query_nlf_results and raw_query_nlf_results > 0 and clean_(docs=RAW_INPUT_QUERY):

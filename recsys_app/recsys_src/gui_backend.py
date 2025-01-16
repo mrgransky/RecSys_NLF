@@ -77,6 +77,15 @@ payload = {
 	"tags": [],	
 }
 
+def get_device():
+	if torch.cuda.is_available():
+		cuda_num = 3 if USER == "ubuntu" else 0
+		device = torch.device(f"cuda:{cuda_num}")
+	else:
+		device = torch.device("cpu")
+	print(f"Using device: {device}")
+	return device
+
 def get_device_with_most_free_memory():
 	if torch.cuda.is_available():
 		print(f"Available GPU(s) = {torch.cuda.device_count()}")
@@ -94,7 +103,9 @@ def get_device_with_most_free_memory():
 		device = torch.device("cpu")
 		print("No GPU available ==>> using CPU")
 	return device
-device = get_device_with_most_free_memory()
+# device = get_device_with_most_free_memory()
+
+device = get_device()
 print(f"USER: >>{USER}<< using {nSPMs} nSPMs | Device: {device}")
 
 #######################################################################################################################
@@ -174,14 +185,21 @@ def get_query_vec(mat, mat_row, mat_col, tokenized_qu_phrases=["åbo", "akademi"
 	# print(np.where(query_vector.flatten()!=0)[0])
 	return query_vector
 
-def get_customized_cosine_similarity_gpu(spMtx, query_vec, idf_vec, spMtx_norm, exponent:float=1.0, batch_size:int=1024):
+def get_customized_cosine_similarity_gpu(spMtx, query_vec, idf_vec, spMtx_norm, exponent:float=1.0, batch_size:int=2048):
 		print(f"[GPU Optimized] Customized Cosine Similarity (1 x nUsers={spMtx.shape[0]}) batch_size={batch_size}".center(130, "-"))
 		print(
-				f"Query: {query_vec.shape} {type(query_vec)} {query_vec.dtype} non_zeros={np.count_nonzero(query_vec)} non_zero_ratio={np.count_nonzero(query_vec) / query_vec.size:.2f}\n"
-				f"spMtx {type(spMtx)} {spMtx.shape} {spMtx.dtype}\n"
-				f"spMtxNorm: {type(spMtx_norm)} {spMtx_norm.shape} {spMtx_norm.dtype}\n"
-				f"IDF {type(idf_vec)} {idf_vec.shape} {idf_vec.dtype}"
+			f"Query: {query_vec.shape} {type(query_vec)} {query_vec.dtype} non_zeros={np.count_nonzero(query_vec)} (ratio={np.count_nonzero(query_vec) / query_vec.size})\n"
+			f"spMtx {type(spMtx)} {spMtx.shape} {spMtx.dtype}\n"
+			f"spMtxNorm: {type(spMtx_norm)} {spMtx_norm.shape} {spMtx_norm.dtype}\n"
+			f"IDF {type(idf_vec)} {idf_vec.shape} {idf_vec.dtype}"
 		)
+		# Print GPU device information
+		device = cp.cuda.Device()
+		device_id = device.id
+		device_name = cp.cuda.runtime.getDeviceProperties(device_id)['name'].decode('utf-8')
+		print(f"Using GPU: {device_name}")
+		print(f"Total GPU Memory: {device.mem_info[1] / 1024 ** 3:.2f} GB")
+		print(f"Free GPU Memory: {device.mem_info[0] / 1024 ** 3:.2f} GB")
 		st_t = time.time()
 
 		# Convert inputs to CuPy arrays (float32)
@@ -239,6 +257,10 @@ def get_customized_cosine_similarity_gpu(spMtx, query_vec, idf_vec, spMtx_norm, 
 				# Free memory for the batch
 				del spMtx_batch, spMtx_nonZeros, cs_batch
 				cp.get_default_memory_pool().free_all_blocks()
+				torch.cuda.empty_cache() # Clear CUDA cache
+				# torch.cuda.synchronize() # Ensure all CUDA operations are complete
+				# Print memory usage after each batch
+				print(f"Batch {i // batch_size + 1}: Free GPU Memory: {device.mem_info[0] / 1024 ** 3:.2f} GB")
 
 		print(f"Elapsed_t: {time.time() - st_t:.2f} s {type(cs)} {cs.dtype} {cs.shape}".center(130, " "))
 		return cp.asnumpy(cs)  # Convert result back to NumPy for compatibility
@@ -284,56 +306,6 @@ def get_customized_cosine_similarity(spMtx, query_vec, idf_vec, spMtx_norm, expo
 def get_customized_recsys_avg_vec(spMtx, cosine_sim, idf_vec, spMtx_norm):
 	print(f"avgRecSys (1 x nTKs={spMtx.shape[1]})".center(130, "-"))
 	st_t = time.time()
-
-	####################################################################################################################################
-	# using Only USERs with nonZero Cosine Similarity: (less efficient)
-	# nUsers, nTokens= spMtx.shape
-	# avg_rec=np.zeros(nTokens, dtype=np.float32)# (nTokens,)
-	# idf_squeezed=np.squeeze(np.asarray(idf_vec))
-	# non_zero_cosines = np.nonzero(cosine_sim)[0]
-	# print(
-	# 	f"spMtx {type(spMtx)} {spMtx.shape} {spMtx.dtype}\n"
-	# 	f"spMtxNorm: {type(spMtx_norm)} {spMtx_norm.shape} {spMtx_norm.dtype}\n"
-	# 	f"CS {type(cosine_sim)} {cosine_sim.shape} {cosine_sim.dtype} NonZero(s): {non_zero_cosines.shape[0]}\n"
-	# 	f"IDF {type(idf_vec)} {idf_vec.shape} {idf_vec.dtype}"
-	# )
-	# st_t = time.time()
-	# for nonzero_idx_CCS in non_zero_cosines: # only for those users with NON-Zero Cosine:
-	# 	nonzero_idxs=np.nonzero(spMtx[nonzero_idx_CCS, :])[1] # necessary!
-	# 	userInterest=np.squeeze(spMtx[nonzero_idx_CCS, nonzero_idxs].toarray())*idf_squeezed[nonzero_idxs] #(nTokens,)x(nTokens,)
-	# 	userInterestNorm=spMtx_norm[nonzero_idx_CCS]+1e-18
-	# 	userInterest*=(1/userInterestNorm) # (nTokens,)
-	# 	update_vec=cosine_sim[nonzero_idx_CCS]*userInterest # (nTokens,)
-	# 	avg_rec[nonzero_idxs]+=update_vec # (nTokens,) + (len(idx_nonzeros),)
-	# avg_rec*=(1/np.sum(cosine_sim))# (nTokens,)
-	# print(f"Elapsed_t: {time.time()-st_t:.2f} s {type(avg_rec)} {avg_rec.dtype} {avg_rec.shape}".center(130, " "))	
-	# return avg_rec #(nTokens,) #(nTokens_shrinked,) # smaller matrix
-	####################################################################################################################################
-	
-	# ####################################################################################################################################
-	# # # Optimized implementation using for loop [15.05.2024] ~120s for 732 log files
-	# nUsers, nTokens= spMtx.shape
-	# avg_rec=np.zeros(nTokens, dtype=np.float32) #(nTokens,)
-	# idf_squeezed = idf_vec.ravel() # faster than np.squeeze(np.asarray(idf_vec))
-	# non_zero_cosines = np.nonzero(cosine_sim)[0]
-	# userInterestNorm=spMtx_norm + np.float32(1e-18)# avoid zero division
-	# print(
-	# 	f"spMtx {type(spMtx)} {spMtx.shape} {spMtx.dtype}\n"
-	# 	f"spMtxNorm: {type(spMtx_norm)} {spMtx_norm.shape} {spMtx_norm.dtype}\n"
-	# 	f"CS {type(cosine_sim)} {cosine_sim.shape} {cosine_sim.dtype} NonZero(s): {non_zero_cosines.shape[0]}\n"
-	# 	f"IDF {type(idf_vec)} {idf_vec.shape} {idf_vec.dtype}"
-	# )
-	# spMtx_csr = spMtx#.tocsr() # Convert to CSR for efficient row operations
-	# for nonzero_idx_CCS in non_zero_cosines: # only for those users with NON-Zero Cosine Similarity
-	# 	userInterest = spMtx_csr[nonzero_idx_CCS].multiply(idf_squeezed) #(nTokens,)x(nTokens,)        
-	# 	userInterest.data /= userInterestNorm[nonzero_idx_CCS] #(nTokens,)
-	# 	update_vec = cosine_sim[nonzero_idx_CCS]*userInterest.data #(nTokens,)
-	# 	avg_rec[userInterest.nonzero()[1]] += update_vec # (nTokens,) + (len(idx_nonzeros),)
-	# avg_rec /= np.sum(cosine_sim) # (nTokens,)
-	# print(f"Elapsed_t: {time.time()-st_t:.2f} s {type(avg_rec)} {avg_rec.dtype} {avg_rec.shape}".center(130, " "))	
-	# return avg_rec #(nTokens,) #(nTokens_shrinked,) # smaller matrix
-	# ####################################################################################################################################
-
 	#################################################Vectorized Version#################################################
 	nUsers, nTokens = spMtx.shape
 	avg_rec = np.zeros(nTokens, dtype=np.float32)
@@ -549,7 +521,14 @@ def get_topK_tokens(
 	return topK_tokens_list, tot_nlf_res_list, nlf_pages_by_year_list
 
 @cache
-def get_recsys_results(query_phrase: str="A Sample query phrase!", nTokens: int=5, ts_1st: int=1899, ts_2nd=np.arange(1900, 1919+1, 1), ts_3rd=np.arange(1920, 1945+1, 1), ts_end: int=1946):
+def get_recsys_results(
+	query_phrase: str="A Sample query phrase!",
+	nTokens:int=5,
+	ts_1st:int=1899,
+	ts_2nd=np.arange(1900, 1919+1, 1),
+	ts_3rd=np.arange(1920, 1945+1, 1),
+	ts_end: int=1946,
+):
 	tokenized_query_phrase = get_lemmatized_sqp(qu_phrase=query_phrase, lm=lmMethod)
 	print(f"Search Query Prompt: {query_phrase} [lemma(s)]: {tokenized_query_phrase}")
 	if not tokenized_query_phrase:

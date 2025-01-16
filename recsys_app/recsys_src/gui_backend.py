@@ -32,14 +32,15 @@ lemmatizer_methods = {
 session = requests.Session()
 retries = Retry(total=5, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504])
 session.mount('https://', HTTPAdapter(max_retries=retries))
+
 HOME: str = os.getenv('HOME') # echo $HOME
 USER: str = os.getenv('USER') # echo $USER
 Files_DIR: str = "/media/volume" if USER == "ubuntu" else HOME
 lmMethod: str="stanza"
 nSPMs: int = 732 if USER == "ubuntu" else 2 # dynamic changing of nSPMs due to Rahti CPU memory issues!
 DATASET_DIR: str = f"Nationalbiblioteket/compressed_concatenated_SPMs" if USER == "ubuntu" else f"datasets/compressed_concatenated_SPMs"
-fprefix: str = f"concatinated_{nSPMs}_SPMs_lm_{lmMethod}"
 compressed_spm_file = os.path.join(Files_DIR, DATASET_DIR, f"concat_x{nSPMs}_lm_{lmMethod}.tar.gz")
+fprefix: str = f"concatinated_{nSPMs}_SPMs_lm_{lmMethod}"
 spm_files_dir = os.path.join(Files_DIR, DATASET_DIR, f"concat_x{nSPMs}_lm_{lmMethod}")
 SEARCH_QUERY_DIGI_URL: str = "https://digi.kansalliskirjasto.fi/search?requireAllKeywords=true&query="
 DIGI_HOME_PAGE_URL : str = "https://digi.kansalliskirjasto.fi"
@@ -173,29 +174,25 @@ def get_query_vec(mat, mat_row, mat_col, tokenized_qu_phrases=["åbo", "akademi"
 	# print(np.where(query_vector.flatten()!=0)[0])
 	return query_vector
 
-def get_customized_cosine_similarity_gpu(spMtx, query_vec, idf_vec, spMtx_norm, exponent: float = 1.0):
-		print(f"[GPU Optimized] Customized Cosine Similarity (1 x nUsers={spMtx.shape[0]})".center(130, "-"))
+def get_customized_cosine_similarity_gpu(spMtx, query_vec, idf_vec, spMtx_norm, exponent:float=1.0, batch_size:int=1024):
+		print(f"[GPU Optimized] Customized Cosine Similarity (1 x nUsers={spMtx.shape[0]}) batch_size={batch_size}".center(130, "-"))
 		print(
-				f"Query: {query_vec.shape} {type(query_vec)} {query_vec.dtype}\n"
+				f"Query: {query_vec.shape} {type(query_vec)} {query_vec.dtype} non_zeros={np.count_nonzero(query_vec)} non_zero_ratio={np.count_nonzero(query_vec) / query_vec.size:.2f}\n"
 				f"spMtx {type(spMtx)} {spMtx.shape} {spMtx.dtype}\n"
 				f"spMtxNorm: {type(spMtx_norm)} {spMtx_norm.shape} {spMtx_norm.dtype}\n"
 				f"IDF {type(idf_vec)} {idf_vec.shape} {idf_vec.dtype}"
 		)
 		st_t = time.time()
 
-		# Convert inputs to CuPy arrays (float32 instead of float16)
+		# Convert inputs to CuPy arrays (float32)
 		query_vec_squeezed = cp.asarray(query_vec.ravel(), dtype=cp.float32)
 		idf_squeezed = cp.asarray(idf_vec.ravel(), dtype=cp.float32)
 		spMtx_norm = cp.asarray(spMtx_norm, dtype=cp.float32)
 
-		# Convert sparse matrix to CuPy CSR format (float32 instead of float16)
+		# Convert sparse matrix to CuPy CSR format
 		spMtx_csr = spMtx.tocsr()
 		spMtx_gpu = cp.sparse.csr_matrix(
-				(
-					cp.asarray(spMtx_csr.data, dtype=cp.float32),
-					cp.asarray(spMtx_csr.indices),
-					cp.asarray(spMtx_csr.indptr)
-				),
+				(cp.asarray(spMtx_csr.data, dtype=cp.float32), cp.asarray(spMtx_csr.indices), cp.asarray(spMtx_csr.indptr)),
 				shape=spMtx_csr.shape
 		)
 
@@ -210,19 +207,38 @@ def get_customized_cosine_similarity_gpu(spMtx, query_vec, idf_vec, spMtx_norm, 
 		# Normalize user interests
 		usrInterestNorm = spMtx_norm + cp.float32(1e-4)
 
-		# Extract only the necessary columns from the sparse matrix
-		spMtx_nonZeros = spMtx_gpu[:, idx_nonzeros]
+		# Initialize result array
+		cs = cp.zeros(spMtx_gpu.shape[0], dtype=cp.float32)
 
-		# Apply IDF and normalize
-		spMtx_nonZeros = spMtx_nonZeros.multiply(idf_squeezed[idx_nonzeros])
-		spMtx_nonZeros = spMtx_nonZeros.multiply(1 / usrInterestNorm[:, None])
+		# Process in batches to avoid memory overflow
+		for i in range(0, spMtx_gpu.shape[0], batch_size):
+				# Define batch range
+				start_idx = i
+				end_idx = min(i + batch_size, spMtx_gpu.shape[0])
 
-		# Apply exponent if necessary
-		if exponent != 1.0:
-				spMtx_nonZeros.data **= exponent
+				# Extract batch from sparse matrix
+				spMtx_batch = spMtx_gpu[start_idx:end_idx, :]
 
-		# Compute cosine similarity scores
-		cs = spMtx_nonZeros.dot(quInterest_nonZeros)
+				# Extract only the necessary columns from the batch
+				spMtx_nonZeros = spMtx_batch[:, idx_nonzeros]
+
+				# Apply IDF and normalize
+				spMtx_nonZeros = spMtx_nonZeros.multiply(idf_squeezed[idx_nonzeros])
+				spMtx_nonZeros = spMtx_nonZeros.multiply(1 / usrInterestNorm[start_idx:end_idx, None])
+
+				# Apply exponent if necessary
+				if exponent != 1.0:
+						spMtx_nonZeros.data **= exponent
+
+				# Compute cosine similarity scores for the batch
+				cs_batch = spMtx_nonZeros.dot(quInterest_nonZeros)
+
+				# Store batch results
+				cs[start_idx:end_idx] = cs_batch
+
+				# Free memory for the batch
+				del spMtx_batch, spMtx_nonZeros, cs_batch
+				cp.get_default_memory_pool().free_all_blocks()
 
 		print(f"Elapsed_t: {time.time() - st_t:.2f} s {type(cs)} {cs.dtype} {cs.shape}".center(130, " "))
 		return cp.asnumpy(cs)  # Convert result back to NumPy for compatibility

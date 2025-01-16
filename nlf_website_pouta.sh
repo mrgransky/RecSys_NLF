@@ -2,8 +2,6 @@
 
 ## run using command:
 ## $ nohup bash nlf_website_pouta.sh > /dev/null 2>&1 &
-## $ nohup bash nlf_website_pouta.sh >> /media/volume/Nationalbiblioteket/trash/nlf_website_logs.out 2>&1 &
-
 ## $ nohup bash nlf_website_pouta.sh > /media/volume/Nationalbiblioteket/trash/nlf_website_logs.out &
 
 user="`whoami`"

@@ -77,13 +77,14 @@ payload = {
 	"tags": [],	
 }
 
-def get_dynamic_batch_size(spMtx, memory_fraction=0.8, gpu_id=0):
+def get_dynamic_batch_size(spMtx, memory_fraction=0.85, gpu_id=0):
 		"""
 		Calculate optimal batch size based on available GPU memory and matrix size.
 		
 		Args:
 				spMtx: The sparse matrix to be processed
-				memory_fraction: Fraction of available GPU memory to use (default: 0.8)
+				memory_fraction: Fraction of available GPU memory to use (default: 0.85)
+				gpu_id: ID of the GPU cuda device to use (default: 0)
 		
 		Returns:
 				int: Calculated batch size
@@ -116,7 +117,7 @@ def get_dynamic_batch_size(spMtx, memory_fraction=0.8, gpu_id=0):
 				batch_size = int(available_memory / memory_per_row)
 				
 				# Set minimum and maximum batch sizes
-				min_batch_size = 128
+				min_batch_size = 64
 				max_batch_size = 8192
 				batch_size = max(min_batch_size, min(batch_size, max_batch_size))
 				
@@ -143,6 +144,16 @@ def get_device():
 	print(f"Using device: {device}")
 	return device, cuda_id
 
+def get_gpu_with_most_memory():
+	n_gpus = cp.cuda.runtime.getDeviceCount()
+	free_memory = []
+	for i in range(n_gpus):
+		with cp.cuda.Device(i):
+			meminfo = cp.cuda.runtime.memGetInfo()
+			free_memory.append(meminfo[0])  # Free memory
+	selected_device = free_memory.index(max(free_memory))
+	return selected_device
+
 def get_device_with_most_free_memory():
 	if torch.cuda.is_available():
 		print(f"Available GPU(s)| torch = {torch.cuda.device_count()} | CuPy: {cp.cuda.runtime.getDeviceCount()}")
@@ -158,9 +169,10 @@ def get_device_with_most_free_memory():
 		print(f"Selected GPU: cuda:{selected_device} with {max_free_memory / 1024**3:.2f} GB free memory")
 	else:
 		device = torch.device("cpu")
+		selected_device = None
 		print("No GPU available ==>> using CPU")
-	return device
-# device = get_device_with_most_free_memory()
+	return device, selected_device
+
 device, cuda_id = get_device()
 print(f"USER: >>{USER}<< using {nSPMs} nSPMs | Device: {device} ==>> cuda_id: {cuda_id}")
 
@@ -401,10 +413,11 @@ def get_query_vec(mat, mat_row, mat_col, tokenized_qu_phrases=["åbo", "akademi"
 # 		print(f"Elapsed_t: {time.time()-st_t:.2f} s {type(result)} {result.dtype} {result.shape}".center(130, " "))
 # 		return result
 
-def get_customized_cosine_similarity_gpu(spMtx, query_vec, idf_vec, spMtx_norm, exponent:float=1.0, gpu_id:int=0):
+def get_customized_cosine_similarity_gpu(spMtx, query_vec, idf_vec, spMtx_norm, exponent:float=1.0,):
+	device, gpu_id = get_device_with_most_free_memory()
 	batch_size = get_dynamic_batch_size(spMtx=spMtx, gpu_id=gpu_id)
 	try:
-		print(f"[GPU Optimized] Customized Cosine Similarity (1 x nUsers={spMtx.shape[0]}) [Dynamic] batch_size={batch_size}".center(150, "-"))
+		print(f"[GPU Optimized] Customized Cosine Similarity (1 x nUsers={spMtx.shape[0]})".center(150, "-"))
 		cp.get_default_memory_pool().free_all_blocks()
 		torch.cuda.empty_cache()
 		device = cp.cuda.Device(gpu_id)
@@ -418,7 +431,8 @@ def get_customized_cosine_similarity_gpu(spMtx, query_vec, idf_vec, spMtx_norm, 
 			f"Query: {query_vec.shape} {type(query_vec)} {query_vec.dtype} non_zeros={np.count_nonzero(query_vec)} (ratio={np.count_nonzero(query_vec) / query_vec.size})\n"
 			f"spMtx {type(spMtx)} {spMtx.shape} {spMtx.dtype}\n"
 			f"spMtxNorm: {type(spMtx_norm)} {spMtx_norm.shape} {spMtx_norm.dtype}\n"
-			f"IDF {type(idf_vec)} {idf_vec.shape} {idf_vec.dtype}"
+			f"IDF {type(idf_vec)} {idf_vec.shape} {idf_vec.dtype}\n"
+			f"[Dynamic] batch size: {batch_size}"
 		)
 		st_t = time.time()
 		# Convert inputs to GPU with memory management
@@ -473,14 +487,14 @@ def get_customized_cosine_similarity_gpu(spMtx, query_vec, idf_vec, spMtx_norm, 
 			torch.cuda.empty_cache()
 			raise
 
-def get_customized_recsys_avg_vec_gpu(spMtx, cosine_sim, idf_vec, spMtx_norm, batch_size:int=2048, gpu_id:int=0):
-	batch_size = get_dynamic_batch_size(spMtx=spMtx, gpu_id=gpu_id)
+def get_customized_recsys_avg_vec_gpu(spMtx, cosine_sim, idf_vec, spMtx_norm,):
 	try:
-		print(f"[GPU optimized] avgRecSys (1 x nTKs={spMtx.shape[1]}) [Dynamic] batch_size={batch_size}".center(150, "-"))
+		print(f"[GPU optimized] avgRecSys (1 x nTKs={spMtx.shape[1]})".center(150, "-"))
+		device, gpu_id = get_device_with_most_free_memory()
+		batch_size = get_dynamic_batch_size(spMtx=spMtx, gpu_id=gpu_id)
 		st_t = time.time()
 		cp.get_default_memory_pool().free_all_blocks()
 		torch.cuda.empty_cache()
-
 		device = cp.cuda.Device(gpu_id)
 		device_id = device.id
 		device_name = cp.cuda.runtime.getDeviceProperties(device_id)['name'].decode('utf-8')
@@ -498,7 +512,8 @@ def get_customized_recsys_avg_vec_gpu(spMtx, cosine_sim, idf_vec, spMtx_norm, ba
 				f"spMtx {type(spMtx)} {spMtx.shape} {spMtx.dtype}\n"
 				f"spMtxNorm: {type(spMtx_norm)} {spMtx_norm.shape} {spMtx_norm.dtype}\n"
 				f"CS {type(cosine_sim)} {cosine_sim.shape} {cosine_sim.dtype} NonZero(s): {non_zero_cosines.shape[0]}\n"
-				f"IDF {type(idf_vec)} {idf_vec.shape} {idf_vec.dtype}"
+				f"IDF {type(idf_vec)} {idf_vec.shape} {idf_vec.dtype}\n"
+				f"[Dynamic] batch size: {batch_size}"
 			)
 			del cosine_sim_gpu
 			spMtx_csr = spMtx.tocsr()
@@ -511,13 +526,10 @@ def get_customized_recsys_avg_vec_gpu(spMtx, cosine_sim, idf_vec, spMtx_norm, ba
 				shape=spMtx_csr.shape
 			)
 			del spMtx_csr
-			# Initialize result array
 			avg_rec = cp.zeros(spMtx.shape[1], dtype=cp.float32)
-			# Process in smaller batches
 			for i in range(0, len(non_zero_cosines), batch_size):
 				batch_indices = non_zero_cosines[i:i + batch_size]
 				batch_values = non_zero_values[i:i + batch_size]
-				# Process batch
 				spMtx_batch = spMtx_gpu[batch_indices]
 				batch_result = spMtx_batch.multiply(idf_squeezed)
 				
@@ -837,14 +849,12 @@ def get_recsys_results(
 		query_vec=query_vector, 
 		idf_vec=idf_vec,
 		spMtx_norm=usrNorms, # must be adjusted, accordingly!
-		gpu_id=cuda_id,
 	)
 	avgRecSys = get_customized_recsys_avg_vec_gpu(
 		spMtx=concat_spm_U_x_T,
 		cosine_sim=ccs**5,
 		idf_vec=idf_vec,
 		spMtx_norm=usrNorms,
-		gpu_id=cuda_id,
 	)
 	topK_TKs, topK_TKs_nlf_num_pages, topK_TKs_nlf_pages_by_year = get_topK_tokens(
 		mat_cols=concat_spm_tokNames,

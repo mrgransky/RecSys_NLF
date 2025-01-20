@@ -106,8 +106,18 @@ def get_device_with_most_free_memory():
 # device = get_device_with_most_free_memory()
 device = get_device()
 print(f"USER: >>{USER}<< using {nSPMs} nSPMs | Device: {device}")
-
 #######################################################################################################################
+def check_gpu_memory():
+		device = cp.cuda.Device()
+		total = device.mem_info[1] / 1024**3
+		free = device.mem_info[0] / 1024**3
+		used = total - free
+		return {
+				'total': f"{total:.2f}GB",
+				'free': f"{free:.2f}GB",
+				'used': f"{used:.2f}GB"
+		}
+
 def load_pickle(fpath: str="path/to/file.pkl",):
 	print(f"Checking for existence? {fpath}")
 	st_t = time.time()
@@ -184,85 +194,303 @@ def get_query_vec(mat, mat_row, mat_col, tokenized_qu_phrases=["åbo", "akademi"
 	# print(np.where(query_vector.flatten()!=0)[0])
 	return query_vector
 
+# def get_customized_cosine_similarity_gpu(spMtx, query_vec, idf_vec, spMtx_norm, exponent:float=1.0, batch_size:int=2048):
+# 		print(f"[GPU Optimized] Customized Cosine Similarity (1 x nUsers={spMtx.shape[0]}) batch_size={batch_size}".center(130, "-"))
+# 		print(
+# 			f"Query: {query_vec.shape} {type(query_vec)} {query_vec.dtype} non_zeros={np.count_nonzero(query_vec)} (ratio={np.count_nonzero(query_vec) / query_vec.size})\n"
+# 			f"spMtx {type(spMtx)} {spMtx.shape} {spMtx.dtype}\n"
+# 			f"spMtxNorm: {type(spMtx_norm)} {spMtx_norm.shape} {spMtx_norm.dtype}\n"
+# 			f"IDF {type(idf_vec)} {idf_vec.shape} {idf_vec.dtype}"
+# 		)
+# 		# Clear memory before starting
+# 		cp.get_default_memory_pool().free_all_blocks()
+# 		torch.cuda.empty_cache()
+		
+# 		# Print GPU device information
+# 		device = cp.cuda.Device()
+# 		device_id = device.id
+# 		device_name = cp.cuda.runtime.getDeviceProperties(device_id)['name'].decode('utf-8')
+# 		print(f"GPU: {device_name} ({device_id})")
+# 		print(f"Initial Free GPU Memory: {device.mem_info[0] / 1024 ** 3:.2f} GB / Total GPU Memory: {device.mem_info[1] / 1024 ** 3:.2f} GB")
+
+# 		st_t = time.time()
+# 		# Convert inputs to CuPy arrays (float32)
+# 		query_vec_squeezed = cp.asarray(query_vec.ravel(), dtype=cp.float32)
+# 		idf_squeezed = cp.asarray(idf_vec.ravel(), dtype=cp.float32)
+# 		spMtx_norm = cp.asarray(spMtx_norm, dtype=cp.float32)
+
+# 		# Convert sparse matrix to CuPy CSR format
+# 		spMtx_csr = spMtx.tocsr()
+# 		spMtx_gpu = cp.sparse.csr_matrix(
+# 				(cp.asarray(spMtx_csr.data, dtype=cp.float32), cp.asarray(spMtx_csr.indices), cp.asarray(spMtx_csr.indptr)),
+# 				shape=spMtx_csr.shape
+# 		)
+
+# 		# Compute quInterest and its norm
+# 		quInterest = query_vec_squeezed * idf_squeezed
+# 		quInterestNorm = cp.linalg.norm(quInterest)
+
+# 		# Get indices of non-zero elements in quInterest
+# 		idx_nonzeros = cp.nonzero(quInterest)[0]
+# 		quInterest_nonZeros = quInterest[idx_nonzeros] / quInterestNorm
+
+# 		# Normalize user interests
+# 		usrInterestNorm = spMtx_norm + cp.float32(1e-4)
+
+# 		# Initialize result array
+# 		cs = cp.zeros(spMtx_gpu.shape[0], dtype=cp.float32)
+
+# 		# Process in batches to avoid memory overflow
+# 		for i in range(0, spMtx_gpu.shape[0], batch_size):
+# 				# Define batch range
+# 				start_idx = i
+# 				end_idx = min(i + batch_size, spMtx_gpu.shape[0])
+
+# 				# Extract batch from sparse matrix
+# 				spMtx_batch = spMtx_gpu[start_idx:end_idx, :]
+
+# 				# Extract only the necessary columns from the batch
+# 				spMtx_nonZeros = spMtx_batch[:, idx_nonzeros]
+
+# 				# Apply IDF and normalize
+# 				spMtx_nonZeros = spMtx_nonZeros.multiply(idf_squeezed[idx_nonzeros])
+# 				spMtx_nonZeros = spMtx_nonZeros.multiply(1 / usrInterestNorm[start_idx:end_idx, None])
+
+# 				# Apply exponent if necessary
+# 				if exponent != 1.0:
+# 						spMtx_nonZeros.data **= exponent
+
+# 				# Compute cosine similarity scores for the batch
+# 				cs_batch = spMtx_nonZeros.dot(quInterest_nonZeros)
+
+# 				# Store batch results
+# 				cs[start_idx:end_idx] = cs_batch
+
+# 				# Free memory for the batch
+# 				del spMtx_batch, spMtx_nonZeros, cs_batch
+# 				cp.get_default_memory_pool().free_all_blocks()
+# 				torch.cuda.empty_cache() # Clear CUDA cache
+# 				# torch.cuda.synchronize() # Ensure all CUDA operations are complete
+# 				# Print memory usage after each batch
+# 				# print(f"Batch {i // batch_size + 1}: Free GPU Memory: {device.mem_info[0] / 1024 ** 3:.2f} GB")
+
+# 		print(f"Elapsed_t: {time.time() - st_t:.2f} s {type(cs)} {cs.dtype} {cs.shape}".center(130, " "))
+# 		return cp.asnumpy(cs)  # Convert result back to NumPy for compatibility
+
+# def get_customized_recsys_avg_vec_gpu(spMtx, cosine_sim, idf_vec, spMtx_norm, batch_size:int=2048):
+# 		print(f"[GPU optimized] avgRecSys (1 x nTKs={spMtx.shape[1]})".center(130, "-"))
+# 		st_t = time.time()
+		
+# 		# Move data to GPU
+# 		idf_squeezed = cp.asarray(idf_vec.ravel(), dtype=cp.float32)
+# 		cosine_sim_gpu = cp.asarray(cosine_sim, dtype=cp.float32)
+# 		spMtx_norm_gpu = cp.asarray(spMtx_norm, dtype=cp.float32)
+		
+# 		# Find non-zero cosine similarities
+# 		non_zero_cosines = cp.nonzero(cosine_sim_gpu)[0]
+# 		non_zero_values = cosine_sim_gpu[non_zero_cosines]
+		
+# 		print(
+# 				f"spMtx {type(spMtx)} {spMtx.shape} {spMtx.dtype}\n"
+# 				f"spMtxNorm: {type(spMtx_norm)} {spMtx_norm.shape} {spMtx_norm.dtype}\n"
+# 				f"CS {type(cosine_sim)} {cosine_sim.shape} {cosine_sim.dtype} NonZero(s): {len(non_zero_cosines)}\n"
+# 				f"IDF {type(idf_vec)} {idf_vec.shape} {idf_vec.dtype}"
+# 		)
+		
+# 		# Convert sparse matrix to CuPy CSR format
+# 		spMtx_csr = spMtx.tocsr()
+# 		spMtx_gpu = cp.sparse.csr_matrix(
+# 				(cp.asarray(spMtx_csr.data, dtype=cp.float32),
+# 				 cp.asarray(spMtx_csr.indices),
+# 				 cp.asarray(spMtx_csr.indptr)),
+# 				shape=spMtx_csr.shape
+# 		)
+		
+# 		# Initialize result array on GPU
+# 		avg_rec = cp.zeros(spMtx.shape[1], dtype=cp.float32)
+		
+# 		# Process in batches
+# 		for i in range(0, len(non_zero_cosines), batch_size):
+# 				batch_indices = non_zero_cosines[i:i + batch_size]
+# 				batch_values = non_zero_values[i:i + batch_size]
+				
+# 				# Extract batch from sparse matrix
+# 				spMtx_batch = spMtx_gpu[batch_indices]
+				
+# 				# Apply IDF
+# 				batch_result = spMtx_batch.multiply(idf_squeezed)
+				
+# 				# Normalize by user interest norm
+# 				norm_factors = spMtx_norm_gpu[batch_indices] + cp.float32(1e-18)
+# 				batch_result = batch_result.multiply(1.0 / norm_factors[:, None])
+				
+# 				# Multiply by cosine similarities
+# 				batch_result = batch_result.multiply(batch_values[:, None])
+				
+# 				# Add to running sum
+# 				avg_rec += batch_result.sum(axis=0).ravel()
+				
+# 				# Clean up memory
+# 				del batch_result, spMtx_batch
+# 				cp.get_default_memory_pool().free_all_blocks()
+		
+# 		# Normalize the result
+# 		avg_rec /= cp.sum(non_zero_values)
+		
+# 		# Convert back to CPU
+# 		result = cp.asnumpy(avg_rec)
+		
+# 		print(f"Elapsed_t: {time.time()-st_t:.2f} s {type(result)} {result.dtype} {result.shape}".center(130, " "))
+# 		return result
+
 def get_customized_cosine_similarity_gpu(spMtx, query_vec, idf_vec, spMtx_norm, exponent:float=1.0, batch_size:int=2048):
-		print(f"[GPU Optimized] Customized Cosine Similarity (1 x nUsers={spMtx.shape[0]}) batch_size={batch_size}".center(130, "-"))
+	try:
+		print(f"[GPU Optimized] Customized Cosine Similarity (1 x nUsers={spMtx.shape[0]}) batch_size={batch_size}".center(150, "-"))
+		# Clear memory before starting
+		cp.get_default_memory_pool().free_all_blocks()
+		torch.cuda.empty_cache()
+		device = cp.cuda.Device()
+		device_id = device.id
+		device_name = cp.cuda.runtime.getDeviceProperties(device_id)['name'].decode('utf-8')
+		print(
+			f"GPU [cuda:{device_id}]: {device_name} "
+			f"Memory [Free/Total]: ({device.mem_info[0] / 1024 ** 3:.3f} / {device.mem_info[1] / 1024 ** 3:.3f}) GB"
+		)
 		print(
 			f"Query: {query_vec.shape} {type(query_vec)} {query_vec.dtype} non_zeros={np.count_nonzero(query_vec)} (ratio={np.count_nonzero(query_vec) / query_vec.size})\n"
 			f"spMtx {type(spMtx)} {spMtx.shape} {spMtx.dtype}\n"
 			f"spMtxNorm: {type(spMtx_norm)} {spMtx_norm.shape} {spMtx_norm.dtype}\n"
 			f"IDF {type(idf_vec)} {idf_vec.shape} {idf_vec.dtype}"
 		)
-		# Print GPU device information
+		st_t = time.time()
+		# Convert inputs to GPU with memory management
+		with cp.cuda.Device(0):
+			query_vec_squeezed = cp.asarray(query_vec.ravel(), dtype=cp.float32)
+			idf_squeezed = cp.asarray(idf_vec.ravel(), dtype=cp.float32)
+			spMtx_norm_gpu = cp.asarray(spMtx_norm, dtype=cp.float32)
+			# Convert sparse matrix efficiently
+			spMtx_csr = spMtx.tocsr()
+			spMtx_gpu = cp.sparse.csr_matrix(
+				(
+					cp.asarray(spMtx_csr.data, dtype=cp.float32),
+				 	cp.asarray(spMtx_csr.indices),
+				 	cp.asarray(spMtx_csr.indptr)
+				),
+				shape=spMtx_csr.shape
+			)
+			del spMtx_csr # # Free CPU memory
+			# Compute interest and normalization
+			quInterest = query_vec_squeezed * idf_squeezed
+			quInterestNorm = cp.linalg.norm(quInterest)
+			idx_nonzeros = cp.nonzero(quInterest)[0]
+			quInterest_nonZeros = quInterest[idx_nonzeros] / quInterestNorm
+			usrInterestNorm = spMtx_norm_gpu + cp.float32(1e-4)
+			del query_vec_squeezed, quInterest # Free unnecessary arrays
+			cs = cp.zeros(spMtx_gpu.shape[0], dtype=cp.float32) # initialize result array
+			for i in range(0, spMtx_gpu.shape[0], batch_size):
+					start_idx = i
+					end_idx = min(i + batch_size, spMtx_gpu.shape[0])
+					# Process batch
+					spMtx_batch = spMtx_gpu[start_idx:end_idx, idx_nonzeros]
+					spMtx_batch = spMtx_batch.multiply(idf_squeezed[idx_nonzeros])
+					spMtx_batch = spMtx_batch.multiply(1 / usrInterestNorm[start_idx:end_idx, None])
+					if exponent != 1.0:
+							spMtx_batch.data **= exponent
+					cs[start_idx:end_idx] = spMtx_batch.dot(quInterest_nonZeros)
+					# Clean up batch memory
+					del spMtx_batch
+					cp.get_default_memory_pool().free_all_blocks()
+					torch.cuda.empty_cache()
+			# Get result and clean up
+			result = cp.asnumpy(cs)
+			# Final cleanup
+			del cs, spMtx_gpu, idf_squeezed, spMtx_norm_gpu, quInterest_nonZeros, usrInterestNorm
+			cp.get_default_memory_pool().free_all_blocks()
+			torch.cuda.empty_cache()
+		print(f"Elapsed_t: {time.time() - st_t:.2f} s".center(150, " "))
+		return result
+	except Exception as e:
+			print(f"Error in cosine similarity calculation: {str(e)}")
+			cp.get_default_memory_pool().free_all_blocks()
+			torch.cuda.empty_cache()
+			raise
+
+def get_customized_recsys_avg_vec_gpu(spMtx, cosine_sim, idf_vec, spMtx_norm, batch_size:int=2048):
+	try:
+		print(f"[GPU optimized] avgRecSys (1 x nTKs={spMtx.shape[1]}) batch_size={batch_size}".center(150, "-"))
+		st_t = time.time()
+		# Clear memory before starting
+		cp.get_default_memory_pool().free_all_blocks()
+		torch.cuda.empty_cache()
+
 		device = cp.cuda.Device()
 		device_id = device.id
 		device_name = cp.cuda.runtime.getDeviceProperties(device_id)['name'].decode('utf-8')
-		print(f"Using GPU: {device_name}")
-		print(f"Total GPU Memory: {device.mem_info[1] / 1024 ** 3:.2f} GB")
-		print(f"Free GPU Memory: {device.mem_info[0] / 1024 ** 3:.2f} GB")
-		st_t = time.time()
-
-		# Convert inputs to CuPy arrays (float32)
-		query_vec_squeezed = cp.asarray(query_vec.ravel(), dtype=cp.float32)
-		idf_squeezed = cp.asarray(idf_vec.ravel(), dtype=cp.float32)
-		spMtx_norm = cp.asarray(spMtx_norm, dtype=cp.float32)
-
-		# Convert sparse matrix to CuPy CSR format
-		spMtx_csr = spMtx.tocsr()
-		spMtx_gpu = cp.sparse.csr_matrix(
-				(cp.asarray(spMtx_csr.data, dtype=cp.float32), cp.asarray(spMtx_csr.indices), cp.asarray(spMtx_csr.indptr)),
-				shape=spMtx_csr.shape
+		print(
+			f"GPU [cuda:{device_id}]: {device_name} "
+			f"Memory [Free/Total]: ({device.mem_info[0] / 1024 ** 3:.3f} / {device.mem_info[1] / 1024 ** 3:.3f}) GB"
 		)
 
-		# Compute quInterest and its norm
-		quInterest = query_vec_squeezed * idf_squeezed
-		quInterestNorm = cp.linalg.norm(quInterest)
-
-		# Get indices of non-zero elements in quInterest
-		idx_nonzeros = cp.nonzero(quInterest)[0]
-		quInterest_nonZeros = quInterest[idx_nonzeros] / quInterestNorm
-
-		# Normalize user interests
-		usrInterestNorm = spMtx_norm + cp.float32(1e-4)
-
-		# Initialize result array
-		cs = cp.zeros(spMtx_gpu.shape[0], dtype=cp.float32)
-
-		# Process in batches to avoid memory overflow
-		for i in range(0, spMtx_gpu.shape[0], batch_size):
-				# Define batch range
-				start_idx = i
-				end_idx = min(i + batch_size, spMtx_gpu.shape[0])
-
-				# Extract batch from sparse matrix
-				spMtx_batch = spMtx_gpu[start_idx:end_idx, :]
-
-				# Extract only the necessary columns from the batch
-				spMtx_nonZeros = spMtx_batch[:, idx_nonzeros]
-
-				# Apply IDF and normalize
-				spMtx_nonZeros = spMtx_nonZeros.multiply(idf_squeezed[idx_nonzeros])
-				spMtx_nonZeros = spMtx_nonZeros.multiply(1 / usrInterestNorm[start_idx:end_idx, None])
-
-				# Apply exponent if necessary
-				if exponent != 1.0:
-						spMtx_nonZeros.data **= exponent
-
-				# Compute cosine similarity scores for the batch
-				cs_batch = spMtx_nonZeros.dot(quInterest_nonZeros)
-
-				# Store batch results
-				cs[start_idx:end_idx] = cs_batch
-
-				# Free memory for the batch
-				del spMtx_batch, spMtx_nonZeros, cs_batch
+		with cp.cuda.Device(0): # 
+			# Move data to GPU efficiently
+			idf_squeezed = cp.asarray(idf_vec.ravel(), dtype=cp.float32)
+			cosine_sim_gpu = cp.asarray(cosine_sim, dtype=cp.float32)
+			spMtx_norm_gpu = cp.asarray(spMtx_norm, dtype=cp.float32)
+			non_zero_cosines = cp.nonzero(cosine_sim_gpu)[0]
+			non_zero_values = cosine_sim_gpu[non_zero_cosines]
+			print(
+				f"spMtx {type(spMtx)} {spMtx.shape} {spMtx.dtype}\n"
+				f"spMtxNorm: {type(spMtx_norm)} {spMtx_norm.shape} {spMtx_norm.dtype}\n"
+				f"CS {type(cosine_sim)} {cosine_sim.shape} {cosine_sim.dtype} NonZero(s): {non_zero_cosines.shape[0]}\n"
+				f"IDF {type(idf_vec)} {idf_vec.shape} {idf_vec.dtype}"
+			)
+			del cosine_sim_gpu
+			spMtx_csr = spMtx.tocsr()
+			spMtx_gpu = cp.sparse.csr_matrix(
+				(
+					cp.asarray(spMtx_csr.data, dtype=cp.float32),
+				 	cp.asarray(spMtx_csr.indices),
+				 	cp.asarray(spMtx_csr.indptr)
+				),
+				shape=spMtx_csr.shape
+			)
+			del spMtx_csr
+			# Initialize result array
+			avg_rec = cp.zeros(spMtx.shape[1], dtype=cp.float32)
+			# Process in smaller batches
+			for i in range(0, len(non_zero_cosines), batch_size):
+				batch_indices = non_zero_cosines[i:i + batch_size]
+				batch_values = non_zero_values[i:i + batch_size]
+				# Process batch
+				spMtx_batch = spMtx_gpu[batch_indices]
+				batch_result = spMtx_batch.multiply(idf_squeezed)
+				
+				norm_factors = spMtx_norm_gpu[batch_indices] + cp.float32(1e-18)
+				batch_result = batch_result.multiply(1.0 / norm_factors[:, None])
+				batch_result = batch_result.multiply(batch_values[:, None])
+				
+				avg_rec += batch_result.sum(axis=0).ravel()
+				# Clean up batch memory
+				del spMtx_batch, batch_result
 				cp.get_default_memory_pool().free_all_blocks()
-				torch.cuda.empty_cache() # Clear CUDA cache
-				# torch.cuda.synchronize() # Ensure all CUDA operations are complete
-				# Print memory usage after each batch
-				# print(f"Batch {i // batch_size + 1}: Free GPU Memory: {device.mem_info[0] / 1024 ** 3:.2f} GB")
-
-		print(f"Elapsed_t: {time.time() - st_t:.2f} s {type(cs)} {cs.dtype} {cs.shape}".center(130, " "))
-		return cp.asnumpy(cs)  # Convert result back to NumPy for compatibility
+			
+			# Normalize the result
+			sum_non_zero_values = cp.sum(non_zero_values)
+			avg_rec /= sum_non_zero_values
+			# Convert back to CPU and clean up GPU memory
+			result = cp.asnumpy(avg_rec)
+			# Final cleanup
+			del avg_rec, spMtx_gpu, idf_squeezed, spMtx_norm_gpu
+			del non_zero_cosines, non_zero_values
+			cp.get_default_memory_pool().free_all_blocks()
+			torch.cuda.empty_cache()
+		print(f"Elapsed_t: {time.time()-st_t:.2f} s {type(result)} {result.dtype} {result.shape}".center(150, " "))
+		return result
+	except Exception as e:
+		print(f"Error in average recommendation calculation: {str(e)}")
+		cp.get_default_memory_pool().free_all_blocks()
+		torch.cuda.empty_cache()
+		raise
 
 def get_customized_cosine_similarity(spMtx, query_vec, idf_vec, spMtx_norm, exponent:float=1.0, batch_size:int=2048):
 	print(f"Customized Cosine Similarity (1 x nUsers={spMtx.shape[0]})".center(130, "-"))
@@ -346,72 +574,6 @@ def get_customized_recsys_avg_vec(spMtx, cosine_sim, idf_vec, spMtx_norm, batch_
 	
 	print(f"Elapsed_t: {time.time()-st_t:.2f} s {type(avg_rec)} {avg_rec.dtype} {avg_rec.shape}".center(130, " "))	
 	return avg_rec
-
-def get_customized_recsys_avg_vec_gpu(spMtx, cosine_sim, idf_vec, spMtx_norm, batch_size:int=2048):
-		print(f"[GPU optimized] avgRecSys (1 x nTKs={spMtx.shape[1]})".center(130, "-"))
-		st_t = time.time()
-		
-		# Move data to GPU
-		idf_squeezed = cp.asarray(idf_vec.ravel(), dtype=cp.float32)
-		cosine_sim_gpu = cp.asarray(cosine_sim, dtype=cp.float32)
-		spMtx_norm_gpu = cp.asarray(spMtx_norm, dtype=cp.float32)
-		
-		# Find non-zero cosine similarities
-		non_zero_cosines = cp.nonzero(cosine_sim_gpu)[0]
-		non_zero_values = cosine_sim_gpu[non_zero_cosines]
-		
-		print(
-				f"spMtx {type(spMtx)} {spMtx.shape} {spMtx.dtype}\n"
-				f"spMtxNorm: {type(spMtx_norm)} {spMtx_norm.shape} {spMtx_norm.dtype}\n"
-				f"CS {type(cosine_sim)} {cosine_sim.shape} {cosine_sim.dtype} NonZero(s): {len(non_zero_cosines)}\n"
-				f"IDF {type(idf_vec)} {idf_vec.shape} {idf_vec.dtype}"
-		)
-		
-		# Convert sparse matrix to CuPy CSR format
-		spMtx_csr = spMtx.tocsr()
-		spMtx_gpu = cp.sparse.csr_matrix(
-				(cp.asarray(spMtx_csr.data, dtype=cp.float32),
-				 cp.asarray(spMtx_csr.indices),
-				 cp.asarray(spMtx_csr.indptr)),
-				shape=spMtx_csr.shape
-		)
-		
-		# Initialize result array on GPU
-		avg_rec = cp.zeros(spMtx.shape[1], dtype=cp.float32)
-		
-		# Process in batches
-		for i in range(0, len(non_zero_cosines), batch_size):
-				batch_indices = non_zero_cosines[i:i + batch_size]
-				batch_values = non_zero_values[i:i + batch_size]
-				
-				# Extract batch from sparse matrix
-				spMtx_batch = spMtx_gpu[batch_indices]
-				
-				# Apply IDF
-				batch_result = spMtx_batch.multiply(idf_squeezed)
-				
-				# Normalize by user interest norm
-				norm_factors = spMtx_norm_gpu[batch_indices] + cp.float32(1e-18)
-				batch_result = batch_result.multiply(1.0 / norm_factors[:, None])
-				
-				# Multiply by cosine similarities
-				batch_result = batch_result.multiply(batch_values[:, None])
-				
-				# Add to running sum
-				avg_rec += batch_result.sum(axis=0).ravel()
-				
-				# Clean up memory
-				del batch_result, spMtx_batch
-				cp.get_default_memory_pool().free_all_blocks()
-		
-		# Normalize the result
-		avg_rec /= cp.sum(non_zero_values)
-		
-		# Convert back to CPU
-		result = cp.asnumpy(avg_rec)
-		
-		print(f"Elapsed_t: {time.time()-st_t:.2f} s {type(result)} {result.dtype} {result.shape}".center(130, " "))
-		return result
 
 def count_years_by_range(yr_vs_nPGs: Dict[str, int], ts_1st: int=1899, ts_2nd=np.arange(1900, 1919+1, 1), ts_3rd=np.arange(1920, 1945+1, 1), ts_end: int=1946):
 	first_range = 0

@@ -22,6 +22,8 @@ from recsys_app.recsys_src.tokenizer_utils import *
 import numpy as np
 import pandas as pd
 import cupy as cp
+import warnings
+warnings.filterwarnings("ignore")
 
 lemmatizer_methods = {
 	"nltk": nltk_lemmatizer,

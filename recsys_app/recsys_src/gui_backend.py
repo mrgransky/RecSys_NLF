@@ -79,12 +79,12 @@ payload = {
 
 def get_device():
 	if torch.cuda.is_available():
-		cuda_num = 3 if USER == "ubuntu" else 0
-		device = torch.device(f"cuda:{cuda_num}")
+		cuda_id = 3 if USER == "ubuntu" else 0
+		device = torch.device(f"cuda:{cuda_id}")
 	else:
 		device = torch.device("cpu")
 	print(f"Using device: {device}")
-	return device
+	return device, cuda_id
 
 def get_device_with_most_free_memory():
 	if torch.cuda.is_available():
@@ -104,8 +104,8 @@ def get_device_with_most_free_memory():
 		print("No GPU available ==>> using CPU")
 	return device
 # device = get_device_with_most_free_memory()
-device = get_device()
-print(f"USER: >>{USER}<< using {nSPMs} nSPMs | Device: {device}")
+device, cuda_id = get_device()
+print(f"USER: >>{USER}<< using {nSPMs} nSPMs | Device: {device} ==>> cuda_id: {cuda_id}")
 #######################################################################################################################
 def check_gpu_memory():
 		device = cp.cuda.Device()
@@ -343,13 +343,12 @@ def get_query_vec(mat, mat_row, mat_col, tokenized_qu_phrases=["åbo", "akademi"
 # 		print(f"Elapsed_t: {time.time()-st_t:.2f} s {type(result)} {result.dtype} {result.shape}".center(130, " "))
 # 		return result
 
-def get_customized_cosine_similarity_gpu(spMtx, query_vec, idf_vec, spMtx_norm, exponent:float=1.0, batch_size:int=2048):
+def get_customized_cosine_similarity_gpu(spMtx, query_vec, idf_vec, spMtx_norm, exponent:float=1.0, batch_size:int=2048, gpu_id:int=0):
 	try:
 		print(f"[GPU Optimized] Customized Cosine Similarity (1 x nUsers={spMtx.shape[0]}) batch_size={batch_size}".center(150, "-"))
-		# Clear memory before starting
 		cp.get_default_memory_pool().free_all_blocks()
 		torch.cuda.empty_cache()
-		device = cp.cuda.Device()
+		device = cp.cuda.Device(gpu_id)
 		device_id = device.id
 		device_name = cp.cuda.runtime.getDeviceProperties(device_id)['name'].decode('utf-8')
 		print(
@@ -364,7 +363,7 @@ def get_customized_cosine_similarity_gpu(spMtx, query_vec, idf_vec, spMtx_norm, 
 		)
 		st_t = time.time()
 		# Convert inputs to GPU with memory management
-		with cp.cuda.Device(0):
+		with device:
 			query_vec_squeezed = cp.asarray(query_vec.ravel(), dtype=cp.float32)
 			idf_squeezed = cp.asarray(idf_vec.ravel(), dtype=cp.float32)
 			spMtx_norm_gpu = cp.asarray(spMtx_norm, dtype=cp.float32)
@@ -415,7 +414,7 @@ def get_customized_cosine_similarity_gpu(spMtx, query_vec, idf_vec, spMtx_norm, 
 			torch.cuda.empty_cache()
 			raise
 
-def get_customized_recsys_avg_vec_gpu(spMtx, cosine_sim, idf_vec, spMtx_norm, batch_size:int=2048):
+def get_customized_recsys_avg_vec_gpu(spMtx, cosine_sim, idf_vec, spMtx_norm, batch_size:int=2048, gpu_id:int=0):
 	try:
 		print(f"[GPU optimized] avgRecSys (1 x nTKs={spMtx.shape[1]}) batch_size={batch_size}".center(150, "-"))
 		st_t = time.time()
@@ -423,16 +422,14 @@ def get_customized_recsys_avg_vec_gpu(spMtx, cosine_sim, idf_vec, spMtx_norm, ba
 		cp.get_default_memory_pool().free_all_blocks()
 		torch.cuda.empty_cache()
 
-		device = cp.cuda.Device()
+		device = cp.cuda.Device(int(gpu_id))
 		device_id = device.id
 		device_name = cp.cuda.runtime.getDeviceProperties(device_id)['name'].decode('utf-8')
 		print(
 			f"GPU [cuda:{device_id}]: {device_name} "
 			f"Memory [Free/Total]: ({device.mem_info[0] / 1024 ** 3:.3f} / {device.mem_info[1] / 1024 ** 3:.3f}) GB"
 		)
-
-		with cp.cuda.Device(0): # 
-			# Move data to GPU efficiently
+		with device:
 			idf_squeezed = cp.asarray(idf_vec.ravel(), dtype=cp.float32)
 			cosine_sim_gpu = cp.asarray(cosine_sim, dtype=cp.float32)
 			spMtx_norm_gpu = cp.asarray(spMtx_norm, dtype=cp.float32)
@@ -782,6 +779,7 @@ def get_recsys_results(
 		idf_vec=idf_vec,
 		spMtx_norm=usrNorms, # must be adjusted, accordingly!
 		batch_size=2048,
+		gpu_id=cuda_id,
 	)
 	avgRecSys = get_customized_recsys_avg_vec_gpu(
 		spMtx=concat_spm_U_x_T,
@@ -789,6 +787,7 @@ def get_recsys_results(
 		idf_vec=idf_vec,
 		spMtx_norm=usrNorms,
 		batch_size=2048,
+		gpu_id=cuda_id,
 	)
 	topK_TKs, topK_TKs_nlf_num_pages, topK_TKs_nlf_pages_by_year = get_topK_tokens(
 		mat_cols=concat_spm_tokNames,

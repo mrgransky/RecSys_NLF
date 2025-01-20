@@ -104,7 +104,6 @@ def get_device_with_most_free_memory():
 		print("No GPU available ==>> using CPU")
 	return device
 # device = get_device_with_most_free_memory()
-
 device = get_device()
 print(f"USER: >>{USER}<< using {nSPMs} nSPMs | Device: {device}")
 
@@ -260,12 +259,12 @@ def get_customized_cosine_similarity_gpu(spMtx, query_vec, idf_vec, spMtx_norm, 
 				torch.cuda.empty_cache() # Clear CUDA cache
 				# torch.cuda.synchronize() # Ensure all CUDA operations are complete
 				# Print memory usage after each batch
-				print(f"Batch {i // batch_size + 1}: Free GPU Memory: {device.mem_info[0] / 1024 ** 3:.2f} GB")
+				# print(f"Batch {i // batch_size + 1}: Free GPU Memory: {device.mem_info[0] / 1024 ** 3:.2f} GB")
 
 		print(f"Elapsed_t: {time.time() - st_t:.2f} s {type(cs)} {cs.dtype} {cs.shape}".center(130, " "))
 		return cp.asnumpy(cs)  # Convert result back to NumPy for compatibility
 
-def get_customized_cosine_similarity(spMtx, query_vec, idf_vec, spMtx_norm, exponent: float=1.0):
+def get_customized_cosine_similarity(spMtx, query_vec, idf_vec, spMtx_norm, exponent:float=1.0, batch_size:int=2048):
 	print(f"Customized Cosine Similarity (1 x nUsers={spMtx.shape[0]})".center(130, "-"))
 	print(
 		f"Query: {query_vec.shape} {type(query_vec)} {query_vec.dtype}\n"
@@ -303,7 +302,7 @@ def get_customized_cosine_similarity(spMtx, query_vec, idf_vec, spMtx_norm, expo
 	return cs
 	################################### Vectorized Implementation ##########################################
 
-def get_customized_recsys_avg_vec(spMtx, cosine_sim, idf_vec, spMtx_norm):
+def get_customized_recsys_avg_vec(spMtx, cosine_sim, idf_vec, spMtx_norm, batch_size:int=2048):
 	print(f"avgRecSys (1 x nTKs={spMtx.shape[1]})".center(130, "-"))
 	st_t = time.time()
 	#################################################Vectorized Version#################################################
@@ -347,6 +346,72 @@ def get_customized_recsys_avg_vec(spMtx, cosine_sim, idf_vec, spMtx_norm):
 	
 	print(f"Elapsed_t: {time.time()-st_t:.2f} s {type(avg_rec)} {avg_rec.dtype} {avg_rec.shape}".center(130, " "))	
 	return avg_rec
+
+def get_customized_recsys_avg_vec_gpu(spMtx, cosine_sim, idf_vec, spMtx_norm, batch_size:int=2048):
+		print(f"[GPU optimized] avgRecSys (1 x nTKs={spMtx.shape[1]})".center(130, "-"))
+		st_t = time.time()
+		
+		# Move data to GPU
+		idf_squeezed = cp.asarray(idf_vec.ravel(), dtype=cp.float32)
+		cosine_sim_gpu = cp.asarray(cosine_sim, dtype=cp.float32)
+		spMtx_norm_gpu = cp.asarray(spMtx_norm, dtype=cp.float32)
+		
+		# Find non-zero cosine similarities
+		non_zero_cosines = cp.nonzero(cosine_sim_gpu)[0]
+		non_zero_values = cosine_sim_gpu[non_zero_cosines]
+		
+		print(
+				f"spMtx {type(spMtx)} {spMtx.shape} {spMtx.dtype}\n"
+				f"spMtxNorm: {type(spMtx_norm)} {spMtx_norm.shape} {spMtx_norm.dtype}\n"
+				f"CS {type(cosine_sim)} {cosine_sim.shape} {cosine_sim.dtype} NonZero(s): {len(non_zero_cosines)}\n"
+				f"IDF {type(idf_vec)} {idf_vec.shape} {idf_vec.dtype}"
+		)
+		
+		# Convert sparse matrix to CuPy CSR format
+		spMtx_csr = spMtx.tocsr()
+		spMtx_gpu = cp.sparse.csr_matrix(
+				(cp.asarray(spMtx_csr.data, dtype=cp.float32),
+				 cp.asarray(spMtx_csr.indices),
+				 cp.asarray(spMtx_csr.indptr)),
+				shape=spMtx_csr.shape
+		)
+		
+		# Initialize result array on GPU
+		avg_rec = cp.zeros(spMtx.shape[1], dtype=cp.float32)
+		
+		# Process in batches
+		for i in range(0, len(non_zero_cosines), batch_size):
+				batch_indices = non_zero_cosines[i:i + batch_size]
+				batch_values = non_zero_values[i:i + batch_size]
+				
+				# Extract batch from sparse matrix
+				spMtx_batch = spMtx_gpu[batch_indices]
+				
+				# Apply IDF
+				batch_result = spMtx_batch.multiply(idf_squeezed)
+				
+				# Normalize by user interest norm
+				norm_factors = spMtx_norm_gpu[batch_indices] + cp.float32(1e-18)
+				batch_result = batch_result.multiply(1.0 / norm_factors[:, None])
+				
+				# Multiply by cosine similarities
+				batch_result = batch_result.multiply(batch_values[:, None])
+				
+				# Add to running sum
+				avg_rec += batch_result.sum(axis=0).ravel()
+				
+				# Clean up memory
+				del batch_result, spMtx_batch
+				cp.get_default_memory_pool().free_all_blocks()
+		
+		# Normalize the result
+		avg_rec /= cp.sum(non_zero_values)
+		
+		# Convert back to CPU
+		result = cp.asnumpy(avg_rec)
+		
+		print(f"Elapsed_t: {time.time()-st_t:.2f} s {type(result)} {result.dtype} {result.shape}".center(130, " "))
+		return result
 
 def count_years_by_range(yr_vs_nPGs: Dict[str, int], ts_1st: int=1899, ts_2nd=np.arange(1900, 1919+1, 1), ts_3rd=np.arange(1920, 1945+1, 1), ts_end: int=1946):
 	first_range = 0
@@ -554,12 +619,14 @@ def get_recsys_results(
 		query_vec=query_vector, 
 		idf_vec=idf_vec,
 		spMtx_norm=usrNorms, # must be adjusted, accordingly!
+		batch_size=2048,
 	)
-	avgRecSys = get_customized_recsys_avg_vec(
+	avgRecSys = get_customized_recsys_avg_vec_gpu(
 		spMtx=concat_spm_U_x_T,
 		cosine_sim=ccs**5,
 		idf_vec=idf_vec,
 		spMtx_norm=usrNorms,
+		batch_size=2048,
 	)
 	topK_TKs, topK_TKs_nlf_num_pages, topK_TKs_nlf_pages_by_year = get_topK_tokens(
 		mat_cols=concat_spm_tokNames,

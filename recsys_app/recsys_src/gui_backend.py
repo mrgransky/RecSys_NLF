@@ -77,6 +77,63 @@ payload = {
 	"tags": [],	
 }
 
+def get_dynamic_batch_size(spMtx, memory_fraction=0.8, gpu_id=0):
+		"""
+		Calculate optimal batch size based on available GPU memory and matrix size.
+		
+		Args:
+				spMtx: The sparse matrix to be processed
+				memory_fraction: Fraction of available GPU memory to use (default: 0.8)
+		
+		Returns:
+				int: Calculated batch size
+		"""
+		try:
+				# Get GPU memory information
+				device = cp.cuda.Device(gpu_id)
+				free_memory = device.mem_info[0]  # Free memory in bytes
+				total_memory = device.mem_info[1]  # Total memory in bytes
+				
+				# Calculate memory available for processing
+				available_memory = free_memory * memory_fraction
+				
+				# Estimate memory requirements per row
+				# Assuming float32 (4 bytes) for all numerical values
+				bytes_per_float = 4
+				avg_nonzeros_per_row = spMtx.nnz / spMtx.shape[0]
+				
+				# Estimate memory needed per row:
+				# 1. Sparse matrix row (indices + data)
+				# 2. Dense array allocations
+				# 3. Intermediate calculations
+				memory_per_row = (
+						(avg_nonzeros_per_row * 2 * bytes_per_float) +  # Sparse matrix data + indices
+						(spMtx.shape[1] * bytes_per_float) +            # Dense array allocations
+						(avg_nonzeros_per_row * bytes_per_float * 3)    # Intermediate calculations buffer
+				)
+				
+				# Calculate batch size
+				batch_size = int(available_memory / memory_per_row)
+				
+				# Set minimum and maximum batch sizes
+				min_batch_size = 128
+				max_batch_size = 8192
+				batch_size = max(min_batch_size, min(batch_size, max_batch_size))
+				
+				# Round to nearest power of 2 for better memory alignment
+				batch_size = 2 ** int(np.log2(batch_size))
+				
+				print(f"Calculated batch size: {batch_size}")
+				print(f"Available GPU memory: {free_memory / 1024**3:.2f} GB")
+				print(f"Memory per row estimate: {memory_per_row / 1024**2:.2f} MB")
+				
+				return batch_size
+		
+		except Exception as e:
+				print(f"Error calculating batch size: {str(e)}")
+				# Return a conservative default batch size
+				return 512
+
 def get_device():
 	if torch.cuda.is_available():
 		cuda_id = 3 if USER == "ubuntu" else 0
@@ -88,7 +145,7 @@ def get_device():
 
 def get_device_with_most_free_memory():
 	if torch.cuda.is_available():
-		print(f"Available GPU(s) = {torch.cuda.device_count()}")
+		print(f"Available GPU(s)| torch = {torch.cuda.device_count()} | CuPy: {cp.cuda.runtime.getDeviceCount()}")
 		max_free_memory = 0
 		selected_device = 0
 		for i in range(torch.cuda.device_count()):
@@ -106,6 +163,7 @@ def get_device_with_most_free_memory():
 # device = get_device_with_most_free_memory()
 device, cuda_id = get_device()
 print(f"USER: >>{USER}<< using {nSPMs} nSPMs | Device: {device} ==>> cuda_id: {cuda_id}")
+
 #######################################################################################################################
 def check_gpu_memory():
 		device = cp.cuda.Device()
@@ -343,10 +401,10 @@ def get_query_vec(mat, mat_row, mat_col, tokenized_qu_phrases=["åbo", "akademi"
 # 		print(f"Elapsed_t: {time.time()-st_t:.2f} s {type(result)} {result.dtype} {result.shape}".center(130, " "))
 # 		return result
 
-
-def get_customized_cosine_similarity_gpu(spMtx, query_vec, idf_vec, spMtx_norm, exponent:float=1.0, batch_size:int=2048, gpu_id:int=0):
+def get_customized_cosine_similarity_gpu(spMtx, query_vec, idf_vec, spMtx_norm, exponent:float=1.0, gpu_id:int=0):
+	batch_size = get_dynamic_batch_size(spMtx=spMtx, gpu_id=gpu_id)
 	try:
-		print(f"[GPU Optimized] Customized Cosine Similarity (1 x nUsers={spMtx.shape[0]}) batch_size={batch_size}".center(150, "-"))
+		print(f"[GPU Optimized] Customized Cosine Similarity (1 x nUsers={spMtx.shape[0]}) [Dynamic] batch_size={batch_size}".center(150, "-"))
 		cp.get_default_memory_pool().free_all_blocks()
 		torch.cuda.empty_cache()
 		device = cp.cuda.Device(gpu_id)
@@ -416,14 +474,14 @@ def get_customized_cosine_similarity_gpu(spMtx, query_vec, idf_vec, spMtx_norm, 
 			raise
 
 def get_customized_recsys_avg_vec_gpu(spMtx, cosine_sim, idf_vec, spMtx_norm, batch_size:int=2048, gpu_id:int=0):
+	batch_size = get_dynamic_batch_size(spMtx=spMtx, gpu_id=gpu_id)
 	try:
-		print(f"[GPU optimized] avgRecSys (1 x nTKs={spMtx.shape[1]}) batch_size={batch_size}".center(150, "-"))
+		print(f"[GPU optimized] avgRecSys (1 x nTKs={spMtx.shape[1]}) [Dynamic] batch_size={batch_size}".center(150, "-"))
 		st_t = time.time()
-		# Clear memory before starting
 		cp.get_default_memory_pool().free_all_blocks()
 		torch.cuda.empty_cache()
 
-		device = cp.cuda.Device(int(gpu_id))
+		device = cp.cuda.Device(gpu_id)
 		device_id = device.id
 		device_name = cp.cuda.runtime.getDeviceProperties(device_id)['name'].decode('utf-8')
 		print(
@@ -779,7 +837,6 @@ def get_recsys_results(
 		query_vec=query_vector, 
 		idf_vec=idf_vec,
 		spMtx_norm=usrNorms, # must be adjusted, accordingly!
-		batch_size=2048,
 		gpu_id=cuda_id,
 	)
 	avgRecSys = get_customized_recsys_avg_vec_gpu(
@@ -787,7 +844,6 @@ def get_recsys_results(
 		cosine_sim=ccs**5,
 		idf_vec=idf_vec,
 		spMtx_norm=usrNorms,
-		batch_size=2048,
 		gpu_id=cuda_id,
 	)
 	topK_TKs, topK_TKs_nlf_num_pages, topK_TKs_nlf_pages_by_year = get_topK_tokens(

@@ -173,8 +173,8 @@ def get_device_with_most_free_memory():
 		print("No GPU available ==>> using CPU")
 	return device, selected_device
 
-device, cuda_id = get_device()
-print(f"USER: >>{USER}<< using {nSPMs} nSPMs | Device: {device} ==>> cuda_id: {cuda_id}")
+# device, cuda_id = get_device()
+# print(f"USER: >>{USER}<< using {nSPMs} nSPMs")
 
 #######################################################################################################################
 def check_gpu_memory():
@@ -252,7 +252,7 @@ def get_nlf_pages(INPUT_QUERY: str="global warming"):
 		return
 	return TOTAL_NUM_NLF_RESULTs
 
-def get_lemmatized_sqp(qu_phrase, lm: str="stanza"):
+def get_lemmatized_sqp(qu_phrase, lm: str="stanza", device:str="cuda:0"):
 	cleaned_phrase = clean_(docs=qu_phrase) 
 	return lemmatizer_methods.get(lm)( docs=cleaned_phrase, device=device )
 
@@ -824,7 +824,8 @@ def get_recsys_results(
 	ts_3rd=np.arange(1920, 1945+1, 1),
 	ts_end: int=1946,
 ):
-	tokenized_query_phrase = get_lemmatized_sqp(qu_phrase=query_phrase, lm=lmMethod)
+	device, _ = get_device_with_most_free_memory()
+	tokenized_query_phrase = get_lemmatized_sqp(qu_phrase=query_phrase, lm=lmMethod, device=device)
 	print(f"Search Query Prompt: {query_phrase} [lemma(s)]: {tokenized_query_phrase}")
 	if not tokenized_query_phrase:
 		return None, 0, 0

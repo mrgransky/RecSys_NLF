@@ -264,10 +264,6 @@ def check_password(request):
 def main_page(request, query=None):
 	# Check if the user is authenticated:
 	user_name = request.session.get('user_name')  # Retrieve user_name from session
-
-	# if not user_name:
-	# 	return redirect('check_password') # Redirect to password page
-
 	if not user_name:
 		# Build the 'next' parameter to redirect the user back to their intended query page
 		next_url = f"/home/query={query}" if query else "/home/"

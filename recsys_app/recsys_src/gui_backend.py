@@ -466,25 +466,41 @@ def get_customized_recsys_avg_vec_gpu(spMtx, cosine_sim, idf_vec, spMtx_norm,):
 		cp.get_default_memory_pool().free_all_blocks()
 		torch.cuda.empty_cache()
 
-def count_years_by_range(yr_vs_nPGs: Dict[str, int], ts_1st: int=1899, ts_2nd=np.arange(1900, 1919+1, 1), ts_3rd=np.arange(1920, 1945+1, 1), ts_end: int=1946):
-	first_range = 0
-	second_range = 0
-	third_range = 0
-	forth_range = 0
-	if not yr_vs_nPGs:
-		return [0, 0, 0, 0]	
-	for year, count in yr_vs_nPGs.items():
-		year_int = int(year)
-		if year_int <= ts_1st: # green
-			first_range += count
-		elif year_int in ts_2nd: # WWI: 28 july 1914 – 11 nov. 1918 # pink
-			second_range += count
-		elif year_int in ts_3rd: # WWII: 1 sep. 1939 – 2 sep. 1945 # blue
-			third_range += count
-		elif year_int >= ts_end: # red
-			forth_range += count
-	yearly_nlf_pages = [first_range, second_range, third_range, forth_range]
-	return yearly_nlf_pages
+# def count_years_by_range(yr_vs_nPGs: Dict[str, int], ts_1st: int=1899, ts_2nd=np.arange(1900, 1919+1, 1), ts_3rd=np.arange(1920, 1945+1, 1), ts_end: int=1946):
+# 	first_range = 0
+# 	second_range = 0
+# 	third_range = 0
+# 	forth_range = 0
+# 	if not yr_vs_nPGs:
+# 		return [0, 0, 0, 0]	
+# 	for year, count in yr_vs_nPGs.items():
+# 		year_int = int(year)
+# 		if year_int <= ts_1st: # green
+# 			first_range += count
+# 		elif year_int in ts_2nd: # WWI: 28 july 1914 – 11 nov. 1918 # pink
+# 			second_range += count
+# 		elif year_int in ts_3rd: # WWII: 1 sep. 1939 – 2 sep. 1945 # blue
+# 			third_range += count
+# 		elif year_int >= ts_end: # red
+# 			forth_range += count
+# 	yearly_nlf_pages = [first_range, second_range, third_range, forth_range]
+# 	return yearly_nlf_pages
+
+def count_years_by_range(yr_vs_nPGs: Dict[str, int], ts_1st: int = 1899, ts_2nd=None, ts_3rd=None, ts_end: int = 1946):
+		if not yr_vs_nPGs:
+				return [0, 0, 0, 0]
+
+		# Convert data to NumPy arrays for vectorized operations
+		years = np.array(list(map(int, yr_vs_nPGs.keys())))
+		counts = np.array(list(yr_vs_nPGs.values()))
+
+		# Calculate ranges using boolean masks
+		first_range = counts[years <= ts_1st].sum()
+		second_range = counts[np.isin(years, ts_2nd)].sum() if ts_2nd is not None else 0
+		third_range = counts[np.isin(years, ts_3rd)].sum() if ts_3rd is not None else 0
+		forth_range = counts[years >= ts_end].sum()
+
+		return [first_range, second_range, third_range, forth_range]
 
 async def get_recommendation_num_NLF_pages_async(session, INPUT_QUERY: str="global warming", REC_TK: str="pollution", ts_1st: int=1899, ts_2nd=np.arange(1900, 1919+1, 1), ts_3rd=np.arange(1920, 1945+1, 1), ts_end: int=1946):
 	URL = f"{SEARCH_QUERY_DIGI_URL}" + urllib.parse.quote_plus(INPUT_QUERY + " " + REC_TK)
@@ -557,39 +573,127 @@ async def get_num_NLF_pages_asynchronous_run(qu: str="global warming", TOKENs_li
 		
 		return num_NLF_pages, NLF_pages_by_year_list
 
+# def get_topK_tokens(
+# 		mat_cols, 
+# 		avgrec, 
+# 		tok_query: List[str], 
+# 		meaningless_lemmas_list: List[str], 
+# 		raw_query: str="MonarKisti", 
+# 		K: int=50,
+# 		ts_1st: int=1899, 
+# 		ts_2nd=np.arange(1900, 1919+1, 1), 
+# 		ts_3rd=np.arange(1920, 1945+1, 1), 
+# 		ts_end: int=1946,
+# 	):
+# 	print(
+# 		f"Searching top-{K} token(s) in NLF REST API...\n"
+# 		f"Query\n"
+# 		f"\t«raw»: {raw_query}\n"
+# 		f"\t«split listed»: {raw_query.lower().split()}\n"
+# 		f"\t«tokenized»: {tok_query}"
+# 	)
+# 	st_t = time.time()
+# 	topK_tokens_list = []
+# 	for iTK in avgrec.argsort()[-K:]:
+# 		recommended_token = mat_cols[iTK]
+# 		if (
+# 			recommended_token not in tok_query
+# 			and recommended_token not in meaningless_lemmas_list
+# 			and recommended_token not in raw_query.lower().split() # 
+# 			and is_substring(A=raw_query, B=recommended_token)
+# 			# and recommended_token not in raw_query.lower() # reklamkampanj vs reklam | keskustapuolue vs puolue 
+# 			# and raw_query.lower() not in recommended_token # tehdas vs rautatehdas
+# 		):
+# 			topK_tokens_list.append(recommended_token)
+	
+# 	tot_nlf_res_list, nlf_pages_by_year_list = asyncio.run(
+# 		get_num_NLF_pages_asynchronous_run(
+# 			qu=raw_query, 
+# 			TOKENs_list=topK_tokens_list,
+# 			ts_1st=ts_1st,
+# 			ts_2nd=ts_2nd,
+# 			ts_3rd=ts_3rd,
+# 			ts_end=ts_end,
+# 		)
+# 	)
+# 	###################################################################################################################
+# 	# remove zeros: not time consuming...
+# 	# print(f"Done=> removing zero(s)...")
+# 	# rm_t = time.time()
+
+# 	tot_nlf_res_list_tmp = tot_nlf_res_list
+# 	topK_tokens_list_tmp = topK_tokens_list
+# 	nlf_pages_by_year_list_tmp = nlf_pages_by_year_list
+
+# 	tot_nlf_res_list = [num for num, word in zip(tot_nlf_res_list_tmp, topK_tokens_list_tmp) if (num and num != 0) ]
+# 	topK_tokens_list = [word for num, word in zip(tot_nlf_res_list_tmp, topK_tokens_list_tmp) if (num and num != 0) ]
+# 	nlf_pages_by_year_list = [yearly_pages for yearly_pages, tot_pages, tk in zip(nlf_pages_by_year_list_tmp, tot_nlf_res_list_tmp, topK_tokens_list_tmp) if (tot_pages and tot_pages != 0)]
+
+# 	# print(len(topK_tokens_list), topK_tokens_list)
+# 	# print(len(tot_nlf_res_list), tot_nlf_res_list)
+# 	# print(len(nlf_pages_by_year_list), nlf_pages_by_year_list)
+# 	# print(f"elp: {time.time()-rm_t:.5f} sec")
+# 	###################################################################################################################
+
+# 	###################################################################################################################
+# 	# sort descending: not time consuming...
+# 	# sort_t = time.time()
+# 	# print(f"=> sorting...")
+# 	tot_nlf_res_list = tot_nlf_res_list[::-1]
+# 	topK_tokens_list = topK_tokens_list[::-1]
+# 	nlf_pages_by_year_list = nlf_pages_by_year_list[::-1]
+	
+# 	# print(len(topK_tokens_list), topK_tokens_list)
+# 	# print(len(tot_nlf_res_list), tot_nlf_res_list)
+# 	# print(len(nlf_pages_by_year_list), nlf_pages_by_year_list)
+
+# 	# print(f"elp: {time.time()-sort_t:.5f} sec => DONE!!!")
+# 	###################################################################################################################
+# 	print(
+# 		f"Found {len(topK_tokens_list)} Recommendation Results "
+# 		f"(with {len(tot_nlf_res_list)} NLF pages) and separated: {len(nlf_pages_by_year_list)} "
+# 		f"Elapsed: {time.time()-st_t:.2f} sec"
+# 		.center(160, "-")
+# 	)
+# 	return topK_tokens_list, tot_nlf_res_list, nlf_pages_by_year_list
+
 def get_topK_tokens(
-		mat_cols, 
-		avgrec, 
-		tok_query: List[str], 
-		meaningless_lemmas_list: List[str], 
-		raw_query: str="MonarKisti", 
-		K: int=50, 
-		ts_1st: int=1899, 
-		ts_2nd=np.arange(1900, 1919+1, 1), 
-		ts_3rd=np.arange(1920, 1945+1, 1), 
-		ts_end: int=1946,
-	):
+		mat_cols,
+		avgrec,
+		tok_query: List[str],
+		meaningless_lemmas_list: List[str],
+		raw_query: str = "MonarKisti",
+		K: int = 50,
+		ts_1st: int = 1899,
+		ts_2nd=np.arange(1900, 1919 + 1, 1),
+		ts_3rd=np.arange(1920, 1945 + 1, 1),
+		ts_end: int = 1946,
+):
 	print(
-		f"Looking for < topK={K} > token(s) from NLF REST API...\n"
-		f"Query [raw]: {raw_query}\n"
-		f"Query [tokenized]: {raw_query.lower().split()} | tk: {tok_query}"
+		f"Searching top-{K} token(s) in NLF REST API...\n"
+		f"Query\n"
+		f"\t«raw»: {raw_query}\n"
+		f"\t«split listed»: {raw_query.lower().split()}\n"
+		f"\t«tokenized»: {tok_query}"
 	)
 	st_t = time.time()
-	topK_tokens_list = []
-	for iTK in avgrec.argsort()[-K:]:
-		recommended_token = mat_cols[iTK]
+	# Filter tokens efficiently
+	topK_tokens_list = [
+		mat_cols[iTK]
+		for iTK in avgrec.argsort()[-K:]
 		if (
-			recommended_token not in tok_query
-			and recommended_token not in meaningless_lemmas_list
-			and recommended_token not in raw_query.lower().split()
-			and is_substring(A=raw_query, B=recommended_token) # evankelis luterilainen kirkko vs evankelisluterilainen
-			# and recommended_token not in raw_query.lower() # reklamkampanj vs reklam | keskustapuolue vs puolue 
-			# and raw_query.lower() not in recommended_token # tehdas vs rautatehdas
-		):
-			topK_tokens_list.append(recommended_token)
+			mat_cols[iTK] not in tok_query
+			and mat_cols[iTK] not in meaningless_lemmas_list
+			and mat_cols[iTK] not in raw_query.lower().split()
+			and is_substring(A=raw_query, B=mat_cols[iTK])  # evankelis luterilainen kirkko vs evankelisluterilainen
+			# and mat_cols[iTK] not in raw_query.lower() # reklamkampanj vs reklam | keskustapuolue vs puolue 
+			# and raw_query.lower() not in mat_cols[iTK] # tehdas vs rautatehdas
+		)
+	]
+	# Fetch NLF pages in parallel
 	tot_nlf_res_list, nlf_pages_by_year_list = asyncio.run(
 		get_num_NLF_pages_asynchronous_run(
-			qu=raw_query, 
+			qu=raw_query,
 			TOKENs_list=topK_tokens_list,
 			ts_1st=ts_1st,
 			ts_2nd=ts_2nd,
@@ -597,39 +701,18 @@ def get_topK_tokens(
 			ts_end=ts_end,
 		)
 	)
-	###################################################################################################################
-	# remove zeros: not time consuming...
-	# print(f"Done=> removing zero(s)...")
-	# rm_t = time.time()
-
-	tot_nlf_res_list_tmp = tot_nlf_res_list
-	topK_tokens_list_tmp = topK_tokens_list
-	nlf_pages_by_year_list_tmp = nlf_pages_by_year_list
-
-	tot_nlf_res_list = [num for num, word in zip(tot_nlf_res_list_tmp, topK_tokens_list_tmp) if (num and num != 0) ]
-	topK_tokens_list = [word for num, word in zip(tot_nlf_res_list_tmp, topK_tokens_list_tmp) if (num and num != 0) ]
-	nlf_pages_by_year_list = [yearly_pages for yearly_pages, tot_pages, tk in zip(nlf_pages_by_year_list_tmp, tot_nlf_res_list_tmp, topK_tokens_list_tmp) if (tot_pages and tot_pages != 0)]
-
-	# print(len(topK_tokens_list), topK_tokens_list)
-	# print(len(tot_nlf_res_list), tot_nlf_res_list)
-	# print(len(nlf_pages_by_year_list), nlf_pages_by_year_list)
-	# print(f"elp: {time.time()-rm_t:.5f} sec")
-	###################################################################################################################
-
-	###################################################################################################################
-	# sort descending: not time consuming...
-	sort_t = time.time()
-	# print(f"=> sorting...")
-	tot_nlf_res_list = tot_nlf_res_list[::-1]
-	topK_tokens_list = topK_tokens_list[::-1]
-	nlf_pages_by_year_list = nlf_pages_by_year_list[::-1]
-	
-	# print(len(topK_tokens_list), topK_tokens_list)
-	# print(len(tot_nlf_res_list), tot_nlf_res_list)
-	# print(len(nlf_pages_by_year_list), nlf_pages_by_year_list)
-
-	# print(f"elp: {time.time()-sort_t:.5f} sec => DONE!!!")
-	###################################################################################################################
+	# Filter results where NLF pages exist
+	filtered_results = [
+		(tk, nlf, yearly_pages)
+		for tk, nlf, yearly_pages in zip(topK_tokens_list, tot_nlf_res_list, nlf_pages_by_year_list)
+		if nlf and nlf != 0
+	]
+	# Unpack filtered results
+	topK_tokens_list, tot_nlf_res_list, nlf_pages_by_year_list = zip(*filtered_results) if filtered_results else ([], [], [])
+	# Reverse results for descending order
+	topK_tokens_list = list(reversed(topK_tokens_list))
+	tot_nlf_res_list = list(reversed(tot_nlf_res_list))
+	nlf_pages_by_year_list = list(reversed(nlf_pages_by_year_list))
 	print(
 		f"Found {len(topK_tokens_list)} Recommendation Results "
 		f"(with {len(tot_nlf_res_list)} NLF pages) and separated: {len(nlf_pages_by_year_list)} "

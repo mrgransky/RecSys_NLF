@@ -180,30 +180,15 @@ def extract_tar(fname: str="file_name"):
 		with tarfile.open(fname, 'r:gz') as tfile:
 			tfile.extractall(output_folder)
 
-# def is_substring(A: str="evankelis luterilainen kirkko", B: str="evankelisluterilainen") -> bool:
-# 	words_in_A = A.lower().split()
-# 	# print(f"Q: {words_in_A} | Recommended: {B}")
-# 	for word in words_in_A:
-# 		# print(word)
-# 		if word in B or B in word:
-# 			print(f"\t>> Q: {words_in_A} | < {word} > removing Recommeded: {B}")
-# 			return False
-# 	# print("True")
-# 	return True
-
 def is_substring(A: str = "evankelis luterilainen kirkko", B: str = "evankelisluterilainen") -> bool:
-	# Convert both A and B to lowercase for case-insensitive comparison
 	a_lower = A.lower()
-	b_lower = B.lower()
-	
-	# Precompute words in A once
-	words_in_A = a_lower.split()
-	
+	b_lower = B.lower()	
+	words_in_A = a_lower.split() 	# Precompute words in A once
 	# Check substring relationships
 	for word in words_in_A:
-			if word in b_lower or b_lower in word:
-					print(f"\t>> Q: {words_in_A} | < {word} > removing Recommended: {B}")
-					return False
+		if word in b_lower or b_lower in word:
+			print(f"\t>> Q: {words_in_A} | < {word} > removing Recommended: {B}")
+			return False
 	return True
 
 @cache
@@ -714,9 +699,9 @@ def get_topK_tokens(
 	nlf_pages_by_year_list = list(reversed(nlf_pages_by_year_list))
 	print(
 		f"Found {len(topK_tokens_list)} Recommendation Results "
-		f"(with {len(tot_nlf_res_list)} NLF pages) and separated: {len(nlf_pages_by_year_list)} "
-		f"Elapsed: {time.time()-st_t:.2f} sec"
-		.center(160, "-")
+		f"(with {len(tot_nlf_res_list)} NLF pages) and separated: {len(nlf_pages_by_year_list)} years. "
+		f"Elapsed_t: {time.time()-st_t:.2f} s"
+		.center(160, " ")
 	)
 	return topK_tokens_list, tot_nlf_res_list, nlf_pages_by_year_list
 

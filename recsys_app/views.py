@@ -268,7 +268,6 @@ def main_page(request, query=None):
 		# Build the 'next' parameter to redirect the user back to their intended query page
 		next_url = f"/home/query={query}" if query else "/home/"
 		return redirect(f"/?next={next_url}")
-
 	context = {
 		'user_name': user_name,
 		'welcome_text': "Welcome to User-based Recommendation System!<br>What are you looking after?",
@@ -288,6 +287,7 @@ def main_page(request, query=None):
 		context["input_query"] = RAW_INPUT_QUERY
 		raw_query_nlf_results = get_nlf_pages(INPUT_QUERY=RAW_INPUT_QUERY)
 		if raw_query_nlf_results and raw_query_nlf_results > 0 and clean_(docs=RAW_INPUT_QUERY):
+			one_search_time = time.time()
 			recSys_results, recSys_results_total_nlf_num_pages, recSys_results_nlf_yearly_pages = get_recsys_results(
 				query_phrase=RAW_INPUT_QUERY, 
 				nTokens=MAX_NUM_RECOMMENDED_TOKENS+7,
@@ -301,10 +301,10 @@ def main_page(request, query=None):
 				context['curr_length_recSys'] = min(CURRENT_NUM_RECOMMENDED_TOKENS, len(recSys_results))
 				context['recsys_results_total_nlf_pages'] = recSys_results_total_nlf_num_pages[:MAX_NUM_RECOMMENDED_TOKENS]
 				context['recsys_results_nlf_yearly_nPGs'] = recSys_results_nlf_yearly_pages[:MAX_NUM_RECOMMENDED_TOKENS]
-				print(f"For user: < {user_name} > we found {len(recSys_results)} Recommendation Result(s):\n{recSys_results}")
+				print(f"< {user_name} > | {len(recSys_results)} recommendation(s) | Total elapsed time: {time.time()-one_search_time:.1f} sec".center(150, '-'))
+				print(len(recSys_results), recSys_results)
 				print(len(recSys_results_total_nlf_num_pages), recSys_results_total_nlf_num_pages)
-				# print(len(recSys_results_nlf_yearly_pages), recSys_results_nlf_yearly_pages) # separate page numbers for pie chart
-				print("*"*150)
+				print("-"*150)
 				context['recommendation_results'] = recSys_results[:MAX_NUM_RECOMMENDED_TOKENS]
 			else:
 				logging.error("No recsys results Found!")

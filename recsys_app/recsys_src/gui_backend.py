@@ -180,15 +180,30 @@ def extract_tar(fname: str="file_name"):
 		with tarfile.open(fname, 'r:gz') as tfile:
 			tfile.extractall(output_folder)
 
-def is_substring(A: str="evankelis luterilainen kirkko", B: str="evankelisluterilainen") -> bool:
-	words_in_A = A.lower().split()
-	# print(f"Q: {words_in_A} | Recommended: {B}")
+# def is_substring(A: str="evankelis luterilainen kirkko", B: str="evankelisluterilainen") -> bool:
+# 	words_in_A = A.lower().split()
+# 	# print(f"Q: {words_in_A} | Recommended: {B}")
+# 	for word in words_in_A:
+# 		# print(word)
+# 		if word in B or B in word:
+# 			print(f"\t>> Q: {words_in_A} | < {word} > removing Recommeded: {B}")
+# 			return False
+# 	# print("True")
+# 	return True
+
+def is_substring(A: str = "evankelis luterilainen kirkko", B: str = "evankelisluterilainen") -> bool:
+	# Convert both A and B to lowercase for case-insensitive comparison
+	a_lower = A.lower()
+	b_lower = B.lower()
+	
+	# Precompute words in A once
+	words_in_A = a_lower.split()
+	
+	# Check substring relationships
 	for word in words_in_A:
-		# print(word)
-		if word in B or B in word:
-			print(f"\t>> Q: {words_in_A} | < {word} > removing Recommeded: {B}")
-			return False
-	# print("True")
+			if word in b_lower or b_lower in word:
+					print(f"\t>> Q: {words_in_A} | < {word} > removing Recommended: {B}")
+					return False
 	return True
 
 @cache
@@ -487,20 +502,17 @@ def get_customized_recsys_avg_vec_gpu(spMtx, cosine_sim, idf_vec, spMtx_norm,):
 # 	return yearly_nlf_pages
 
 def count_years_by_range(yr_vs_nPGs: Dict[str, int], ts_1st: int = 1899, ts_2nd=None, ts_3rd=None, ts_end: int = 1946):
-		if not yr_vs_nPGs:
-				return [0, 0, 0, 0]
-
-		# Convert data to NumPy arrays for vectorized operations
-		years = np.array(list(map(int, yr_vs_nPGs.keys())))
-		counts = np.array(list(yr_vs_nPGs.values()))
-
-		# Calculate ranges using boolean masks
-		first_range = counts[years <= ts_1st].sum()
-		second_range = counts[np.isin(years, ts_2nd)].sum() if ts_2nd is not None else 0
-		third_range = counts[np.isin(years, ts_3rd)].sum() if ts_3rd is not None else 0
-		forth_range = counts[years >= ts_end].sum()
-
-		return [first_range, second_range, third_range, forth_range]
+	if not yr_vs_nPGs:
+		return [0, 0, 0, 0]
+	# Convert data to NumPy arrays for vectorized operations
+	years = np.array(list(map(int, yr_vs_nPGs.keys())))
+	counts = np.array(list(yr_vs_nPGs.values()))
+	# Calculate ranges using boolean masks
+	first_range = counts[years <= ts_1st].sum()
+	second_range = counts[np.isin(years, ts_2nd)].sum() if ts_2nd is not None else 0
+	third_range = counts[np.isin(years, ts_3rd)].sum() if ts_3rd is not None else 0
+	forth_range = counts[years >= ts_end].sum()
+	return [first_range, second_range, third_range, forth_range]
 
 async def get_recommendation_num_NLF_pages_async(session, INPUT_QUERY: str="global warming", REC_TK: str="pollution", ts_1st: int=1899, ts_2nd=np.arange(1900, 1919+1, 1), ts_3rd=np.arange(1920, 1945+1, 1), ts_end: int=1946):
 	URL = f"{SEARCH_QUERY_DIGI_URL}" + urllib.parse.quote_plus(INPUT_QUERY + " " + REC_TK)
@@ -542,16 +554,6 @@ async def get_recommendation_num_NLF_pages_async(session, INPUT_QUERY: str="glob
 		return None, None
 
 async def get_num_NLF_pages_asynchronous_run(qu: str="global warming", TOKENs_list: List[str]=["tk1", "tk2"], ts_1st: int=1899, ts_2nd=np.arange(1900, 1919+1, 1), ts_3rd=np.arange(1920, 1945+1, 1), ts_end: int=1946):
-	# async with aiohttp.ClientSession() as session:
-	# 		tasks = [
-	# 			NLF_TOT_NUM_PGs
-	# 			for tk in TOKENs_list
-	# 			if (
-	# 				(NLF_TOT_NUM_PGs:=get_recommendation_num_NLF_pages_async(session, INPUT_QUERY=qu, REC_TK=tk))
-	# 			)
-	# 		]
-	# 		num_NLF_pages = await asyncio.gather(*tasks)
-	# 		return num_NLF_pages
 	async with aiohttp.ClientSession() as session:
 		tasks = [
 			get_recommendation_num_NLF_pages_async(
@@ -566,11 +568,8 @@ async def get_num_NLF_pages_asynchronous_run(qu: str="global warming", TOKENs_li
 			for tk in TOKENs_list
 		]
 		results = await asyncio.gather(*tasks)
-
-		# Separating total NLF results and pages by year from the gathered results
 		num_NLF_pages = [result[0] for result in results if result[0] is not None]
-		NLF_pages_by_year_list = [result[1] for result in results if result[1] is not None]
-		
+		NLF_pages_by_year_list = [result[1] for result in results if result[1] is not None]		
 		return num_NLF_pages, NLF_pages_by_year_list
 
 # def get_topK_tokens(
@@ -680,7 +679,7 @@ def get_topK_tokens(
 	# Filter tokens efficiently
 	topK_tokens_list = [
 		mat_cols[iTK]
-		for iTK in avgrec.argsort()[-K:]
+		for iTK in avgrec.argsort()[-K:] # descending sorting
 		if (
 			mat_cols[iTK] not in tok_query
 			and mat_cols[iTK] not in meaningless_lemmas_list

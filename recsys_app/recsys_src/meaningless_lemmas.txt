@@ -8658,7 +8658,6 @@ belkrtfning
 itler
 kuv
 kuw
-porvo
 porvaa
 porwo
 porvoc
@@ -14567,3 +14566,6 @@ patentteja
 överlåtits
 paavos
 psalm
+työasiain
+bergenstråles
+karjaa

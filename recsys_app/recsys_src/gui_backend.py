@@ -24,6 +24,7 @@ import pandas as pd
 import cupy as cp
 import warnings
 warnings.filterwarnings("ignore")
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 lemmatizer_methods = {
 	"nltk": nltk_lemmatizer,

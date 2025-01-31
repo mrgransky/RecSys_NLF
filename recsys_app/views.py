@@ -301,7 +301,7 @@ def main_page(request, query=None):
 				context['curr_length_recSys'] = min(CURRENT_NUM_RECOMMENDED_TOKENS, len(recSys_results))
 				context['recsys_results_total_nlf_pages'] = recSys_results_total_nlf_num_pages[:MAX_NUM_RECOMMENDED_TOKENS]
 				context['recsys_results_nlf_yearly_nPGs'] = recSys_results_nlf_yearly_pages[:MAX_NUM_RECOMMENDED_TOKENS]
-				print(f"< {user_name} > | {len(recSys_results)} recommendation(s) | Total elapsed time: {time.time()-one_search_time:.1f} sec".center(150, '-'))
+				print(f"< {user_name} > | Query: {RAW_INPUT_QUERY}| {len(recSys_results)} recommendation(s) | Total elapsed time: {time.time()-one_search_time:.1f} sec".center(150, '-'))
 				print(len(recSys_results), recSys_results)
 				print(len(recSys_results_total_nlf_num_pages), recSys_results_total_nlf_num_pages)
 				print("-"*150)

@@ -177,11 +177,13 @@ def track_click(request):
 			# Get user information
 			user_info = get_user_info(request)
 			detailed_user_info = get_detailed_user_info()
+
 			# Get click data
 			data = json.loads(request.body)
-			clicked_recommendation = data.get('clicked_recommendation')
+			user_action = data.get('clicked_recommendation', 'NLF Search Triggered')
 			input_query = data.get('input_query')
 			segment_info = data.get('segment_info')
+
 			# Create log message
 			log_message = (
 				f"\nUser Activity Report\n"
@@ -193,7 +195,7 @@ def track_click(request):
 				f"User Agent: {user_info['user_agent']}\n"
 				f"Referrer: {user_info['referrer']}\n"
 				f"Search Query: {input_query}\n"
-				f"Clicked Recommendation: {clicked_recommendation}\n"
+				f"Action: {user_action}\n"
 			)
 			# Add segment info if available
 			if segment_info:
@@ -213,7 +215,7 @@ def track_click(request):
 				{
 					'timestamp': user_info['timestamp'],
 					'query': input_query,
-					'recommendation': clicked_recommendation,
+					'recommendation': user_action,
 					'segment_info': segment_info
 				}
 			)

@@ -130,22 +130,56 @@
 		function searchNLF() {
 			var query = document.getElementsByName("query")[0].value.trim();
 			if (query !== "") {
+				// Track the search action
+				fetch('/track_click/', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						'X-CSRFToken': '{{ csrf_token }}'
+					},
+					body: JSON.stringify({
+						clicked_recommendation: 'NLF Search Triggered',
+						input_query: query
+					})
+				})
+				.then(response => response.json())
+				.catch(error => console.error('Error tracking search:', error));
 				document.title = query;
-				var libLinkContainer = document.getElementById("libraryLinkContainer");
-				var link = document.createElement("a");
-				link.href = digi_base_url + encodeURIComponent(query);
-				link.target = "_blank";
-				link.textContent = "Click here to open National Library Results";
-				libLinkContainer.innerHTML = "";// Clear any previous content
-				libLinkContainer.appendChild(link);
-				libLinkContainer.classList.add('blur-background');
+				var url = digi_base_url + encodeURIComponent(query);
+				
+				// Calculate window dimensions
+				const screenWidth = window.screen.width;
+				const screenHeight = window.screen.height;
+				const width = Math.round(screenWidth * 0.5);
+				const height = screenHeight;
+				const left = screenWidth - width;
+				
+				// Open new window with calculated dimensions
+				myWindow = window.open(url, "", `width=${width}, height=${height}, left=${left}, top=0`);
+				
+				// Shift main content to the left
+				var container = document.querySelector('.container');
+				container.style.transition = 'transform 0.5s ease, width 0.5s ease';
+				container.style.transform = 'translateX(-30%)';
+				container.style.width = '70%';
 			} else {
 				alert('Enter a valid query prompt to proceed!');
 			}
 		}
-		
+
 		function clearNlfSearch() {
 			resetTitle();
+			// Reset container position and size
+			var container = document.querySelector('.container');
+			container.style.transition = 'transform 0.5s ease, width 0.5s ease';
+			container.style.transform = 'translateX(0)';
+			container.style.width = '100%';
+		
+			// Close the opened window if it exists
+			if (myWindow && !myWindow.closed) {
+				myWindow.close();
+			}
+			
 			// Clear the search results
 			var libLinkContainer = document.getElementById("libraryLinkContainer");
 			libLinkContainer.innerHTML = "";

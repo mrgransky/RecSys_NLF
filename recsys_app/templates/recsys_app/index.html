@@ -34,7 +34,7 @@
 				<div class="search-input">
 					<input type="text" name="query" class="search-input-field" placeholder="Hakusana | Sökord | Query prompt" value="{{ input_query|default:'' }}">
 				</div>
-				<div class="button-container">
+				<!-- <div class="button-container">
 					<input class="btn-nlf-search" type="button" value="Search NLF" onclick="searchNLF()">
 					<input class="btn-clear" type="button" value="Clear" onclick="clearNlfSearch()">
 				</div>
@@ -42,6 +42,11 @@
 				<div class="button-container">
 					<input type="submit" value="Recommend Me" onclick="recommendMe(event)">
 					<input class="btn-clear" type="button" value="Clear" onclick="clearRecSys()">
+				</div> -->
+				<div class="button-container">
+					<input class="btn-nlf-search" type="button" value="Search NLF" onclick="searchNLF()">
+					<input type="submit" value="Recommend Me" onclick="recommendMe(event)">
+					<input class="btn-clear" type="button" value="Clear" onclick="clearAll()">
 				</div>
 				<div class="loading-container">
 					<div id="loadingSpinner" class="loading-spinner">
@@ -159,9 +164,11 @@
 				
 				// Shift main content to the left
 				var container = document.querySelector('.container');
-				container.style.transition = 'transform 0.5s ease, width 0.5s ease';
-				container.style.transform = 'translateX(-30%)';
-				container.style.width = '70%';
+				container.classList.add('translated');
+				setVerticalButtons();
+				// container.style.transition = 'transform 0.5s ease, width 0.5s ease';
+				// container.style.transform = 'translateX(-30%)';
+				// container.style.width = '70%';
 			} else {
 				alert('Enter a valid query prompt to proceed!');
 			}
@@ -198,7 +205,95 @@
 			// Redirect to base URL
 			window.location.href = '/home/';
 		}
-		
+
+		function setVerticalButtons() {
+			var buttonContainer = document.querySelector('.button-container');
+			buttonContainer.classList.add('vertical');
+		}
+
+		function setHorizontalButtons() {
+			var buttonContainer = document.querySelector('.button-container');
+			buttonContainer.classList.remove('vertical');
+		}
+
+		function clearAll() {
+			resetTitle();
+			
+			// Reset container position and size
+			var container = document.querySelector('.container');
+			container.classList.remove('translated');
+			setHorizontalButtons();
+			
+			// Close any opened windows
+			if (myWindow && !myWindow.closed) {
+					myWindow.close();
+			}
+			
+			// Clear search results and recommendations
+			var recommendationsContainer = document.querySelector('.recommendationsContainer');
+			if (recommendationsContainer) {
+					recommendationsContainer.remove();
+			}
+			
+			// Clear input field
+			var queryInput = document.getElementsByName("query")[0];
+			queryInput.value = "";
+			queryInput.placeholder = "Hakusana | Sökord | Query prompt";
+			
+			// Clear library link container
+			var libLinkContainer = document.getElementById("libraryLinkContainer");
+			libLinkContainer.innerHTML = "";
+			
+			// Remove blur effect
+			var blurElements = document.querySelectorAll('.blur-background');
+			blurElements.forEach(function(element) {
+					element.classList.remove('blur-background');
+			});
+			
+			// Redirect to base URL
+			window.location.href = '/home/';
+		}
+
+		// function clearAll() {
+		// 	// Reset UI state
+		// 	resetTitle();
+			
+		// 	// Reset container layout
+		// 	var container = document.querySelector('.container');
+		// 	container.style.transition = 'transform 0.5s ease, width 0.5s ease';
+		// 	container.style.transform = 'translateX(0)';
+		// 	container.style.width = '100%';
+			
+		// 	// Close any opened windows
+		// 	if (myWindow && !myWindow.closed) {
+		// 			myWindow.close();
+		// 	}
+			
+		// 	// Clear search results and recommendations
+		// 	var recommendationsContainer = document.querySelector('.recommendationsContainer');
+		// 	if (recommendationsContainer) {
+		// 			recommendationsContainer.remove();
+		// 	}
+			
+		// 	// Clear input field
+		// 	var queryInput = document.getElementsByName("query")[0];
+		// 	queryInput.value = "";
+		// 	queryInput.placeholder = "Hakusana | Sökord | Query prompt";
+			
+		// 	// Clear library link container
+		// 	var libLinkContainer = document.getElementById("libraryLinkContainer");
+		// 	libLinkContainer.innerHTML = "";
+			
+		// 	// Remove blur effect
+		// 	var blurElements = document.querySelectorAll('.blur-background');
+		// 	blurElements.forEach(function(element) {
+		// 			element.classList.remove('blur-background');
+		// 	});
+			
+		// 	// Redirect to base URL
+		// 	window.location.href = '/home/';
+		// }
+
 		function showLoadingSpinner() {
 			document.title = "Searching...";
 			document.getElementById("loadingSpinner").style.display = "flex";
@@ -370,18 +465,10 @@
 	</script>
 
 	<script>
-		// try { // must be here, otherwise "alert" is shown!
-		// 	recSysResults = {{ recommendation_results|safe }};
-		// } catch (error) {
-		// 	alert(`< ${globalQuery} > NOT FOUND in Database, Search Again!`);
-		// 	recSysResults = null;
-		// 	hideLoadingSpinner();
-		// 	event.preventDefault();
-		// }
 
 		// Event Listeners: 
 		document.addEventListener('DOMContentLoaded', function() {
-		try {
+			try {
 					// Check if recommendation_results exists in the template context
 					{% if recommendation_results %}
 							recSysResults = {{ recommendation_results|safe }};
@@ -398,34 +485,31 @@
 									hideLoadingSpinner();
 							}
 					{% endif %}
-			} catch (error) {
+				} catch (error) {
 					console.error('Error processing results:', error);
 					if (globalQuery && globalQuery.trim() !== '') {
 							alert(`< ${globalQuery} > NOT FOUND in Database, Search Again!`);
 					}
 					recSysResults = null;
 					hideLoadingSpinner();
-			}
-			// pie chart:
-			const pieChartContainers = document.querySelectorAll('.pie-chart-container');
-			pieChartContainers.forEach(createPieChart);
-			
-			// rec-link:
-			const links = document.querySelectorAll('.rec-link');
-			links.forEach(function(link) {
-				link.addEventListener('click', function(event) {
+				}
+				// pie chart:
+				const pieChartContainers = document.querySelectorAll('.pie-chart-container');
+				pieChartContainers.forEach(createPieChart);
+				
+				// rec-link:
+				document.querySelectorAll('.rec-link').forEach(function(link) {
+					link.addEventListener('click', function(event) {
 						event.preventDefault(); // Prevent default link behavior
 						var container = document.querySelector('.container');
-						container.style.transform = 'translateX(-30%)';
-						container.style.width = '50%'; // Shrink width
+						container.classList.add('translated'); // Add the 'translated' class to the container
+						setVerticalButtons();
+						// container.style.transform = 'translateX(-30%)';
+						// container.style.width = '50%'; // Shrink width
 						var url = link.href; // Get the URL of the clicked link
-
-						console.log("closing any prev opened win (if any)...", myWindow)
 						if (myWindow) {
 							try {
-								console.log("try block")
 								myWindow.close(); // Close the previous window if open
-								console.log("MUST BE CLOSED NOW!!!!")
 							} catch {
 								console.error("Error closing window:", error);
 							}
@@ -437,26 +521,25 @@
 						const left = screenWidth - width; //Shift window to the right side
 						myWindow = window.open(url, "", `width=${width}, height=${height}, left=${left}, top=0`);
 						myWindow.focus();
-						console.log("myWindow After Focus:", myWindow)
-				});
-				link.addEventListener('click', function(e) {
-					const clickedRecommendation = this.getAttribute('data-recommendation');
-					const inputQuery = this.getAttribute('data-query');
-					trackClick(clickedRecommendation, inputQuery);
-				});
-				link.addEventListener('auxclick', function(e) {
-					if (e.button === 1) { // Middle click
+					});
+					link.addEventListener('click', function(e) {
 						const clickedRecommendation = this.getAttribute('data-recommendation');
 						const inputQuery = this.getAttribute('data-query');
 						trackClick(clickedRecommendation, inputQuery);
-					}
+					});
+					link.addEventListener('auxclick', function(e) {
+						if (e.button === 1) { // Middle click
+							const clickedRecommendation = this.getAttribute('data-recommendation');
+							const inputQuery = this.getAttribute('data-query');
+							trackClick(clickedRecommendation, inputQuery);
+						}
+					});
+					link.addEventListener('contextmenu', function(e) { // right click (not required!)
+						const clickedRecommendation = this.getAttribute('data-recommendation');
+						const inputQuery = this.getAttribute('data-query');
+						trackClick(clickedRecommendation, inputQuery);
+					});
 				});
-				link.addEventListener('contextmenu', function(e) { // right click (not required!)
-					const clickedRecommendation = this.getAttribute('data-recommendation');
-					const inputQuery = this.getAttribute('data-query');
-					trackClick(clickedRecommendation, inputQuery);
-				});
-			});
 		});
 		
 	</script>

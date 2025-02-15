@@ -166,9 +166,6 @@
 				var container = document.querySelector('.container');
 				container.classList.add('translated');
 				setVerticalButtons();
-				// container.style.transition = 'transform 0.5s ease, width 0.5s ease';
-				// container.style.transform = 'translateX(-30%)';
-				// container.style.width = '70%';
 			} else {
 				alert('Enter a valid query prompt to proceed!');
 			}
@@ -217,6 +214,9 @@
 		}
 
 		function clearAll() {
+			// Redirect to base URL
+			window.location.href = '/home/';
+
 			resetTitle();
 			
 			// Reset container position and size
@@ -226,13 +226,13 @@
 			
 			// Close any opened windows
 			if (myWindow && !myWindow.closed) {
-					myWindow.close();
+				myWindow.close();
 			}
 			
 			// Clear search results and recommendations
 			var recommendationsContainer = document.querySelector('.recommendationsContainer');
 			if (recommendationsContainer) {
-					recommendationsContainer.remove();
+				recommendationsContainer.remove();
 			}
 			
 			// Clear input field
@@ -247,52 +247,9 @@
 			// Remove blur effect
 			var blurElements = document.querySelectorAll('.blur-background');
 			blurElements.forEach(function(element) {
-					element.classList.remove('blur-background');
+				element.classList.remove('blur-background');
 			});
-			
-			// Redirect to base URL
-			window.location.href = '/home/';
 		}
-
-		// function clearAll() {
-		// 	// Reset UI state
-		// 	resetTitle();
-			
-		// 	// Reset container layout
-		// 	var container = document.querySelector('.container');
-		// 	container.style.transition = 'transform 0.5s ease, width 0.5s ease';
-		// 	container.style.transform = 'translateX(0)';
-		// 	container.style.width = '100%';
-			
-		// 	// Close any opened windows
-		// 	if (myWindow && !myWindow.closed) {
-		// 			myWindow.close();
-		// 	}
-			
-		// 	// Clear search results and recommendations
-		// 	var recommendationsContainer = document.querySelector('.recommendationsContainer');
-		// 	if (recommendationsContainer) {
-		// 			recommendationsContainer.remove();
-		// 	}
-			
-		// 	// Clear input field
-		// 	var queryInput = document.getElementsByName("query")[0];
-		// 	queryInput.value = "";
-		// 	queryInput.placeholder = "Hakusana | Sökord | Query prompt";
-			
-		// 	// Clear library link container
-		// 	var libLinkContainer = document.getElementById("libraryLinkContainer");
-		// 	libLinkContainer.innerHTML = "";
-			
-		// 	// Remove blur effect
-		// 	var blurElements = document.querySelectorAll('.blur-background');
-		// 	blurElements.forEach(function(element) {
-		// 			element.classList.remove('blur-background');
-		// 	});
-			
-		// 	// Redirect to base URL
-		// 	window.location.href = '/home/';
-		// }
 
 		function showLoadingSpinner() {
 			document.title = "Searching...";

@@ -34,18 +34,9 @@
 				<div class="search-input">
 					<input type="text" name="query" class="search-input-field" placeholder="Hakusana | Sökord | Query prompt" value="{{ input_query|default:'' }}">
 				</div>
-				<!-- <div class="button-container">
-					<input class="btn-nlf-search" type="button" value="Search NLF" onclick="searchNLF()">
-					<input class="btn-clear" type="button" value="Clear" onclick="clearNlfSearch()">
-				</div>
-				<div id="libraryLinkContainer"></div>
-				<div class="button-container">
-					<input type="submit" value="Recommend Me" onclick="recommendMe(event)">
-					<input class="btn-clear" type="button" value="Clear" onclick="clearRecSys()">
-				</div> -->
 				<div class="button-container">
 					<input class="btn-nlf-search" type="button" value="Search NLF" onclick="searchNLF()">
-					<input type="submit" value="Recommend Me" onclick="recommendMe(event)">
+					<input type="submit" value="Recommend" onclick="recommendMe(event)">
 					<input class="btn-clear" type="button" value="Clear" onclick="clearAll()">
 				</div>
 				<div class="loading-container">

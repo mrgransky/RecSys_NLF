@@ -189,7 +189,7 @@ def is_substring(A: str = "evankelis luterilainen kirkko", B: str = "evankelislu
 	# Check substring relationships
 	for word in words_in_A:
 		if word in b_lower or b_lower in word:
-			print(f"\t>> Q: {words_in_A} | < {word} > removing Recommended: {B}")
+			# print(f"\t>> Q: {words_in_A} | < {word} > removing recommended token: {B}")
 			return False
 	return True
 

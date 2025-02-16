@@ -4,7 +4,7 @@
 ## $ nohup bash nlf_website_pouta.sh > /dev/null 2>&1 &
 ## $ nohup bash nlf_website_pouta.sh > /media/volume/Nationalbiblioteket/trash/nlf_website_logs.out &
 
-# $ rm -rf staticfiles && python manage.py collectstatic --noinput && python manage.py clearsessions && clear && python manage.py runserver
+## $ rm -rf staticfiles && python manage.py collectstatic --noinput && python manage.py clearsessions && clear && python manage.py runserver
 
 set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error and exit immediately.
